@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ org.riverock.dbrevision - Database revision engine
+  ~ For more information about DbRevision, please visit project site
+  ~ http://www.riverock.org
+  ~
+  ~ Copyright (C) 2006-2006, Riverock Software, All Rights Reserved.
+  ~
+  ~ Riverock - The Open-source Java Development Community
+  ~ http://www.riverock.org
+  ~
+  ~
+  ~ This library is free software; you can redistribute it and/or
+  ~ modify it under the terms of the GNU Lesser General Public
+  ~ License as published by the Free Software Foundation; either
+  ~ version 2.1 of the License, or (at your option) any later version.
+  ~
+  ~ This library is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+  ~ Lesser General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU Lesser General Public
+  ~ License along with this library; if not, write to the Free Software
+  ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+  -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:riverock-db-stuct="http://generic.riverock.org/xsd/riverock-database-structure.xsd">
+	<xs:annotation>
+		<xs:documentation>Copyright 2002-2006, riverock, http://www.riverock.org</xs:documentation>
+	</xs:annotation>
+	<xs:annotation>
+		<xs:documentation>WebMill XML/XSLT web portlet engine</xs:documentation>
+	</xs:annotation>
+	<xs:import namespace="http://generic.riverock.org/xsd/riverock-database-structure.xsd" schemaLocation="riverock-database-structure.xsd"/>
+	<xs:complexType name="CustomSequence">
+		<xs:attribute name="sequenceName" type="xs:string"/>
+		<xs:attribute name="tableName" type="xs:string"/>
+		<xs:attribute name="columnName" type="xs:string"/>
+	</xs:complexType>
+	<xs:element name="DbFixPack" type="DbFixPack"/>
+	<xs:complexType name="DbFixPack">
+		<xs:sequence minOccurs="0" maxOccurs="unbounded">
+			<xs:element name="FixPackFileName" type="xs:string"/>
+		</xs:sequence>
+		<xs:attribute name="version" type="xs:string" use="required"/>
+		<xs:attribute name="isPatch" type="xs:boolean" use="required"/>
+	</xs:complexType>
+	<xs:element name="DefinitionList" type="DefinitionList"/>
+	<xs:complexType name="DefinitionList">
+		<xs:sequence>
+			<xs:element name="Definition" type="Definition" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Definition">
+		<xs:sequence>
+			<xs:element name="NameDef" type="xs:string"/>
+			<xs:element name="PreviousNameDef" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Name of all definition, which must be processed before this definition</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="IsAutoProcessTable" type="xs:boolean">
+				<xs:annotation>
+					<xs:documentation>Is auto update database schema bases on differents between version</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="IsSilensAction" type="xs:boolean" default="false" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Do not throw any exception</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:choice minOccurs="0" maxOccurs="unbounded">
+				<xs:element name="TableList" type="DefinitionTableList" minOccurs="0"/>
+				<xs:element name="ActionList" type="DefinitionActionList" minOccurs="0"/>
+				<xs:element name="Data" type="DefinitionDataList" minOccurs="0"/>
+				<xs:element name="SequenceList" type="riverock-db-stuct:DbSequenceList" minOccurs="0"/>
+				<xs:element name="ImportedKeys" type="riverock-db-stuct:DbImportedKeyList" minOccurs="0"/>
+				<xs:element name="PrimaryKey" type="riverock-db-stuct:DbPrimaryKey" minOccurs="0"/>
+				<xs:element name="ViewList" type="riverock-db-stuct:DbViewList" minOccurs="0"/>
+			</xs:choice>
+		</xs:sequence>
+		<xs:attribute name="isPatch" type="xs:boolean" use="required"/>
+	</xs:complexType>
+	<xs:complexType name="DefinitionTableList">
+		<xs:sequence>
+			<xs:element name="Table" type="riverock-db-stuct:DbTable" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="DefinitionDataList">
+		<xs:sequence>
+			<xs:element name="Table" type="DefinitionTableData" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="DefinitionTableData">
+		<xs:sequence>
+			<xs:element name="Record" type="DefinitionRecordData" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="nameTable" type="xs:string" use="required"/>
+	</xs:complexType>
+	<xs:complexType name="DefinitionRecordData">
+		<xs:sequence>
+			<xs:element name="Field" type="DefinitionFieldData" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="DefinitionFieldData">
+		<xs:sequence>
+			<xs:element name="TypeField">
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="string"/>
+						<xs:enumeration value="date"/>
+						<xs:enumeration value="number"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:choice>
+				<xs:element name="StringData" type="xs:string" minOccurs="0"/>
+				<xs:element name="DateData" type="xs:dateTime" minOccurs="0"/>
+				<xs:element name="NumberData" type="xs:decimal" minOccurs="0"/>
+			</xs:choice>
+		</xs:sequence>
+		<xs:attribute name="nameField" type="xs:string" use="required"/>
+		<xs:attribute name="isNull" type="xs:boolean" use="required"/>
+	</xs:complexType>
+	<xs:element name="FieldData" type="DefinitionFieldData"/>
+	<xs:complexType name="DefinitionActionList">
+		<xs:sequence>
+			<xs:element name="Action" type="DefinitionAction" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="DefinitionAction">
+		<xs:sequence>
+			<xs:element name="ActionType">
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="CUSTOM_SQL"/>
+						<xs:enumeration value="CUSTOM_CLASS_ACTION"/>
+						<xs:enumeration value="CREATE_SEQUENCE"/>
+						<xs:enumeration value="CREATE_TABLE"/>
+						<xs:enumeration value="ADD_TABLE_COLUMN"/>
+						<xs:enumeration value="DROP_TABLE_COLUMN"/>
+						<xs:enumeration value="ADD_PRIMARY_KEY"/>
+						<xs:enumeration value="ADD_FOREIGN_KEY"/>
+						<xs:enumeration value="DROP_PRIMARY_KEY"/>
+						<xs:enumeration value="DROP_FOREIGN_KEY"/>
+						<xs:enumeration value="DROP_TABLE"/>
+						<xs:enumeration value="DROP_SEQUENCE"/>
+						<xs:enumeration value="DELETE_BEFORE_FK"/>
+						<xs:enumeration value="COPY_COLUMN"/>
+						<xs:enumeration value="CLONE_COLUMN"/>
+						<xs:enumeration value="COPY_TABLE"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="ActionParameters" type="DefinitionActionDataList" minOccurs="0"/>
+		</xs:sequence>
+		<xs:attribute name="isSilensAction" type="xs:boolean" default="false"/>
+	</xs:complexType>
+	<xs:complexType name="DefinitionActionData">
+		<xs:sequence>
+			<xs:element name="Data" type="xs:string"/>
+		</xs:sequence>
+		<xs:attribute name="name" type="xs:string" use="required"/>
+	</xs:complexType>
+	<xs:complexType name="DefinitionActionDataList">
+		<xs:sequence>
+			<xs:element name="Parameter" type="DefinitionActionData" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="ActionData" type="DefinitionActionList"/>
+	<xs:complexType name="PrimaryKey">
+		<xs:attribute name="type">
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:enumeration value="number"/>
+					<xs:enumeration value="string"/>
+					<xs:enumeration value="date"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+	</xs:complexType>
+</xs:schema>
