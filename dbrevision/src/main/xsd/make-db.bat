@@ -1,0 +1,1 @@
+C:\opt2\jaxb-ri-20060801\bin\xjc.bat riverock-database.xsd -p org.riverock.generic.annotation.schema.db -d ../java
