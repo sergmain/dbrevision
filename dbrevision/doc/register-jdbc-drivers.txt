@@ -1,0 +1,6 @@
+rem list of jdbc drivers: http://mvnrepository.com/tags/jdbc
+
+
+mvn install:install-file -Dpackaging=jar -Dfile=mysql-connector-java-5.0.3-bin.jar -DgroupId=mysql -DartifactId=mysql -Dversion=5.0.3
+
+mvn install:install-file -Dpackaging=jar -Dfile=ojdbc14-10g.jar -DgroupId=oracle -DartifactId=oracle -Dversion=10g
