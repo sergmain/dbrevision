@@ -9,9 +9,17 @@
     <url>http://www.riverock.org</url>
     <repositories>
         <repository>
-            <id>java.net</id>
-            <url>https://maven-repository.dev.java.net/nonav/repository</url>
-            <layout>legacy</layout>
+            <id>Riverock repo</id>
+            <url>http://test.askmore/repo</url>
+        </repository>
+        <repository>
+            <id>ibiblio.org</id>
+            <url>http://mirrors.ibiblio.org/pub/mirrors/maven2/</url>
+        </repository>
+        <repository>
+            <id>snapshots</id>
+            <name>Maven Snapshot Development Repository</name>
+            <url>http://snapshots.maven.codehaus.org/maven2</url>
         </repository>
     </repositories>
 
