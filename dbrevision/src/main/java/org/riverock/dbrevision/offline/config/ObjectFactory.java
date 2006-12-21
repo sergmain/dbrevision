@@ -68,14 +68,6 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link PropertyType }
-     * 
-     */
-    public PropertyType createPropertyType() {
-        return new PropertyType();
-    }
-
-    /**
      * Create an instance of {@link GenericConfigType }
      * 
      */

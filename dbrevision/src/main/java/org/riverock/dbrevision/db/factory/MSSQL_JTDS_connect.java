@@ -30,6 +30,7 @@ import org.apache.log4j.Logger;
 import org.riverock.dbrevision.annotation.schema.db.*;
 import org.riverock.dbrevision.db.DatabaseAdapter;
 import org.riverock.dbrevision.db.DatabaseManager;
+import org.riverock.dbrevision.exception.DbRevisionException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -115,7 +116,7 @@ public class MSSQL_JTDS_connect extends DatabaseAdapter {
                 isFirst = !isFirst;
 
             sql += "\n\"" + field.getName() + "\"";
-            int javaType = field.getJavaType().intValue();
+            int javaType = field.getJavaType();
             switch (javaType) {
 
                 case Types.NUMERIC:
@@ -302,7 +303,7 @@ public class MSSQL_JTDS_connect extends DatabaseAdapter {
         }
     }
 
-    public void addColumn(DbTable table, DbField field) throws Exception {
+    public void addColumn(DbTable table, DbField field) {
         String sql = "alter table \"" + table.getName() + "\" add " + field.getName() + " ";
 
 
@@ -337,12 +338,10 @@ public class MSSQL_JTDS_connect extends DatabaseAdapter {
                 break;
 
             case Types.LONGVARCHAR:
-                // Oracle 'long' fields type
                 sql += " VARCHAR(10)";
                 break;
 
             case Types.LONGVARBINARY:
-                // Oracle 'long raw' fields type
                 sql += " LONGVARBINARY";
                 break;
 
@@ -354,6 +353,7 @@ public class MSSQL_JTDS_connect extends DatabaseAdapter {
         if (field.getDefaultValue() != null) {
             String val = field.getDefaultValue().trim();
 
+            //TODO rewrite init of def as in createTable
 //                if (!val.equalsIgnoreCase("null"))
 //                    val = "'"+val+"'";
             if (DatabaseManager.checkDefaultTimestamp(val))
@@ -376,7 +376,7 @@ public class MSSQL_JTDS_connect extends DatabaseAdapter {
             this.getConnection().commit();
         }
         catch (SQLException e) {
-            throw e;
+            throw new DbRevisionException(e);
         }
         finally {
             DatabaseManager.close(ps);

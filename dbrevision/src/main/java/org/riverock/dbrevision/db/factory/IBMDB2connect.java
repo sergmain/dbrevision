@@ -25,33 +25,17 @@
  */
 package org.riverock.dbrevision.db.factory;
 
-import java.sql.DatabaseMetaData;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Timestamp;
-import java.sql.Types;
-import java.sql.Blob;
-import java.sql.Connection;
-import java.util.ArrayList;
-import java.util.List;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import org.riverock.dbrevision.annotation.schema.db.*;
 import org.riverock.dbrevision.db.DatabaseAdapter;
 import org.riverock.dbrevision.db.DatabaseManager;
-import org.riverock.dbrevision.annotation.schema.db.DbView;
-import org.riverock.dbrevision.annotation.schema.db.DbField;
-import org.riverock.dbrevision.annotation.schema.db.DbTable;
-import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKey;
-import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKeyColumn;
-import org.riverock.dbrevision.annotation.schema.db.DbSequence;
-import org.riverock.dbrevision.annotation.schema.db.CustomSequence;
-import org.riverock.dbrevision.annotation.schema.db.DbImportedPKColumn;
-import org.riverock.dbrevision.annotation.schema.db.DbDataFieldData;
 import org.riverock.dbrevision.utils.Utils;
 
 /**
@@ -330,7 +314,7 @@ public class IBMDB2connect extends DatabaseAdapter {
         }
     }
 
-    public void addColumn(DbTable table, DbField field) throws Exception {
+    public void addColumn(DbTable table, DbField field) {
     }
 
     public String getOnDeleteSetNull() {

@@ -25,34 +25,19 @@
  */
 package org.riverock.dbrevision.db.factory;
 
-import java.sql.DatabaseMetaData;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Timestamp;
-import java.sql.Types;
-import java.sql.Blob;
-import java.sql.Connection;
-import java.util.ArrayList;
-import java.util.List;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
+import org.riverock.dbrevision.annotation.schema.db.*;
 import org.riverock.dbrevision.db.DatabaseAdapter;
 import org.riverock.dbrevision.db.DatabaseManager;
-import org.riverock.dbrevision.annotation.schema.db.DbView;
-import org.riverock.dbrevision.annotation.schema.db.DbTable;
-import org.riverock.dbrevision.annotation.schema.db.DbField;
-import org.riverock.dbrevision.annotation.schema.db.CustomSequence;
-import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKey;
-import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKeyColumn;
-import org.riverock.dbrevision.annotation.schema.db.DbImportedPKColumn;
-import org.riverock.dbrevision.annotation.schema.db.DbSequence;
-import org.riverock.dbrevision.annotation.schema.db.DbDataFieldData;
+import org.riverock.dbrevision.exception.DbRevisionException;
 
 
 /**
@@ -305,28 +290,21 @@ public final class MYSQLconnect extends DatabaseAdapter {
         }
     }
 
-    public void dropSequence(String nameSequence) throws Exception {
+    public void dropSequence(String nameSequence) {
     }
 
-    public void dropConstraint(DbImportedPKColumn impPk) throws Exception {
+    public void dropConstraint(DbImportedPKColumn impPk) {
         if (impPk == null)
             return;
 
         String sql = "ALTER TABLE " + impPk.getPkTableName() + " DROP CONSTRAINT " + impPk.getPkName();
-
-//        System.out.println( sql );
-
         PreparedStatement ps = null;
         try {
             ps = this.getConnection().prepareStatement(sql);
             ps.executeUpdate();
         }
         catch (SQLException e) {
-//            System.out.println( "code "+e.getErrorCode() );
-//            System.out.println( "state "+e.getSQLState() );
-//            System.out.println( "message "+e.getMessage() );
-//            System.out.println( "string "+e.toString() );
-            throw e;
+            throw new DbRevisionException(e);
         }
         finally {
             DatabaseManager.close(ps);
@@ -334,7 +312,7 @@ public final class MYSQLconnect extends DatabaseAdapter {
         }
     }
 
-    public void addColumn(DbTable table, DbField field) throws Exception {
+    public void addColumn(DbTable table, DbField field) {
         String sql = "alter table " + table.getName() + " add " + field.getName() + " ";
 
         int fieldType = field.getJavaType();
@@ -420,7 +398,7 @@ public final class MYSQLconnect extends DatabaseAdapter {
             ps.executeUpdate(sql);
         }
         catch (SQLException e) {
-            throw e;
+            throw new DbRevisionException(e);
         }
         finally {
             DatabaseManager.close(ps);
@@ -436,20 +414,20 @@ public final class MYSQLconnect extends DatabaseAdapter {
         return "'CURRENT_TIMESTAMP'";
     }
 
-    public List<DbView> getViewList(String schemaPattern, String tablePattern) throws Exception {
+    public List<DbView> getViewList(String schemaPattern, String tablePattern) {
         // version 3.x and 4.0 of MySQL not support view
         return new ArrayList<DbView>(0);
     }
 
-    public List<DbSequence> getSequnceList(String schemaPattern) throws Exception {
+    public List<DbSequence> getSequnceList(String schemaPattern) {
         return new ArrayList<DbSequence>();
     }
 
-    public String getViewText(DbView view) throws Exception {
+    public String getViewText(DbView view) {
         return null;
     }
 
-    public void createView(DbView view) throws Exception {
+    public void createView(DbView view) {
         // current version of MySql not supported view
 /*
         if (view == null ||
@@ -483,13 +461,11 @@ public final class MYSQLconnect extends DatabaseAdapter {
     public void createSequence(DbSequence seq) {
     }
 
-    public void setLongVarbinary(PreparedStatement ps, int index, DbDataFieldData fieldData)
-        throws SQLException {
+    public void setLongVarbinary(PreparedStatement ps, int index, DbDataFieldData fieldData) throws SQLException {
         ps.setNull(index, Types.VARCHAR);
     }
 
-    public void setLongVarchar(PreparedStatement ps, int index, DbDataFieldData fieldData)
-        throws SQLException {
+    public void setLongVarchar(PreparedStatement ps, int index, DbDataFieldData fieldData) throws SQLException {
         ps.setString(index, fieldData.getStringData());
     }
 
@@ -514,8 +490,7 @@ public final class MYSQLconnect extends DatabaseAdapter {
      * @return long - следующее значение для ключа из последовательности
      * @throws SQLException
      */
-    public long getSequenceNextValue(CustomSequence sequence)
-        throws SQLException {
+    public long getSequenceNextValue(CustomSequence sequence) throws SQLException {
         PreparedStatement ps = null;
         ResultSet rs = null;
         try {

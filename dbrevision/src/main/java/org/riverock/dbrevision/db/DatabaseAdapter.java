@@ -85,9 +85,9 @@ public abstract class DatabaseAdapter {
 
     public abstract void dropSequence(String nameSequence) throws Exception;
 
-    public abstract void dropConstraint(DbImportedPKColumn impPk) throws Exception;
+    public abstract void dropConstraint(DbImportedPKColumn impPk);
 
-    public abstract void addColumn(DbTable table, DbField field) throws Exception;
+    public abstract void addColumn(DbTable table, DbField field);
 
     public abstract String getOnDeleteSetNull();
 

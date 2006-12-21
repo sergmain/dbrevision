@@ -30,6 +30,7 @@ import org.apache.log4j.Logger;
 import org.riverock.dbrevision.annotation.schema.db.*;
 import org.riverock.dbrevision.db.DatabaseAdapter;
 import org.riverock.dbrevision.db.DatabaseManager;
+import org.riverock.dbrevision.exception.DbRevisionException;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -208,8 +209,6 @@ public class IBconnect extends DatabaseAdapter {
         }
         sql += "\n)";
 
-//        System.out.println( sql );
-
         Statement st = null;
         try {
             st = this.getConnection().createStatement();
@@ -294,10 +293,10 @@ public class IBconnect extends DatabaseAdapter {
         }
     }
 
-    public void addColumn(DbTable table, DbField field) throws Exception {
+    public void addColumn(DbTable table, DbField field) {
         String sql = "alter table " + table.getName() + " add " + field.getName() + " ";
 
-        switch (field.getJavaType().intValue()) {
+        switch (field.getJavaType()) {
 
             case Types.NUMERIC:
             case Types.DECIMAL:
@@ -343,6 +342,7 @@ public class IBconnect extends DatabaseAdapter {
         if (field.getDefaultValue() != null) {
             String val = field.getDefaultValue().trim();
 
+            //TODO rewrite init of def as in createTable
 //                if (!val.equalsIgnoreCase("null"))
 //                    val = "'"+val+"'";
             if (DatabaseManager.checkDefaultTimestamp(val))
@@ -351,7 +351,7 @@ public class IBconnect extends DatabaseAdapter {
             sql += (" DEFAULT " + val);
         }
 
-        if (field.getNullable().intValue() == DatabaseMetaData.columnNoNulls) {
+        if (field.getNullable() == DatabaseMetaData.columnNoNulls) {
             sql += " NOT NULL ";
         }
 
@@ -365,7 +365,7 @@ public class IBconnect extends DatabaseAdapter {
             this.getConnection().commit();
         }
         catch (SQLException e) {
-            throw e;
+            throw new DbRevisionException(e);
         }
         finally {
             DatabaseManager.close(ps);

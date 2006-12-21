@@ -86,7 +86,7 @@ public class ORAconnect extends DatabaseAdapter {
         return getClobField(rs, nameField, 20000);
     }
 
-    public void createTable(DbTable table) throws Exception {
+    public void createTable(DbTable table) {
         if (table == null || table.getFields().isEmpty())
             return;
 
@@ -191,8 +191,7 @@ public class ORAconnect extends DatabaseAdapter {
             for (DbPrimaryKeyColumn keyColumn : pk.getColumns()) {
                 DbPrimaryKeyColumn column = keyColumn;
                 int seqTemp = Integer.MAX_VALUE;
-                for (DbPrimaryKeyColumn primaryKeyColumn : pk.getColumns()) {
-                    DbPrimaryKeyColumn columnTemp = primaryKeyColumn;
+                for (DbPrimaryKeyColumn columnTemp : pk.getColumns()) {
                     if (seq < columnTemp.getKeySeq() && columnTemp.getKeySeq() < seqTemp) {
                         seqTemp = columnTemp.getKeySeq();
                         column = columnTemp;
@@ -211,8 +210,6 @@ public class ORAconnect extends DatabaseAdapter {
         }
         sql += "\n)";
 
-//        System.out.println( sql );
-
         PreparedStatement ps = null;
         try {
             ps = this.getConnection().prepareStatement(sql);
@@ -226,7 +223,7 @@ public class ORAconnect extends DatabaseAdapter {
                 System.out.println("message " + e.getMessage());
                 System.out.println("string " + e.toString());
             }
-            throw e;
+            throw new DbRevisionException(e);
         }
         finally {
             DatabaseManager.close(ps);
@@ -235,30 +232,27 @@ public class ORAconnect extends DatabaseAdapter {
 
     }
 
-    /*
-ALTER TABLE a_test_1
-ADD CONSTRAINT a_test_1_fk FOREIGN KEY (id, id_test)
-REFERENCES a_test (id_test,id_lang) ON DELETE SET NULL
-/
-
-ALTER TABLE a_test_1
-ADD CONSTRAINT a_test_1_fk2 FOREIGN KEY (text1, id_text)
-REFERENCES a_test_2 (text2,text_id) ON DELETE CASCADE
-DEFERRABLE INITIALLY DEFERRED
-/
+    /**
+     * ALTER TABLE a_test_1<br>
+     * ADD CONSTRAINT a_test_1_fk FOREIGN KEY (id, id_test)&<br>
+     * REFERENCES a_test (id_test,id_lang) ON DELETE SET NULL<br>
+     * /<br>
+       <br>
+     * ALTER TABLE a_test_1<br>
+     * ADD CONSTRAINT a_test_1_fk2 FOREIGN KEY (text1, id_text)<br>
+     * REFERENCES a_test_2 (text2,text_id) ON DELETE CASCADE<br>
+     * DEFERRABLE INITIALLY DEFERRED<br>
+     /
     */
-
-    public void dropTable(DbTable table) throws Exception {
+    public void dropTable(DbTable table) {
         dropTable(table.getName());
     }
 
-    public void dropTable(String nameTable) throws Exception {
+    public void dropTable(String nameTable) {
         if (nameTable == null)
             return;
 
         String sql = "drop table \"" + nameTable + "\"\n";
-
-//        System.out.println( sql );
 
         PreparedStatement ps = null;
         try {
@@ -266,11 +260,7 @@ DEFERRABLE INITIALLY DEFERRED
             ps.executeUpdate();
         }
         catch (SQLException e) {
-//            System.out.println( "code "+e.getErrorCode() );
-//            System.out.println( "state "+e.getSQLState() );
-//            System.out.println( "message "+e.getMessage() );
-//            System.out.println( "string "+e.toString() );
-            throw e;
+            throw new DbRevisionException(e);
         }
         finally {
             DatabaseManager.close(ps);
@@ -278,7 +268,7 @@ DEFERRABLE INITIALLY DEFERRED
         }
     }
 
-    public void dropSequence(String nameSequence) throws Exception {
+    public void dropSequence(String nameSequence) {
         if (nameSequence == null)
             return;
 
@@ -289,7 +279,7 @@ DEFERRABLE INITIALLY DEFERRED
             ps.executeUpdate();
         }
         catch (SQLException e) {
-            throw e;
+            throw new DbRevisionException(e);
         }
         finally {
             DatabaseManager.close(ps);
@@ -297,11 +287,11 @@ DEFERRABLE INITIALLY DEFERRED
         }
     }
 
-    public void dropConstraint(DbImportedPKColumn impPk) throws Exception {
-        throw new Exception("not implemented");
+    public void dropConstraint(DbImportedPKColumn impPk){
+        throw new DbRevisionException("not implemented");
     }
 
-    public void addColumn(DbTable table, DbField field) throws Exception {
+    public void addColumn(DbTable table, DbField field) {
         if (log.isDebugEnabled())
             log.debug("addColumn(DbTable table, DbField field)");
 
@@ -387,7 +377,7 @@ DEFERRABLE INITIALLY DEFERRED
             this.getConnection().commit();
         }
         catch (SQLException e) {
-            throw e;
+            throw new DbRevisionException(e);
         }
         finally {
             DatabaseManager.close(ps);
@@ -646,8 +636,9 @@ DEFERRABLE INITIALLY DEFERRED
     }
 
     public boolean testExceptionTableNotFound(Exception e) {
-        if (e == null)
+        if (e == null) {
             return false;
+        }
 
         if ((e instanceof SQLException) &&
             (e.toString().indexOf("ORA-00942") != -1))

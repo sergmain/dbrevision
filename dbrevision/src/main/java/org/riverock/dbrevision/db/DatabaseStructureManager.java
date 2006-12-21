@@ -49,6 +49,7 @@ import org.riverock.dbrevision.offline.config.DatabaseConnectionType;
 import org.riverock.dbrevision.annotation.schema.db.*;
 import org.riverock.dbrevision.utils.Utils;
 import org.riverock.dbrevision.utils.DbUtils;
+import org.riverock.dbrevision.exception.DbRevisionException;
 
 /**
  * @author SergeMaslyukov
@@ -60,15 +61,12 @@ import org.riverock.dbrevision.utils.DbUtils;
 public class DatabaseStructureManager {
     private final static Logger log = Logger.getLogger(DatabaseStructureManager.class);
 
-    public static void createForeignKey(DatabaseAdapter adapter, DbImportedKeyList fkList) throws Exception {
-        if (fkList == null || fkList.getKeys().size() == 0)
+    public static void createForeignKey(DatabaseAdapter adapter, DbImportedKeyList fkList) {
+        if (fkList == null || fkList.getKeys().isEmpty()) {
             return;
+        }
 
         Map<String, DbImportedPKColumn> hash = DatabaseManager.getFkNames(fkList.getKeys());
-
-//        System.out.println("key count: "+hash.size() );
-//        for (Enumeration e = hash.keys(); e.hasMoreElements();)
-//            System.out.println("key: "+(String)e.nextElement() );
 
         int p = 0;
 
@@ -76,7 +74,6 @@ public class DatabaseStructureManager {
 
             DbImportedPKColumn fkColumn = entry.getValue();
             String searchCurrent = DatabaseManager.getRelateString(fkColumn);
-//            System.out.println("#"+p+" fk name - "+ fkColumn.getFkName()+" ");
             String sql =
                 "ALTER TABLE " + fkList.getKeys().get(0).getFkTableName() + " " +
                     "ADD CONSTRAINT " +
@@ -91,21 +88,15 @@ public class DatabaseStructureManager {
             boolean isFirst = true;
             for (DbImportedPKColumn currFkCol : fkList.getKeys()) {
                 String search = DatabaseManager.getRelateString(currFkCol);
-//                System.out.println( "1.0 "+search );
                 if (!searchCurrent.equals(search))
                     continue;
-
-//                System.out.println("here");
 
                 DbImportedPKColumn column = null;
                 int seqTemp = Integer.MAX_VALUE;
                 for (DbImportedPKColumn columnTemp : fkList.getKeys()) {
                     String searchTemp = DatabaseManager.getRelateString(columnTemp);
-//                    System.out.println("here 2.0 "+ searchTemp );
                     if (!searchCurrent.equals(searchTemp))
                         continue;
-
-//                    System.out.println("here 2.1");
 
                     if (seq < columnTemp.getKeySeq() && columnTemp.getKeySeq() < seqTemp) {
                         seqTemp = columnTemp.getKeySeq();
@@ -190,7 +181,7 @@ public class DatabaseStructureManager {
                     System.out.println("message " + exc.getMessage());
                     System.out.println("string " + exc.toString());
                 }
-                throw exc;
+                throw new DbRevisionException(exc);
             }
             finally {
                 DatabaseManager.close(ps);
@@ -200,7 +191,7 @@ public class DatabaseStructureManager {
         }
     }
 
-    public static void addColumn(DatabaseAdapter adapter, String tableName, DbField field) throws Exception {
+    public static void addColumn(DatabaseAdapter adapter, String tableName, DbField field) {
         DbTable table = new DbTable();
         table.setName(tableName);
         adapter.addColumn(table, field);

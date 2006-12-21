@@ -25,30 +25,19 @@
  */
 package org.riverock.dbrevision.utils;
 
-import java.io.InputStream;
-import java.io.FileOutputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
-import java.util.Locale;
-import java.util.TimeZone;
-import java.util.Calendar;
-import java.util.Map;
-import java.util.List;
-import java.util.ArrayList;
-import java.text.SimpleDateFormat;
+import java.io.*;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.JAXBElement;
+import javax.xml.bind.*;
+import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
-import javax.xml.namespace.QName;
 
-import org.apache.log4j.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateFormatUtils;
+import org.apache.log4j.Logger;
 
 /**
  * @author Sergei Maslyukov
@@ -123,61 +112,40 @@ public class Utils {
         return getXml(obj, rootElement, "utf-8");
     }
 
-    public static byte[] getXml(final Object obj, final String rootElement, final String encoding) throws Exception {
+    public static byte[] getXml(final Object obj, final String rootElement, final String encoding) throws JAXBException {
         if (log.isDebugEnabled()) {
             log.debug("getXml(). Object to marshaling " + obj);
             log.debug("getXml(). rootElement " + rootElement);
             log.debug("getXml(). encoding " + encoding);
         }
-        ByteArrayOutputStream fos=null;
-        try {
-            fos = new ByteArrayOutputStream(1000);
+        ByteArrayOutputStream fos = new ByteArrayOutputStream(1000);
 
-            if (log.isDebugEnabled())
-                log.debug("ByteArrayOutputStream object - " + fos);
+        if (log.isDebugEnabled())
+            log.debug("ByteArrayOutputStream object - " + fos);
 
-            JAXBContext jaxbContext = JAXBContext.newInstance ( obj.getClass().getPackage().getName() );
-            Marshaller marshaller = jaxbContext.createMarshaller();
-            marshaller.setProperty(Marshaller.JAXB_ENCODING, encoding);
+        JAXBContext jaxbContext = JAXBContext.newInstance ( obj.getClass().getPackage().getName() );
+        Marshaller marshaller = jaxbContext.createMarshaller();
+        marshaller.setProperty(Marshaller.JAXB_ENCODING, encoding);
 
-            if (rootElement != null && rootElement.trim().length() > 0) {
-                // http://weblogs.java.net/blog/kohsuke/archive/2005/10/101_ways_to_mar.html
-                marshaller.marshal( new JAXBElement(new QName("",rootElement), obj.getClass(), obj ), fos);
-            }
-            else {
-                marshaller.marshal(obj, fos);
-            }
-
-            fos.flush();
-            fos.close();
-
-            return fos.toByteArray();
+        if (rootElement != null && rootElement.trim().length() > 0) {
+            // http://weblogs.java.net/blog/kohsuke/archive/2005/10/101_ways_to_mar.html
+            marshaller.marshal( new JAXBElement(new QName("",rootElement), obj.getClass(), obj ), fos);
         }
-        catch (Exception e) {
-            log.error("Exception when marshaling object", e);
-            throw e;
+        else {
+            marshaller.marshal(obj, fos);
         }
-        catch (Error err) {
-            log.error("Error when marshaling object", err);
-            throw err;
-        }
-        finally {
-            fos.close();
-            fos = null;
-        }
+        return fos.toByteArray();
     }
 
-    public static void writeToFile(final Object obj, final String fileName)
-        throws Exception {
-
+    public static void writeToFile(final Object obj, final String fileName) throws JAXBException, FileNotFoundException {
         writeToFile(obj, fileName, "utf-8");
     }
 
-    public static void writeToFile(final Object obj, final String fileName, final String encoding) {
+    public static void writeToFile(final Object obj, final String fileName, final String encoding) throws FileNotFoundException, JAXBException {
         writeObjectAsXml(obj, new FileOutputStream(fileName), encoding);
     }
 
-    public static void writeObjectAsXml(final Object obj, OutputStream outputStream, final String encoding) {
+    public static void writeObjectAsXml(final Object obj, OutputStream outputStream, final String encoding) throws JAXBException {
         JAXBContext jaxbContext = JAXBContext.newInstance ( obj.getClass().getPackage().getName() );
         Marshaller marshaller = jaxbContext.createMarshaller();
         if (encoding!=null && encoding.trim().length()>0) {
