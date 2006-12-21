@@ -53,7 +53,7 @@ public class MakeWebmillStructure {
 /*
             String encoding = "UTF-8";
             String nameFile = nameOutputFiel;
-            String outputSchemaFile = GenericConfig.getGenericDebugDir()+nameFile;
+            String outputSchemaFile = DbRevisionConfig.getGenericDebugDir()+nameFile;
             System.out.println("Marshal data to file " + outputSchemaFile);
 
             FileOutputStream fos = new FileOutputStream( outputSchemaFile );

@@ -37,10 +37,10 @@ import org.riverock.dbrevision.offline.config.GenericConfigType;
 import org.riverock.dbrevision.offline.config.PropertyType;
 
 /**
- * $Id: GenericConfig.java 1141 2006-12-14 14:43:29Z serg_main $
+ * $Id: DbRevisionConfig.java 1141 2006-12-14 14:43:29Z serg_main $
  */
-public final class GenericConfig {
-    private final static Logger log = Logger.getLogger(GenericConfig.class);
+public final class DbRevisionConfig {
+    private final static Logger log = Logger.getLogger(DbRevisionConfig.class);
 
     private static final String NAME_CONFIG_FILE = "dbrevision.xml";
 
@@ -57,7 +57,7 @@ public final class GenericConfig {
             return;
         }
 
-        synchronized (GenericConfig.class) {
+        synchronized (DbRevisionConfig.class) {
             if (isConfigProcessed) {
                 return;
             }
@@ -110,7 +110,7 @@ public final class GenericConfig {
                 dir = System.getProperty("java.io.tmpdir");
             }
 
-            GenericConfig.genericDebugDir = dir;
+            DbRevisionConfig.genericDebugDir = dir;
         }
     }
 

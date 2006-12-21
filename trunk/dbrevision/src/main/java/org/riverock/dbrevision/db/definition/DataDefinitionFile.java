@@ -37,7 +37,7 @@ import javax.xml.transform.stream.StreamSource;
 import org.apache.log4j.Logger;
 
 import org.riverock.dbrevision.annotation.schema.db.DefinitionList;
-import org.riverock.dbrevision.offline.GenericConfig;
+import org.riverock.dbrevision.offline.DbRevisionConfig;
 import org.riverock.dbrevision.exception.DbRevisionException;
 
 /**
@@ -81,7 +81,7 @@ public class DataDefinitionFile {
             if (log.isDebugEnabled()) {
                 synchronized (syncObj) {
                     try {
-                        FileWriter w = new FileWriter(GenericConfig.getGenericDebugDir() + "definitionList.xml");
+                        FileWriter w = new FileWriter(DbRevisionConfig.getGenericDebugDir() + "definitionList.xml");
                         jaxbContext.createMarshaller().marshal(definitionList, w);
                     }
                     catch (Exception e) {

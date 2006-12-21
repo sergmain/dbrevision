@@ -30,7 +30,7 @@ import java.io.FileInputStream;
 import org.riverock.dbrevision.annotation.schema.db.DbSchema;
 import org.riverock.dbrevision.annotation.schema.db.DbTable;
 import org.riverock.dbrevision.annotation.schema.db.DbView;
-import org.riverock.dbrevision.offline.GenericConfig;
+import org.riverock.dbrevision.offline.DbRevisionConfig;
 import org.riverock.dbrevision.offline.StartupApplication;
 import org.riverock.dbrevision.utils.Utils;
 
@@ -54,7 +54,7 @@ public class CheckLengthName {
         StartupApplication.init();
 
         System.out.println("Unmarshal data from file");
-        FileInputStream stream = new FileInputStream(GenericConfig.getGenericDebugDir() + "webmill-schema.xml");
+        FileInputStream stream = new FileInputStream(DbRevisionConfig.getGenericDebugDir() + "webmill-schema.xml");
         DbSchema millSchema = Utils.getObjectFromXml(DbSchema.class, stream);
 
         for (DbTable table : millSchema.getTables()) {

@@ -35,7 +35,7 @@ import java.sql.Connection;
 
 import org.riverock.dbrevision.annotation.schema.db.DbSchema;
 import org.riverock.dbrevision.annotation.schema.db.DbTable;
-import org.riverock.dbrevision.offline.GenericConfig;
+import org.riverock.dbrevision.offline.DbRevisionConfig;
 import org.riverock.dbrevision.offline.StartupApplication;
 //import org.riverock.dbrevision.config.PropertiesProvider;
 import org.riverock.dbrevision.db.DatabaseAdapter;
@@ -59,14 +59,14 @@ public class DbStructureExport {
 
     public static void main(String args[]) throws Exception {
         StartupApplication.init();
-        System.out.println("DebugDir: " + GenericConfig.getGenericDebugDir());
+        System.out.println("DebugDir: " + DbRevisionConfig.getGenericDebugDir());
         Connection conn = null;
         DatabaseAdapter db = new ORAconnect(conn);
         File fileWithBigTable = new File(args[3]);
         if (!fileWithBigTable.exists()) {
             System.out.println("File with definition for big tables not exist, file: " + fileWithBigTable.getAbsolutePath());
         }
-        export(db, new FileOutputStream(GenericConfig.getGenericDebugDir() + "webmill-schema.xml"), fileWithBigTable, IS_EXTRACT_DATA);
+        export(db, new FileOutputStream(DbRevisionConfig.getGenericDebugDir() + "webmill-schema.xml"), fileWithBigTable, IS_EXTRACT_DATA);
     }
 
     public static void export(DatabaseAdapter db, OutputStream outputStream, File fileWithBigTable, boolean isData) {
