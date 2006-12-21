@@ -32,7 +32,7 @@
 //
 
 
-package org.riverock.dbrevision.annotation.schema.config;
+package org.riverock.dbrevision.offline.config;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlElementDecl;
@@ -68,14 +68,6 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link SecurityKeyStorageType }
-     * 
-     */
-    public SecurityKeyStorageType createSecurityKeyStorageType() {
-        return new SecurityKeyStorageType();
-    }
-
-    /**
      * Create an instance of {@link PropertyType }
      * 
      */
@@ -100,30 +92,6 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link DateTimeSavingAttrType }
-     * 
-     */
-    public DateTimeSavingAttrType createDateTimeSavingAttrType() {
-        return new DateTimeSavingAttrType();
-    }
-
-    /**
-     * Create an instance of {@link CustomDirsType }
-     * 
-     */
-    public CustomDirsType createCustomDirsType() {
-        return new CustomDirsType();
-    }
-
-    /**
-     * Create an instance of {@link DateTimeSavingType }
-     * 
-     */
-    public DateTimeSavingType createDateTimeSavingType() {
-        return new DateTimeSavingType();
-    }
-
-    /**
      * Create an instance of {@link JAXBElement }{@code <}{@link GenericConfigType }{@code >}}
      * 
      */
@@ -131,14 +99,4 @@ public class ObjectFactory {
     public JAXBElement<GenericConfigType> createWebmillConfig(GenericConfigType value) {
         return new JAXBElement<GenericConfigType>(_WebmillConfig_QNAME, GenericConfigType.class, null, value);
     }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link DateTimeSavingType }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "", name = "DateTimeSaving")
-    public JAXBElement<DateTimeSavingType> createDateTimeSaving(DateTimeSavingType value) {
-        return new JAXBElement<DateTimeSavingType>(_DateTimeSaving_QNAME, DateTimeSavingType.class, null, value);
-    }
-
 }

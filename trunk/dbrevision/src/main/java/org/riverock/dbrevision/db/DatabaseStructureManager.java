@@ -45,7 +45,7 @@ import javax.xml.datatype.DatatypeFactory;
 
 import org.apache.log4j.Logger;
 
-import org.riverock.dbrevision.annotation.schema.config.DatabaseConnectionType;
+import org.riverock.dbrevision.offline.config.DatabaseConnectionType;
 import org.riverock.dbrevision.annotation.schema.db.*;
 import org.riverock.dbrevision.utils.Utils;
 import org.riverock.dbrevision.utils.DbUtils;

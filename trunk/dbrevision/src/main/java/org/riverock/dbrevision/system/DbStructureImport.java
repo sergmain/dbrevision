@@ -37,7 +37,7 @@ import org.riverock.dbrevision.db.DatabaseAdapter;
 import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.db.DatabaseStructureManager;
 import org.riverock.dbrevision.utils.Utils;
-import org.riverock.dbrevision.utils.StartupApplication;
+import org.riverock.dbrevision.offline.StartupApplication;
 
 /**
  * import data from XML file to DB

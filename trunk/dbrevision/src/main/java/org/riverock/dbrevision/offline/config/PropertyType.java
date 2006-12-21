@@ -32,27 +32,27 @@
 //
 
 
-package org.riverock.dbrevision.annotation.schema.config;
+package org.riverock.dbrevision.offline.config;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for DateTimeSavingAttrType complex type.
+ * <p>Java class for PropertyType complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="DateTimeSavingAttrType">
+ * &lt;complexType name="PropertyType">
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;attribute name="day" use="required" type="{http://www.w3.org/2001/XMLSchema}int" />
- *       &lt;attribute name="dayOfWeek" use="required" type="{http://www.w3.org/2001/XMLSchema}int" />
- *       &lt;attribute name="month" use="required" type="{http://www.w3.org/2001/XMLSchema}int" />
- *       &lt;attribute name="time" use="required" type="{http://www.w3.org/2001/XMLSchema}int" />
+ *       &lt;sequence>
+ *         &lt;element name="Name" type="{http://www.w3.org/2001/XMLSchema}string"/>
+ *         &lt;element name="Value" type="{http://www.w3.org/2001/XMLSchema}string"/>
+ *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>
  * &lt;/complexType>
@@ -61,80 +61,63 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "DateTimeSavingAttrType")
-public class DateTimeSavingAttrType {
+@XmlType(name = "PropertyType", propOrder = {
+    "name",
+    "value"
+})
+public class PropertyType {
 
-    @XmlAttribute(required = true)
-    protected int day;
-    @XmlAttribute(required = true)
-    protected int dayOfWeek;
-    @XmlAttribute(required = true)
-    protected int month;
-    @XmlAttribute(required = true)
-    protected int time;
+    @XmlElement(name = "Name", required = true)
+    protected String name;
+    @XmlElement(name = "Value", required = true)
+    protected String value;
 
     /**
-     * Gets the value of the day property.
+     * Gets the value of the name property.
      * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
      */
-    public int getDay() {
-        return day;
+    public String getName() {
+        return name;
     }
 
     /**
-     * Sets the value of the day property.
+     * Sets the value of the name property.
      * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
      */
-    public void setDay(int value) {
-        this.day = value;
+    public void setName(String value) {
+        this.name = value;
     }
 
     /**
-     * Gets the value of the dayOfWeek property.
+     * Gets the value of the value property.
      * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
      */
-    public int getDayOfWeek() {
-        return dayOfWeek;
+    public String getValue() {
+        return value;
     }
 
     /**
-     * Sets the value of the dayOfWeek property.
+     * Sets the value of the value property.
      * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
      */
-    public void setDayOfWeek(int value) {
-        this.dayOfWeek = value;
-    }
-
-    /**
-     * Gets the value of the month property.
-     * 
-     */
-    public int getMonth() {
-        return month;
-    }
-
-    /**
-     * Sets the value of the month property.
-     * 
-     */
-    public void setMonth(int value) {
-        this.month = value;
-    }
-
-    /**
-     * Gets the value of the time property.
-     * 
-     */
-    public int getTime() {
-        return time;
-    }
-
-    /**
-     * Sets the value of the time property.
-     * 
-     */
-    public void setTime(int value) {
-        this.time = value;
+    public void setValue(String value) {
+        this.value = value;
     }
 
 }

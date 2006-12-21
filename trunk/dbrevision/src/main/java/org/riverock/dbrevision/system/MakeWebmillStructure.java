@@ -28,7 +28,7 @@ package org.riverock.dbrevision.system;
 import org.riverock.dbrevision.db.DatabaseAdapter;
 import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.annotation.schema.db.DbSchema;
-import org.riverock.dbrevision.utils.StartupApplication;
+import org.riverock.dbrevision.offline.StartupApplication;
 
 /**
  * User: SergeMaslyukov
