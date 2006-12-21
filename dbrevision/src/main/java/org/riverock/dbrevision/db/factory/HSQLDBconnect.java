@@ -408,23 +408,12 @@ public class HSQLDBconnect extends DatabaseAdapter {
         }
     }
 
-    public String getNameDateBind() {
-        return "?";
-    }
-
     public String getOnDeleteSetNull() {
         return "";
     }
 
-    public void bindDate(PreparedStatement ps, int idx, Timestamp stamp) throws SQLException {
-        ps.setTimestamp(idx, stamp);
-    }
-
     public String getDefaultTimestampValue() {
         return "current_timestamp";
-    }
-
-    public void setDefaultValue(DbTable originTable, DbField originField) {
     }
 
     public List<DbView> getViewList(String schemaPattern, String tablePattern) throws Exception {
@@ -459,7 +448,7 @@ public class HSQLDBconnect extends DatabaseAdapter {
         }
     }
 
-    public void createSequence(DbSequence seq) throws Exception {
+    public void createSequence(DbSequence seq) {
     }
 
     public void setLongVarbinary(PreparedStatement ps, int index, DbDataFieldData fieldData)
@@ -485,11 +474,6 @@ public class HSQLDBconnect extends DatabaseAdapter {
             return clob.getSubString(1, maxLength);
         }
 */
-
-    public long getSequenceNextValue(String s)
-        throws SQLException {
-        throw new SQLException("public long getSequenceNextValue(String s) mot supported");
-    }
 
     /**
      * Возвращает значение сиквенса(последовательности) для данного имени последовательности.

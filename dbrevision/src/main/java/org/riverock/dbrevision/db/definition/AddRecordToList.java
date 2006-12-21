@@ -29,10 +29,11 @@ import java.sql.PreparedStatement;
 
 import org.apache.log4j.Logger;
 
+import org.riverock.dbrevision.annotation.schema.db.CustomSequence;
+import org.riverock.dbrevision.annotation.schema.db.DefinitionActionDataList;
 import org.riverock.dbrevision.db.DatabaseAdapter;
 import org.riverock.dbrevision.db.DatabaseManager;
-import org.riverock.dbrevision.annotation.schema.db.DefinitionActionDataList;
-import org.riverock.dbrevision.annotation.schema.db.CustomSequence;
+import org.riverock.dbrevision.exception.DbRevisionException;
 
 /**
  * User: Admin
@@ -48,7 +49,7 @@ public class AddRecordToList implements DefinitionProcessingInterface {
     public AddRecordToList() {
     }
 
-    public void processAction(DatabaseAdapter db_, DefinitionActionDataList parameters) throws Exception {
+    public void processAction(DatabaseAdapter db_, DefinitionActionDataList parameters) {
         PreparedStatement ps = null;
         try {
             if (log.isDebugEnabled())
@@ -113,19 +114,10 @@ public class AddRecordToList implements DefinitionProcessingInterface {
 
             ps.executeUpdate();
 
-            db_.getConnection().commit();
         }
         catch (Exception e) {
-            try {
-                if (db_ != null) {
-                    db_.getConnection().rollback();
-                }
-            }
-            catch (Exception e1) {
-                // catch rollback error
-            }
             log.error("Error insert value", e);
-            throw e;
+            throw new DbRevisionException(e);
         }
         finally {
             DatabaseManager.close(ps);

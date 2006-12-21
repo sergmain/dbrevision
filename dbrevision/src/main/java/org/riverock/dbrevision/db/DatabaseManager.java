@@ -424,20 +424,14 @@ public final class DatabaseManager {
         return false;
     }
 
-    public static DbSchema getDbStructure(final DatabaseAdapter db_)
-        throws Exception {
+    public static DbSchema getDbStructure(DatabaseAdapter db_) {
         DbSchema schema = new DbSchema();
 
         DatabaseMetaData db = db_.getConnection().getMetaData();
         String dbSchema = db.getUserName();
 
-        ArrayList list = DatabaseStructureManager.getTableList(db_.getConnection(), dbSchema, "%");
-        final int initialCapacity = list.size();
-        for (int i = 0; i < initialCapacity; i++) {
-            DbTable table = (DbTable) list.get(i);
-            if (table.getName().startsWith("BIN$")) {
-                continue;
-            }
+        List<DbTable> list = DatabaseStructureManager.getTableList(db_.getConnection(), dbSchema, "%");
+        for (DbTable table : list) {
             schema.getTables().add(table);
         }
 
@@ -460,8 +454,7 @@ public final class DatabaseManager {
         return schema;
     }
 
-    public static void createWithReplaceAllView(final DatabaseAdapter db_, final DbSchema millSchema)
-        throws Exception {
+    public static void createWithReplaceAllView(final DatabaseAdapter db_, final DbSchema millSchema) throws Exception {
         boolean[] idx = new boolean[millSchema.getViews().size()];
         for (int i = 0; i < idx.length; i++) {
             idx[i] = false;

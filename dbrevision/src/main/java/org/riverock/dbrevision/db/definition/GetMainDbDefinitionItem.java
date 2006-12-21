@@ -55,8 +55,8 @@ public class GetMainDbDefinitionItem {
         target.setNameDefinition(
             source.getNameDefinition()
         );
-        target.setAplayDate(
-            source.getAplayDate()
+        target.setApplayDate(
+            source.getApplayDate()
         );
     }
 
@@ -87,7 +87,7 @@ public class GetMainDbDefinitionItem {
                     item.setNameDefinition(tempString1);
                 java.sql.Timestamp tempTimestamp2 = rs.getTimestamp("APLAY_DATE");
                 if (!rs.wasNull())
-                    item.setAplayDate(tempTimestamp2);
+                    item.setApplayDate(tempTimestamp2);
             }
         }
         catch (Exception e) {
@@ -101,6 +101,5 @@ public class GetMainDbDefinitionItem {
             rs = null;
             ps = null;
         }
-
     }
 }

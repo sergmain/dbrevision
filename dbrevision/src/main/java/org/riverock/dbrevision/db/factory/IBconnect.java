@@ -377,44 +377,10 @@ public class IBconnect extends DatabaseAdapter {
         return "ON DELETE NO ACTION";
     }
 
-    /**
-     * bind Timestamp value
-     *
-     * @param ps
-     * @param stamp @see java.sql.Timestamp
-     * @throws SQLException
-     */
-    public void bindDate(PreparedStatement ps, int idx, Timestamp stamp) throws SQLException {
-
-/*
-        try {
-            String stringTimestamp = null;
-            DateTools.getStringDate(stamp, "yyyy-MM-dd HH:mm:ss.SSS", Locale.ENGLISH, CurrentTimeZone.getTZ());
-            ps.setString(idx, stringTimestamp);
-        }
-        catch (ConfigException exc) {
-            String es = "Exception in CurrentTimeZone.getTZ()";
-            log.error(es, exc);
-            throw new SQLException(es);
-        }
-*/
-    }
-
-    /**
-     * in some DB setTimestamp not work and we need work around
-     *
-     * @return String
-     */
-    public String getNameDateBind() {
-        return "cast(? as datetime)";
-    }
-
     public String getDefaultTimestampValue() {
         return "current_timestamp";
     }
 
-    public void setDefaultValue(DbTable originTable, DbField originField) {
-    }
 /*
 ALTER TABLE table
 { [ ALTER COLUMN column_name
@@ -529,7 +495,7 @@ ALTER TABLE table
         }
     }
 
-    public void createSequence(DbSequence seq) throws Exception {
+    public void createSequence(DbSequence seq) {
     }
 
     public void setLongVarbinary(PreparedStatement ps, int index, DbDataFieldData fieldData)
@@ -555,31 +521,6 @@ ALTER TABLE table
             return clob.getSubString(1, maxLength);
         }
 */
-
-    public long getSequenceNextValue(String s)
-        throws SQLException {
-        long id_ = -1;
-
-        String sql_ =
-            "select " + s.trim() + ".nextval from dual";
-        PreparedStatement ps = null;
-        ResultSet rs = null;
-        try {
-            ps = this.getConnection().prepareStatement(sql_);
-
-            rs = ps.executeQuery();
-
-            if (rs.next())
-                id_ = rs.getLong(1);
-        }
-        finally {
-            DatabaseManager.close(rs, ps);
-            rs = null;
-            ps = null;
-        }
-
-        return id_;
-    }
 
     /**
      * Возвращает значение сиквенса(последовательности) для данного имени последовательности.

@@ -29,8 +29,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.sql.SQLException;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 
@@ -39,6 +41,7 @@ import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.db.DatabaseStructureManager;
 import org.riverock.dbrevision.annotation.schema.db.*;
 import org.riverock.dbrevision.utils.Utils;
+import org.riverock.dbrevision.utils.DbUtils;
 
 /**
  * User: Admin
@@ -47,7 +50,6 @@ import org.riverock.dbrevision.utils.Utils;
  * <p/>
  * $Id: DefinitionService.java 1141 2006-12-14 14:43:29Z serg_main $
  */
-@SuppressWarnings({"UnusedAssignment"})
 public final class DefinitionService {
     private static Logger log = Logger.getLogger(DefinitionService.class);
 
@@ -107,21 +109,18 @@ public final class DefinitionService {
         actionTypes.put(COPY_TABLE_TYPE, COPY_TABLE_TYPE_VALUE);
     }
 
-//    private static boolean isDefinitionProcessed = false;
-//    private static Map<String, Object> definitionRelateHash = null;
-//    private static Map<String, Definition> definitionHash = null;
-//    private static Map<String, String> dbHash = null;
-//    private static DefinitionList definitionList = new DefinitionList();
+    private static boolean isDefinitionProcessed = false;
+    private static Map<String, Object> definitionRelateHash = null;
+    private static Map<String, Definition> definitionHash = null;
+    private static Map<String, String> dbHash = null;
+    private static DefinitionList definitionList = new DefinitionList();
 
-/*
     public synchronized static void registerRelateDefinitionDown(String definitionMain, String definitionTarget) {
-        MainTools.putKey(definitionRelateHash, definitionMain, definitionTarget);
+        Utils.putKey(definitionRelateHash, definitionMain, definitionTarget);
     }
 
     private final static Object syncDebug = new Object();
-*/
 
-/*
     public synchronized static void validateDatabaseStructure(DatabaseAdapter db_) throws Exception {
 
         if (!isDefinitionProcessed || DataDefinitionManager.isNeedReload()) {
@@ -136,8 +135,8 @@ public final class DefinitionService {
             DataDefinitionFile[] defFileArray = DataDefinitionManager.getDefinitionFileArray();
 
             for (DataDefinitionFile defFile : defFileArray) {
-                if (defFile.definitionList == null) {
-                    log.warn("Definition file '" + defFile.getFile() + "' is empty");
+                if (defFile.getDefinitionList() == null) {
+                    log.warn("Definition file '" + defFile.getDefinitionFile() + "' is empty");
                     continue;
                 }
                 for (int j = 0; j < defFile.definitionList.getDefinitionCount(); j++) {
@@ -168,31 +167,8 @@ public final class DefinitionService {
             }
         }
 
-        if (log.isDebugEnabled()) {
-            synchronized (syncDebug) {
-                try {
-                    XmlTools.writeToFile(definitionList, GenericConfig.getGenericDebugDir() + "def-debug.xml");
-                } catch (Throwable e) {
-                    log.error("Error create debug file " + GenericConfig.getGenericDebugDir() + "def-debug.xml", e);
-                }
-            }
-        }
-
-        try {
-            processDefinitionList(db_);
-            db_.commit();
-        }
-        catch (Throwable e) {
-            try {
-                if (db_ != null)
-                    db_.rollback();
-            }
-            catch (Throwable e1) {
-                // catch rollback error
-            }
-        }
+        processDefinitionList(db_);
     }
-*/
 
     public static void processDefinitionList(DatabaseAdapter db_, DefinitionList definitionList) throws Exception {
         if (log.isDebugEnabled()) {
@@ -203,32 +179,26 @@ public final class DefinitionService {
 
         for (Definition defItem : definitionList.getDefinition()) {
             try {
-                if (log.isInfoEnabled())
+                if (log.isInfoEnabled()) {
                     log.info("process definition " + defItem.getNameDef());
+                }
 
-                if (log.isDebugEnabled())
-                    log.debug("processTable ");
+                log.debug("processTable ");
                 processTable(db_, defItem);
 
-                if (log.isDebugEnabled())
-                    log.debug("processPrimaryKey ");
+                log.debug("processPrimaryKey ");
                 processPrimaryKey(db_, defItem);
 
-                if (log.isDebugEnabled())
-                    log.debug("processImportedKeys ");
+                log.debug("processImportedKeys ");
                 processImportedKeys(db_, defItem);
 
-                if (log.isDebugEnabled())
-                    log.debug("processSequences ");
+                log.debug("processSequences ");
                 processSequences(db_, defItem);
 
-                if (log.isDebugEnabled())
-                    log.debug("processAction ");
+                log.debug("processAction ");
                 processAction(db_, defItem);
 
-                if (log.isDebugEnabled())
-                    log.debug("store info about processed definition");
-
+                log.debug("store info about processed definition");
                 CustomSequence seq = new CustomSequence();
                 seq.setSequenceName("SEQ_WM_DB_DEFINITION");
                 seq.setTableName("WM_DB_DEFINITION");
@@ -237,13 +207,13 @@ public final class DefinitionService {
                 MainDbDefinitionItem item = new MainDbDefinitionItem();
                 item.setIdDbDefinition(db_.getSequenceNextValue(seq));
                 item.setNameDefinition(defItem.getNameDef());
-                item.setAplayDate(new Timestamp(System.currentTimeMillis()));
+                item.setApplayDate(new Timestamp(System.currentTimeMillis()));
 
                 String sql_ =
                     "insert into WM_DB_DEFINITION " +
                         "(ID_DB_DEFINITION, NAME_DEFINITION, APLAY_DATE)" +
                         "values" +
-                        "( ?,  ?,  " + db_.getNameDateBind() + ")";
+                        "( ?,  ?,  ?)";
 
                 PreparedStatement ps = null;
                 ResultSet rs = null;
@@ -252,7 +222,7 @@ public final class DefinitionService {
 
                     ps.setLong(1, item.getIdDbDefinition());
                     ps.setString(2, item.getNameDefinition());
-                    db_.bindDate(ps, 3, new java.sql.Timestamp(item.getAplayDate().getTime()));
+                    ps.setTimestamp(3, new java.sql.Timestamp(item.getApplayDate().getTime()) );
 
                     int countInsertRecord = ps.executeUpdate();
 
@@ -263,7 +233,7 @@ public final class DefinitionService {
                 catch (Exception e) {
                     log.error("Item getIdDbDefinition(), value - " + item.getIdDbDefinition());
                     log.error("Item getNameDefinition(), value - " + item.getNameDefinition());
-                    log.error("Item getAplayDate(), value - " + item.getAplayDate());
+                    log.error("Item getAplayDate(), value - " + item.getApplayDate());
                     log.error("Error update db", e);
                     throw e;
                 }
@@ -718,7 +688,6 @@ public final class DefinitionService {
         }
     }
 
-/*
     private synchronized static void walk(String key) {
         Object obj = definitionRelateHash.get(key);
         if (obj != null) {
@@ -735,11 +704,9 @@ public final class DefinitionService {
         Object value = dbHash.get(key);
         boolean flag = isInQueue(key);
         if (value == null && !flag)
-            definitionList.addDefinition(definitionHash.get(key));
+            definitionList.getDefinition().add(definitionHash.get(key));
     }
-*/
 
-/*
     private synchronized static void walkList(List v) {
         for (Object obj : v) {
             if (obj==null) {
@@ -757,19 +724,15 @@ public final class DefinitionService {
     }
 
     private synchronized static boolean isInQueue(String nameDef) {
-        for (int i = 0; i < definitionList.getDefinitionCount(); i++) {
-            Definition def = definitionList.getDefinition(i);
+        for (Definition def : definitionList.getDefinition()) {
             if (def.getNameDef().equals(nameDef))
                 return true;
         }
 
         return false;
     }
-*/
 
-/*
-    private synchronized static void getProcessedDefinition(DatabaseAdapter db_)
-        throws Exception {
+    private synchronized static void getProcessedDefinition(DatabaseAdapter db_) throws Exception {
         if (dbHash != null) {
             dbHash.clear();
             dbHash = null;
@@ -777,7 +740,7 @@ public final class DefinitionService {
         dbHash = new HashMap<String, String>();
 
         // получаем из базы данных список определений, которые были обработаны
-        MainDbDefinitionList mainDef = null;
+        MainDbDefinitionList mainDef = new MainDbDefinitionList();
         try {
             String sql_ =
                 "select ID_DB_DEFINITION from WM_DB_DEFINITION ";
@@ -785,15 +748,12 @@ public final class DefinitionService {
             PreparedStatement ps = null;
             ResultSet rs = null;
             try {
-                ps = db_.prepareStatement(sql_);
+                ps = db_.getConnection().prepareStatement(sql_);
 
                 rs = ps.executeQuery();
                 while (rs.next()) {
-                    if (mainDef == null)
-                        mainDef = new MainDbDefinitionList();
-
-                    GetMainDbDefinitionItem tempItem = GetMainDbDefinitionItem.getInstance(db_, DbUtils.getLong(rs, "ID_DB_DEFINITION"));
-                    mainDef.addMainDbDefinition(tempItem.item);
+                    GetMainDbDefinitionItem tempItem = new GetMainDbDefinitionItem(db_, DbUtils.getLong(rs, "ID_DB_DEFINITION"));
+                    mainDef.getMainDbDefinitionList().add(tempItem.item);
                 }
             }
             catch (Exception e) {
@@ -821,14 +781,10 @@ public final class DefinitionService {
             throw e;
         }
 
-        if (mainDef != null) {
-            // проходим по определениям из базы
-            for (int j = 0; j < mainDef.getMainDbDefinitionCount(); j++) {
-                MainDbDefinitionItem tempDbItem = mainDef.getMainDbDefinition(j);
-                dbHash.put(tempDbItem.getNameDefinition(), tempDbItem.getNameDefinition());
-            }
+        // walk over list of definitions
+        for (MainDbDefinitionItem tempDbItem : mainDef.getMainDbDefinitionList()) {
+            dbHash.put(tempDbItem.getNameDefinition(), tempDbItem.getNameDefinition());
         }
     }
-*/
 
 }

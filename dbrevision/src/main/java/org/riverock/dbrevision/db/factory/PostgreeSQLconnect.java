@@ -33,7 +33,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Timestamp;
 import java.sql.Types;
 import java.sql.Connection;
 import java.util.ArrayList;
@@ -55,6 +54,7 @@ import org.riverock.dbrevision.annotation.schema.db.DbImportedPKColumn;
 import org.riverock.dbrevision.annotation.schema.db.DbDataFieldData;
 import org.riverock.dbrevision.annotation.schema.db.CustomSequence;
 import org.riverock.dbrevision.utils.DbUtils;
+import org.riverock.dbrevision.exception.DbRevisionException;
 
 /**
  * $Id: PostgreeSQLconnect.java 1141 2006-12-14 14:43:29Z serg_main $
@@ -341,7 +341,7 @@ DEFERRABLE INITIALLY DEFERRED
             sql += (" DEFAULT " + val);
         }
 
-        if (field.getNullable().intValue() == DatabaseMetaData.columnNoNulls) {
+        if (field.getNullable() == DatabaseMetaData.columnNoNulls) {
             sql += " NOT NULL ";
         }
         sql += ")";
@@ -364,35 +364,12 @@ DEFERRABLE INITIALLY DEFERRED
         }
     }
 
-    /**
-     * in some DB (Oracle8.0) setTimestamp not work and we need work around
-     *
-     * @return String
-     */
-    public String getNameDateBind() {
-        return "?";
-    }
-
     public String getOnDeleteSetNull() {
         return "ON DELETE SET NULL";
     }
 
-    /**
-     * bind Timestamp value
-     *
-     * @param ps
-     * @param stamp @see java.sql.Timestamp
-     * @throws java.sql.SQLException
-     */
-    public void bindDate(PreparedStatement ps, int idx, Timestamp stamp) throws SQLException {
-        ps.setTimestamp(idx, stamp);
-    }
-
     public String getDefaultTimestampValue() {
         return "SYSDATE";
-    }
-
-    public void setDefaultValue(DbTable originTable, DbField originField) {
     }
 
     public List<DbView> getViewList(String schemaPattern, String tablePattern) throws Exception {
@@ -489,9 +466,10 @@ DEFERRABLE INITIALLY DEFERRED
         }
     }
 
-    public void createSequence(DbSequence seq) throws Exception {
-        if (seq == null)
+    public void createSequence(DbSequence seq) {
+        if (seq == null) {
             return;
+        }
 /*
         CREATE SEQUENCE MILLENNIUM.SEQ_WM_PORTAL_XSLT
          START WITH  1
@@ -525,9 +503,8 @@ DEFERRABLE INITIALLY DEFERRED
             ps = this.getConnection().prepareStatement(sql_);
             ps.executeUpdate();
         }
-        catch (Exception e) {
-            System.out.println("Error create sequence " + sql_);
-            throw e;
+        catch (SQLException e) {
+            throw new DbRevisionException(e);
         }
         finally {
             DatabaseManager.close(ps);
@@ -587,13 +564,7 @@ DEFERRABLE INITIALLY DEFERRED
         // Fetch data
         if ((length = instream.read(buffer)) != -1) {
             flag = true;
-            String dbCharset = getDc().getDatabaseCharset();
-            if (dbCharset == null) {
-                log.warn("DatabaseCharset element not defined. We will use 'utf8' charset instead");
-                dbCharset = "utf8";
-            }
-
-            ret = new String(buffer, 0, length, dbCharset);
+            ret = new String(buffer, 0, length, "utf-8");
 
             if (log.isDebugEnabled())
                 log.debug("text from stream\n" + ret);
@@ -608,19 +579,10 @@ DEFERRABLE INITIALLY DEFERRED
             log.warn("error close of stream", e);
         }
 
-
         if (flag)
             return ret;
         else
             return null;
-    }
-
-    public long getSequenceNextValue(String s)
-        throws SQLException {
-        CustomSequence seq = new CustomSequence();
-        seq.setSequenceName(s);
-
-        return getSequenceNextValue(seq);
     }
 
     public long getSequenceNextValue(CustomSequence seq)
