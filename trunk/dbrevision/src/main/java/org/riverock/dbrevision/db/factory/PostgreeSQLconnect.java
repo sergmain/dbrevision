@@ -83,7 +83,7 @@ public class PostgreeSQLconnect extends DatabaseAdapter {
         return getClobField(rs, nameField, 20000);
     }
 
-    public void createTable(DbTable table) throws Exception {
+    public void createTable(DbTable table) {
         if (table == null || table.getFields().isEmpty())
             return;
 
@@ -99,12 +99,12 @@ public class PostgreeSQLconnect extends DatabaseAdapter {
                 isFirst = !isFirst;
 
             sql += "\n\"" + field.getName() + "\"";
-            switch (field.getJavaType().intValue()) {
+            switch (field.getJavaType()) {
                 case Types.DECIMAL:
                 case Types.DOUBLE:
                 case Types.NUMERIC:
                 case Types.INTEGER:
-                    if (field.getDecimalDigit().intValue() == 0)
+                    if (field.getDecimalDigit()==0)
                         sql += " NUMBER";
                     else
                         sql += " NUMBER(" + field.getSize() + "," + field.getDecimalDigit() + ")";
@@ -127,12 +127,10 @@ public class PostgreeSQLconnect extends DatabaseAdapter {
                     break;
 
                 case Types.LONGVARCHAR:
-                    // Oracle 'long' fields type
                     sql += " LONGVARCHAR";
                     break;
 
                 case Types.LONGVARBINARY:
-                    // Oracle 'long raw' fields type
                     sql += " LONGVARBINARY";
                     break;
 
@@ -144,6 +142,7 @@ public class PostgreeSQLconnect extends DatabaseAdapter {
             if (field.getDefaultValue() != null) {
                 String val = field.getDefaultValue().trim();
 
+                //TODO rewrite init of def as in createTable
 //                if (!val.equalsIgnoreCase("null"))
 //                    val = "'"+val+"'";
 
@@ -153,7 +152,7 @@ public class PostgreeSQLconnect extends DatabaseAdapter {
                 sql += (" DEFAULT " + val);
             }
 
-            if (field.getNullable().intValue() == DatabaseMetaData.columnNoNulls) {
+            if (field.getNullable() == DatabaseMetaData.columnNoNulls) {
                 sql += " NOT NULL ";
             }
         }
@@ -192,8 +191,6 @@ public class PostgreeSQLconnect extends DatabaseAdapter {
         }
         sql += "\n)";
 
-//        System.out.println( sql );
-
         PreparedStatement ps = null;
         try {
             ps = this.getConnection().prepareStatement(sql);
@@ -207,7 +204,7 @@ public class PostgreeSQLconnect extends DatabaseAdapter {
                 System.out.println("message " + e.getMessage());
                 System.out.println("string " + e.toString());
             }
-            throw e;
+            throw new DbRevisionException(e);
         }
         finally {
             DatabaseManager.close(ps);
@@ -229,17 +226,15 @@ DEFERRABLE INITIALLY DEFERRED
 /
     */
 
-    public void dropTable(DbTable table) throws Exception {
+    public void dropTable(DbTable table) {
         dropTable(table.getName());
     }
 
-    public void dropTable(String nameTable) throws Exception {
+    public void dropTable(String nameTable) {
         if (nameTable == null)
             return;
 
         String sql = "drop table \"" + nameTable + "\"\n";
-
-//        System.out.println( sql );
 
         PreparedStatement ps = null;
         try {
@@ -247,11 +242,7 @@ DEFERRABLE INITIALLY DEFERRED
             ps.executeUpdate();
         }
         catch (SQLException e) {
-//            System.out.println( "code "+e.getErrorCode() );
-//            System.out.println( "state "+e.getSQLState() );
-//            System.out.println( "message "+e.getMessage() );
-//            System.out.println( "string "+e.toString() );
-            throw e;
+            throw new DbRevisionException(e);
         }
         finally {
             DatabaseManager.close(ps);
@@ -259,7 +250,7 @@ DEFERRABLE INITIALLY DEFERRED
         }
     }
 
-    public void dropSequence(String nameSequence) throws Exception {
+    public void dropSequence(String nameSequence) {
         if (nameSequence == null)
             return;
 
@@ -270,7 +261,7 @@ DEFERRABLE INITIALLY DEFERRED
             ps.executeUpdate();
         }
         catch (SQLException e) {
-            throw e;
+            throw new DbRevisionException(e);
         }
         finally {
             DatabaseManager.close(ps);
@@ -278,22 +269,22 @@ DEFERRABLE INITIALLY DEFERRED
         }
     }
 
-    public void dropConstraint(DbImportedPKColumn impPk) throws Exception {
-        throw new Exception("not implemented");
+    public void dropConstraint(DbImportedPKColumn impPk) {
+        throw new DbRevisionException("not implemented");
     }
 
-    public void addColumn(DbTable table, DbField field) throws Exception {
+    public void addColumn(DbTable table, DbField field) {
         if (log.isDebugEnabled())
             log.debug("addColumn(DbTable table, DbField field)");
 
         String sql = "alter table " + table.getName() + " add ( " + field.getName() + " ";
 
-        switch (field.getJavaType().intValue()) {
+        switch (field.getJavaType()) {
             case Types.DECIMAL:
             case Types.DOUBLE:
             case Types.NUMERIC:
             case Types.INTEGER:
-                if (field.getDecimalDigit().intValue() == 0)
+                if (field.getDecimalDigit() == 0)
                     sql += " NUMBER";
                 else
                     sql += " NUMBER(" + field.getSize() + "," + field.getDecimalDigit() + ")";
@@ -316,12 +307,10 @@ DEFERRABLE INITIALLY DEFERRED
                 break;
 
             case Types.LONGVARCHAR:
-                // Oracle 'long' fields type
                 sql += " LONGVARCHAR";
                 break;
 
             case Types.LONGVARBINARY:
-                // Oracle 'long raw' fields type
                 sql += " LONGVARBINARY";
                 break;
 
@@ -333,6 +322,7 @@ DEFERRABLE INITIALLY DEFERRED
         if (field.getDefaultValue() != null) {
             String val = field.getDefaultValue().trim();
 
+            //TODO rewrite init of def as in createTable
 //                if (!val.equalsIgnoreCase("null"))
 //                    val = "'"+val+"'";
             if (DatabaseManager.checkDefaultTimestamp(val))
@@ -347,7 +337,7 @@ DEFERRABLE INITIALLY DEFERRED
         sql += ")";
 
         if (log.isDebugEnabled())
-            log.debug("Oracle addColumn sql - " + sql);
+            log.debug("addColumn sql - " + sql);
 
         Statement ps = null;
         try {
@@ -356,7 +346,7 @@ DEFERRABLE INITIALLY DEFERRED
             this.getConnection().commit();
         }
         catch (SQLException e) {
-            throw e;
+            throw new DbRevisionException(e);
         }
         finally {
             DatabaseManager.close(ps);
@@ -372,11 +362,11 @@ DEFERRABLE INITIALLY DEFERRED
         return "SYSDATE";
     }
 
-    public List<DbView> getViewList(String schemaPattern, String tablePattern) throws Exception {
+    public List<DbView> getViewList(String schemaPattern, String tablePattern) {
         return DatabaseManager.getViewList(getConnection(), schemaPattern, tablePattern);
     }
 
-    public List<DbSequence> getSequnceList(String schemaPattern) throws Exception {
+    public List<DbSequence> getSequnceList(String schemaPattern) {
         String sql_ =
             "select SEQUENCE_NAME, MIN_VALUE, TO_CHAR(MAX_VALUE) MAX_VALUE, " +
                 "INCREMENT_BY, CYCLE_FLAG, ORDER_FLAG, CACHE_SIZE, LAST_NUMBER " +
@@ -405,7 +395,9 @@ DEFERRABLE INITIALLY DEFERRED
                 v.add(seq);
             }
         }
-        finally {
+        catch (SQLException e) {
+            throw new DbRevisionException(e);
+        } finally {
             DatabaseManager.close(rs, ps);
             rs = null;
             ps = null;

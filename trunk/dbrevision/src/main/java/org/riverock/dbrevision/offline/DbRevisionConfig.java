@@ -34,7 +34,6 @@ import org.apache.log4j.Logger;
 
 import org.riverock.dbrevision.offline.config.DatabaseConnectionType;
 import org.riverock.dbrevision.offline.config.GenericConfigType;
-import org.riverock.dbrevision.offline.config.PropertyType;
 
 /**
  * $Id: DbRevisionConfig.java 1141 2006-12-14 14:43:29Z serg_main $
@@ -153,14 +152,5 @@ public final class DbRevisionConfig {
         if (log.isDebugEnabled()) log.debug("#15.952");
 
         return configObject.getDefaultConnectionName();
-    }
-
-    public static List<PropertyType> getProperty() {
-
-        if (log.isDebugEnabled()) log.debug("#16.951");
-        if (!isConfigProcessed) readConfig();
-        if (log.isDebugEnabled()) log.debug("#16.952");
-
-        return configObject.getProperty();
     }
 }

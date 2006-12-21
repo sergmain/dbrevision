@@ -25,23 +25,19 @@
  */
 package org.riverock.dbrevision.system;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.OutputStream;
 import java.io.FileOutputStream;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.OutputStream;
 import java.sql.Connection;
 
 import org.riverock.dbrevision.annotation.schema.db.DbSchema;
 import org.riverock.dbrevision.annotation.schema.db.DbTable;
-import org.riverock.dbrevision.offline.DbRevisionConfig;
-import org.riverock.dbrevision.offline.StartupApplication;
-//import org.riverock.dbrevision.config.PropertiesProvider;
 import org.riverock.dbrevision.db.DatabaseAdapter;
 import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.db.DatabaseStructureManager;
 import org.riverock.dbrevision.db.factory.ORAconnect;
+import org.riverock.dbrevision.exception.DbRevisionException;
+import org.riverock.dbrevision.offline.DbRevisionConfig;
+import org.riverock.dbrevision.offline.StartupApplication;
 import org.riverock.dbrevision.utils.Utils;
 
 /**
@@ -55,57 +51,31 @@ import org.riverock.dbrevision.utils.Utils;
  */
 public class DbStructureExport {
 
-    private static final boolean IS_EXTRACT_DATA = true;
-
     public static void main(String args[]) throws Exception {
         StartupApplication.init();
         System.out.println("DebugDir: " + DbRevisionConfig.getGenericDebugDir());
         Connection conn = null;
         DatabaseAdapter db = new ORAconnect(conn);
-        File fileWithBigTable = new File(args[3]);
-        if (!fileWithBigTable.exists()) {
-            System.out.println("File with definition for big tables not exist, file: " + fileWithBigTable.getAbsolutePath());
-        }
-        export(db, new FileOutputStream(DbRevisionConfig.getGenericDebugDir() + "webmill-schema.xml"), fileWithBigTable, IS_EXTRACT_DATA);
+        FileOutputStream fileOutputStream = new FileOutputStream(DbRevisionConfig.getGenericDebugDir() + "webmill-schema.xml");
+
+        export(db, fileOutputStream, true);
     }
 
-    public static void export(DatabaseAdapter db, OutputStream outputStream, File fileWithBigTable, boolean isData) {
+    public static void export(DatabaseAdapter db, OutputStream outputStream, boolean isData) {
+        try {
+            DbSchema schema = DatabaseManager.getDbStructure(db);
+            for (DbTable table : schema.getTables()) {
+                table.getFields().addAll(DatabaseStructureManager.getFieldsList(db.getConnection(), table.getSchema(), table.getName(), db.getFamily()));
+                table.setPrimaryKey(DatabaseStructureManager.getPrimaryKey(db.getConnection(), table.getSchema(), table.getName()));
+                table.getImportedKeys().addAll(DatabaseStructureManager.getImportedKeys(db.getConnection(), table.getSchema(), table.getName()));
 
-        DbSchema schema = DatabaseManager.getDbStructure(db);
-
-        List<DbTable> tables = new ArrayList<DbTable>();
-        for (DbTable table : schema.getTables()) {
-            if (
-                table.getName().toUpperCase().startsWith("A_") ||
-                    table.getName().toUpperCase().startsWith("BIN$") ||
-                    table.getName().toUpperCase().startsWith("CIH_") ||
-                    table.getName().toUpperCase().startsWith("TB_") ||
-                    table.getName().toUpperCase().startsWith("HAM_")
-                ) {
-                continue;
+                if (isData) {
+                    table.setData(DatabaseStructureManager.getDataTable(db.getConnection(), table, db.getFamily()));
+                }
             }
-            tables.add(table);
-            System.out.println("Table - " + table.getName());
-
-            table.getFields().addAll(DatabaseStructureManager.getFieldsList(db.getConnection(), table.getSchema(), table.getName(), dbOra.getFamily()));
-            table.setPrimaryKey(DatabaseStructureManager.getPrimaryKey(db.getConnection(), table.getSchema(), table.getName()));
-            table.getImportedKeys().addAll(DatabaseStructureManager.getImportedKeys(db.getConnection(), table.getSchema(), table.getName()));
-
-            boolean isSkipData = false;
-            if (table.getName().toUpperCase().startsWith("WM_FORUM") ||
-                table.getName().toUpperCase().startsWith("WM_PORTLET_FAQ") ||
-                table.getName().toUpperCase().startsWith("WM_JOB")
-                ) {
-                isSkipData = true;
-            }
-
-            if (isData && !isSkipData) {
-                table.setData(DatabaseStructureManager.getDataTable(db.getConnection(), table, db.getFamily()));
-            }
+            Utils.writeObjectAsXml(schema, outputStream, "utf-8");
+        } catch (Exception e) {
+            throw new DbRevisionException(e);
         }
-        DbSchema schemaBigTable = Utils.getObjectFromXml(DbSchema.class, new FileInputStream(fileWithBigTable));
-        schema.getBigTextTable().addAll(schemaBigTable.getBigTextTable());
-
-        Utils.writeObjectAsXml(schema, outputStream, "utf-8");
     }
 }

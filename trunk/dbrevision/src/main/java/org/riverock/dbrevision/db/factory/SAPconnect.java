@@ -72,22 +72,22 @@ public class SAPconnect extends DatabaseAdapter {
         throw new Exception("not implemented");
     }
 
-    public void createForeignKey(DbTable view) throws Exception {
+    public void createForeignKey(DbTable view) {
     }
 
-    public void dropTable(DbTable table) throws Exception {
+    public void dropTable(DbTable table) {
     }
 
-    public void dropTable(String nameTable) throws Exception {
+    public void dropTable(String nameTable) {
     }
 
-    public void dropSequence(String nameSequence) throws Exception {
+    public void dropSequence(String nameSequence) {
     }
 
-    public void dropConstraint(DbImportedPKColumn impPk) throws Exception {
+    public void dropConstraint(DbImportedPKColumn impPk) {
     }
 
-    public void addColumn(DbTable table, DbField field) throws Exception {
+    public void addColumn(DbTable table, DbField field) {
     }
 
     public String getOnDeleteSetNull() {
@@ -98,15 +98,15 @@ public class SAPconnect extends DatabaseAdapter {
         return "SYSDATE";
     }
 
-    public List<DbView> getViewList(String schemaPattern, String tablePattern) throws Exception {
+    public List<DbView> getViewList(String schemaPattern, String tablePattern) {
         return DatabaseManager.getViewList(getConnection(), schemaPattern, tablePattern);
     }
 
-    public List<DbSequence> getSequnceList(String schemaPattern) throws Exception {
+    public List<DbSequence> getSequnceList(String schemaPattern) {
         return new ArrayList<DbSequence>();
     }
 
-    public String getViewText(DbView view) throws Exception {
+    public String getViewText(DbView view) {
         return null;
     }
 
