@@ -37,7 +37,7 @@ import javax.xml.transform.stream.StreamSource;
 import org.apache.log4j.Logger;
 
 import org.riverock.dbrevision.annotation.schema.db.DefinitionList;
-import org.riverock.dbrevision.config.GenericConfig;
+import org.riverock.dbrevision.offline.GenericConfig;
 import org.riverock.dbrevision.exception.DbRevisionException;
 
 /**

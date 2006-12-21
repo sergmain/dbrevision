@@ -30,9 +30,9 @@ import java.io.FileInputStream;
 import org.riverock.dbrevision.annotation.schema.db.DbSchema;
 import org.riverock.dbrevision.annotation.schema.db.DbTable;
 import org.riverock.dbrevision.annotation.schema.db.DbView;
-import org.riverock.dbrevision.config.GenericConfig;
+import org.riverock.dbrevision.offline.GenericConfig;
+import org.riverock.dbrevision.offline.StartupApplication;
 import org.riverock.dbrevision.utils.Utils;
-import org.riverock.dbrevision.utils.StartupApplication;
 
 /**
  * Author: mill

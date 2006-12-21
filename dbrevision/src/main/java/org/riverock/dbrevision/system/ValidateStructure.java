@@ -30,7 +30,8 @@ import java.sql.SQLException;
 
 import org.xml.sax.InputSource;
 
-import org.riverock.dbrevision.config.GenericConfig;
+import org.riverock.dbrevision.offline.GenericConfig;
+import org.riverock.dbrevision.offline.StartupApplication;
 import org.riverock.dbrevision.db.DatabaseAdapter;
 import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.db.DatabaseStructureManager;
@@ -40,7 +41,6 @@ import org.riverock.dbrevision.annotation.schema.db.DbTable;
 import org.riverock.dbrevision.annotation.schema.db.DbImportedKeyList;
 import org.riverock.dbrevision.annotation.schema.db.DbField;
 import org.riverock.dbrevision.utils.Utils;
-import org.riverock.dbrevision.utils.StartupApplication;
 
 /**
  * Author: mill

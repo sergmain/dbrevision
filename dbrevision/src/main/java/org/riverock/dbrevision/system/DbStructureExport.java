@@ -35,15 +35,14 @@ import java.sql.Connection;
 
 import org.riverock.dbrevision.annotation.schema.db.DbSchema;
 import org.riverock.dbrevision.annotation.schema.db.DbTable;
-import org.riverock.dbrevision.annotation.schema.db.DbView;
-import org.riverock.dbrevision.config.GenericConfig;
+import org.riverock.dbrevision.offline.GenericConfig;
+import org.riverock.dbrevision.offline.StartupApplication;
 //import org.riverock.dbrevision.config.PropertiesProvider;
 import org.riverock.dbrevision.db.DatabaseAdapter;
 import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.db.DatabaseStructureManager;
 import org.riverock.dbrevision.db.factory.ORAconnect;
 import org.riverock.dbrevision.utils.Utils;
-import org.riverock.dbrevision.utils.StartupApplication;
 
 /**
  * Export data from DB to XML file

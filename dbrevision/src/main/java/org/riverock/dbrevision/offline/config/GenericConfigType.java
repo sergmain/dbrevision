@@ -32,13 +32,13 @@
 //
 
 
-package org.riverock.dbrevision.annotation.schema.config;
+package org.riverock.dbrevision.offline.config;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
@@ -56,15 +56,10 @@ import javax.xml.bind.annotation.XmlType;
  *         &lt;element name="GenericTempDir" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *         &lt;element name="GenericDebugDir" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *         &lt;element name="Property" type="{}PropertyType" maxOccurs="unbounded" minOccurs="0"/>
- *         &lt;element name="DTS" type="{}DateTimeSavingType" minOccurs="0"/>
  *         &lt;element name="MailHost" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
- *         &lt;element name="CustomDirs" type="{}CustomDirsType" minOccurs="0"/>
- *         &lt;element name="SecurityKeyStorage" type="{}SecurityKeyStorageType" minOccurs="0"/>
  *         &lt;element name="DefaultConnectionName" type="{http://www.w3.org/2001/XMLSchema}string"/>
  *         &lt;element name="DatabaseConnection" type="{}DatabaseConnectionType" maxOccurs="unbounded"/>
  *       &lt;/sequence>
- *       &lt;attribute name="isDebugDirInit" type="{http://www.w3.org/2001/XMLSchema}boolean" default="false" />
- *       &lt;attribute name="isTempDirInit" type="{http://www.w3.org/2001/XMLSchema}boolean" default="false" />
  *     &lt;/restriction>
  *   &lt;/complexContent>
  * &lt;/complexType>
@@ -75,12 +70,7 @@ import javax.xml.bind.annotation.XmlType;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "GenericConfigType", propOrder = {
     "genericTempDir",
-    "genericDebugDir",
     "property",
-    "dts",
-    "mailHost",
-    "customDirs",
-    "securityKeyStorage",
     "defaultConnectionName",
     "databaseConnection"
 })
@@ -88,26 +78,12 @@ public class GenericConfigType {
 
     @XmlElement(name = "GenericTempDir", defaultValue = "\\\\temp")
     protected String genericTempDir;
-    @XmlElement(name = "GenericDebugDir")
-    protected String genericDebugDir;
     @XmlElement(name = "Property")
     protected List<PropertyType> property;
-    @XmlElement(name = "DTS")
-    protected DateTimeSavingType dts;
-    @XmlElement(name = "MailHost")
-    protected String mailHost;
-    @XmlElement(name = "CustomDirs")
-    protected CustomDirsType customDirs;
-    @XmlElement(name = "SecurityKeyStorage")
-    protected SecurityKeyStorageType securityKeyStorage;
     @XmlElement(name = "DefaultConnectionName", required = true, defaultValue = "ORACLE")
     protected String defaultConnectionName;
     @XmlElement(name = "DatabaseConnection", required = true)
     protected List<DatabaseConnectionType> databaseConnection;
-    @XmlAttribute
-    protected Boolean isDebugDirInit;
-    @XmlAttribute
-    protected Boolean isTempDirInit;
 
     /**
      * Gets the value of the genericTempDir property.
@@ -131,30 +107,6 @@ public class GenericConfigType {
      */
     public void setGenericTempDir(String value) {
         this.genericTempDir = value;
-    }
-
-    /**
-     * Gets the value of the genericDebugDir property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getGenericDebugDir() {
-        return genericDebugDir;
-    }
-
-    /**
-     * Sets the value of the genericDebugDir property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setGenericDebugDir(String value) {
-        this.genericDebugDir = value;
     }
 
     /**
@@ -184,102 +136,6 @@ public class GenericConfigType {
             property = new ArrayList<PropertyType>();
         }
         return this.property;
-    }
-
-    /**
-     * Gets the value of the dts property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link DateTimeSavingType }
-     *     
-     */
-    public DateTimeSavingType getDTS() {
-        return dts;
-    }
-
-    /**
-     * Sets the value of the dts property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link DateTimeSavingType }
-     *     
-     */
-    public void setDTS(DateTimeSavingType value) {
-        this.dts = value;
-    }
-
-    /**
-     * Gets the value of the mailHost property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getMailHost() {
-        return mailHost;
-    }
-
-    /**
-     * Sets the value of the mailHost property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setMailHost(String value) {
-        this.mailHost = value;
-    }
-
-    /**
-     * Gets the value of the customDirs property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link CustomDirsType }
-     *     
-     */
-    public CustomDirsType getCustomDirs() {
-        return customDirs;
-    }
-
-    /**
-     * Sets the value of the customDirs property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link CustomDirsType }
-     *     
-     */
-    public void setCustomDirs(CustomDirsType value) {
-        this.customDirs = value;
-    }
-
-    /**
-     * Gets the value of the securityKeyStorage property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link SecurityKeyStorageType }
-     *     
-     */
-    public SecurityKeyStorageType getSecurityKeyStorage() {
-        return securityKeyStorage;
-    }
-
-    /**
-     * Sets the value of the securityKeyStorage property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link SecurityKeyStorageType }
-     *     
-     */
-    public void setSecurityKeyStorage(SecurityKeyStorageType value) {
-        this.securityKeyStorage = value;
     }
 
     /**
@@ -334,61 +190,4 @@ public class GenericConfigType {
         }
         return this.databaseConnection;
     }
-
-    /**
-     * Gets the value of the isDebugDirInit property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Boolean }
-     *     
-     */
-    public boolean isIsDebugDirInit() {
-        if (isDebugDirInit == null) {
-            return false;
-        } else {
-            return isDebugDirInit;
-        }
-    }
-
-    /**
-     * Sets the value of the isDebugDirInit property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link Boolean }
-     *     
-     */
-    public void setIsDebugDirInit(Boolean value) {
-        this.isDebugDirInit = value;
-    }
-
-    /**
-     * Gets the value of the isTempDirInit property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Boolean }
-     *     
-     */
-    public boolean isIsTempDirInit() {
-        if (isTempDirInit == null) {
-            return false;
-        } else {
-            return isTempDirInit;
-        }
-    }
-
-    /**
-     * Sets the value of the isTempDirInit property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link Boolean }
-     *     
-     */
-    public void setIsTempDirInit(Boolean value) {
-        this.isTempDirInit = value;
-    }
-
 }

@@ -32,7 +32,7 @@
 //
 
 
-package org.riverock.dbrevision.annotation.schema.config;
+package org.riverock.dbrevision.offline.config;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -56,21 +56,6 @@ import javax.xml.bind.annotation.XmlType;
  *         &lt;element name="ConnectString" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *         &lt;element name="ConnectionClass" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *         &lt;element name="Family" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
- *         &lt;element name="DatabaseCharset" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
- *         &lt;element name="IsConvertDatabaseString" type="{http://www.w3.org/2001/XMLSchema}boolean" minOccurs="0"/>
- *         &lt;element name="IsAutoCommit" type="{http://www.w3.org/2001/XMLSchema}boolean" minOccurs="0"/>
- *         &lt;element name="DataSourceType" minOccurs="0">
- *           &lt;simpleType>
- *             &lt;restriction base="{http://www.w3.org/2001/XMLSchema}string">
- *               &lt;enumeration value="NONE"/>
- *               &lt;enumeration value="JNDI"/>
- *               &lt;enumeration value="DRIVER"/>
- *             &lt;/restriction>
- *           &lt;/simpleType>
- *         &lt;/element>
- *         &lt;element name="DataSourceName" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
- *         &lt;element name="IsSupportCache" type="{http://www.w3.org/2001/XMLSchema}boolean" minOccurs="0"/>
- *         &lt;element name="IsCheckStructure" type="{http://www.w3.org/2001/XMLSchema}boolean" minOccurs="0"/>
  *       &lt;/sequence>
  *       &lt;attribute name="name" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
  *     &lt;/restriction>
@@ -86,14 +71,7 @@ import javax.xml.bind.annotation.XmlType;
     "password",
     "connectString",
     "connectionClass",
-    "family",
-    "databaseCharset",
-    "isConvertDatabaseString",
-    "isAutoCommit",
-    "dataSourceType",
-    "dataSourceName",
-    "isSupportCache",
-    "isCheckStructure"
+    "family"
 })
 public class DatabaseConnectionType {
 
@@ -107,20 +85,6 @@ public class DatabaseConnectionType {
     protected String connectionClass;
     @XmlElement(name = "Family")
     protected String family;
-    @XmlElement(name = "DatabaseCharset")
-    protected String databaseCharset;
-    @XmlElement(name = "IsConvertDatabaseString", defaultValue = "false")
-    protected Boolean isConvertDatabaseString;
-    @XmlElement(name = "IsAutoCommit", defaultValue = "false")
-    protected Boolean isAutoCommit;
-    @XmlElement(name = "DataSourceType", defaultValue = "NONE")
-    protected String dataSourceType;
-    @XmlElement(name = "DataSourceName")
-    protected String dataSourceName;
-    @XmlElement(name = "IsSupportCache", defaultValue = "true")
-    protected Boolean isSupportCache;
-    @XmlElement(name = "IsCheckStructure", defaultValue = "false")
-    protected Boolean isCheckStructure;
     @XmlAttribute(required = true)
     protected String name;
 
@@ -242,174 +206,6 @@ public class DatabaseConnectionType {
      */
     public void setFamily(String value) {
         this.family = value;
-    }
-
-    /**
-     * Gets the value of the databaseCharset property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getDatabaseCharset() {
-        return databaseCharset;
-    }
-
-    /**
-     * Sets the value of the databaseCharset property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setDatabaseCharset(String value) {
-        this.databaseCharset = value;
-    }
-
-    /**
-     * Gets the value of the isConvertDatabaseString property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Boolean }
-     *     
-     */
-    public Boolean isIsConvertDatabaseString() {
-        return isConvertDatabaseString;
-    }
-
-    /**
-     * Sets the value of the isConvertDatabaseString property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link Boolean }
-     *     
-     */
-    public void setIsConvertDatabaseString(Boolean value) {
-        this.isConvertDatabaseString = value;
-    }
-
-    /**
-     * Gets the value of the isAutoCommit property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Boolean }
-     *     
-     */
-    public Boolean isIsAutoCommit() {
-        return isAutoCommit;
-    }
-
-    /**
-     * Sets the value of the isAutoCommit property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link Boolean }
-     *     
-     */
-    public void setIsAutoCommit(Boolean value) {
-        this.isAutoCommit = value;
-    }
-
-    /**
-     * Gets the value of the dataSourceType property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getDataSourceType() {
-        return dataSourceType;
-    }
-
-    /**
-     * Sets the value of the dataSourceType property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setDataSourceType(String value) {
-        this.dataSourceType = value;
-    }
-
-    /**
-     * Gets the value of the dataSourceName property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getDataSourceName() {
-        return dataSourceName;
-    }
-
-    /**
-     * Sets the value of the dataSourceName property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setDataSourceName(String value) {
-        this.dataSourceName = value;
-    }
-
-    /**
-     * Gets the value of the isSupportCache property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Boolean }
-     *     
-     */
-    public Boolean isIsSupportCache() {
-        return isSupportCache;
-    }
-
-    /**
-     * Sets the value of the isSupportCache property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link Boolean }
-     *     
-     */
-    public void setIsSupportCache(Boolean value) {
-        this.isSupportCache = value;
-    }
-
-    /**
-     * Gets the value of the isCheckStructure property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Boolean }
-     *     
-     */
-    public Boolean isIsCheckStructure() {
-        return isCheckStructure;
-    }
-
-    /**
-     * Sets the value of the isCheckStructure property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link Boolean }
-     *     
-     */
-    public void setIsCheckStructure(Boolean value) {
-        this.isCheckStructure = value;
     }
 
     /**

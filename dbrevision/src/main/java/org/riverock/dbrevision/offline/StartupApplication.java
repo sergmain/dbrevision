@@ -23,15 +23,12 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
-package org.riverock.dbrevision.utils;
+package org.riverock.dbrevision.offline;
 
 import java.io.File;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
-
-import org.riverock.dbrevision.config.ConfigException;
-import org.riverock.dbrevision.config.PropertiesProvider;
 
 /**
  * @author Sergei Maslyukov
@@ -48,12 +45,19 @@ public class StartupApplication {
     private final static String DEFAULT_DIR_NAME = "cfg";
 
     public static void init() throws ConfigException {
-        init(DEFAULT_DIR_NAME, "log4j.properties", "riverock");
+        init(DEFAULT_DIR_NAME, "log4j.properties");
     }
 
-    public static void init(String defaultNameDir, String log4jFileName, String configPrefix)
+    public static void init(String defaultNameDir, String log4jFileName)
         throws ConfigException {
-        if (!isInit) {
+        if (isInit) {
+            return;
+        }
+
+        synchronized(StartupApplication.class) {
+            if (isInit) {
+                return;
+            }
             PropertiesProvider.setApplicationPath(
                 System.getProperties().getProperty("user.dir")
             );
@@ -71,7 +75,7 @@ public class StartupApplication {
             if (!tempDir.exists()) {
                 tempDir.mkdir();
             }
-            System.setProperty("mill.logging.path", millLogPath);
+            System.setProperty("dbrevision.logging.path", millLogPath);
             System.setProperty("riverock.logging.path", millLogPath);
 
             PropertyConfigurator.configure(

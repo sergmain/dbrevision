@@ -23,21 +23,18 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
-package org.riverock.dbrevision.config;
+package org.riverock.dbrevision.offline;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.SimpleTimeZone;
-import java.util.TimeZone;
 
 import org.apache.log4j.Logger;
 
-import org.riverock.dbrevision.annotation.schema.config.DatabaseConnectionType;
-import org.riverock.dbrevision.annotation.schema.config.DateTimeSavingType;
-import org.riverock.dbrevision.annotation.schema.config.GenericConfigType;
-import org.riverock.dbrevision.annotation.schema.config.PropertyType;
+import org.riverock.dbrevision.offline.config.DatabaseConnectionType;
+import org.riverock.dbrevision.offline.config.GenericConfigType;
+import org.riverock.dbrevision.offline.config.PropertyType;
 
 /**
  * $Id: GenericConfig.java 1141 2006-12-14 14:43:29Z serg_main $
@@ -45,48 +42,26 @@ import org.riverock.dbrevision.annotation.schema.config.PropertyType;
 public final class GenericConfig {
     private final static Logger log = Logger.getLogger(GenericConfig.class);
 
-    public static final String CONFIG_FILE_PARAM_NAME = "generic-config-file";
+    private static final String NAME_CONFIG_FILE = "dbrevision.xml";
 
-    private static final String NAME_CONFIG_FILE = "-generic.xml";
-    private static String configPrefix = "jsmithy";
-    public final static String JNDI_GENERIC_CONFIG_FILE = "jsmithy/generic/ConfigFile";
-
-    public final static String JNDI_DB_NAME = "webmill/db-name";
-    public final static String JNDI_DB_FAMALY = "webmill/db-famaly";
-
-    private static ConfigObject configObject = null;
+    private static GenericConfigType configObject = null;
     private static Map<String, DatabaseConnectionType> dbConfig = null;
-    private static TimeZone currentTimeZone = null;
 
     private static boolean isConfigProcessed = false;
     private static String defaultConnectionName = null;
     private static String genericDebugDir = null;
 
-    public static String getConfigPrefix() {
-        return configPrefix;
-    }
-
-    public static void setConfigPrefix(final String configPrefix) {
-        GenericConfig.configPrefix = configPrefix;
-    }
-
-    public static GenericConfigType getConfig() {
-        return (GenericConfigType) configObject.getConfigObject();
-    }
-
-    private final static Object syncReadConfig = new Object();
-
     private static void readConfig() {
 
-        if (isConfigProcessed) return;
+        if (isConfigProcessed) {
+            return;
+        }
 
-        synchronized (syncReadConfig) {
-            if (isConfigProcessed)
+        synchronized (GenericConfig.class) {
+            if (isConfigProcessed) {
                 return;
-
-            configObject = ConfigObject.load(
-                JNDI_GENERIC_CONFIG_FILE, CONFIG_FILE_PARAM_NAME, configPrefix + NAME_CONFIG_FILE, GenericConfigType.class
-            );
+            }
+            configObject = ConfigObject.loadConfigFile( NAME_CONFIG_FILE );
 
             if (dbConfig != null) {
                 dbConfig.clear();
@@ -94,7 +69,7 @@ public final class GenericConfig {
             }
 
             // config not found as init parameter in web.xml file or as JDNI reference
-            if (getConfig()==null) {
+            if (configObject ==null) {
                 throw new ConfigException("generic config object is null");
             }
 
@@ -103,12 +78,12 @@ public final class GenericConfig {
             }
 
             dbConfig = new HashMap<String, DatabaseConnectionType>();
-            for (DatabaseConnectionType dbc : getConfig().getDatabaseConnection()) {
+            for (DatabaseConnectionType dbc : configObject.getDatabaseConnection()) {
                 dbConfig.put(dbc.getName(), dbc);
             }
 
             if (log.isInfoEnabled()) {
-                log.info("Name default DB connect " + getConfig().getDefaultConnectionName());
+                log.info("Name default DB connect " + configObject.getDefaultConnectionName());
             }
 
             isConfigProcessed = true;
@@ -118,63 +93,6 @@ public final class GenericConfig {
 //-----------------------------------------------------
 // PUBLIC SECTION
 //-----------------------------------------------------
-
-    private final static Object syncTZ = new Object();
-
-    public static TimeZone getTZ() throws ConfigException {
-
-        if (log.isDebugEnabled()) log.debug("GenericConfig.getTZ() #1");
-        if (!isConfigProcessed) readConfig();
-        if (currentTimeZone != null) return currentTimeZone;
-
-        if (log.isDebugEnabled()) log.debug("GenericConfig.getTZ() #3 Set new TimeZone");
-
-        synchronized (syncTZ) {
-
-            if (currentTimeZone != null) return currentTimeZone;
-
-            DateTimeSavingType dts = getConfig().getDTS();
-            if (dts.getTimeZoneName() != null) {
-                String nameTimeZone = dts.getTimeZoneName();
-
-                // work around NPE in TimeZone.getTimeZone
-                if (nameTimeZone != null && nameTimeZone.trim().length() != 0) {
-
-                    if (log.isDebugEnabled())
-                        log.debug("GenericConfig.getTZ(). Set TimeZone to " + nameTimeZone);
-
-                    TimeZone tz = TimeZone.getTimeZone(nameTimeZone);
-                    if (tz == null) {
-                        log.fatal("TimeZone '" + nameTimeZone + "' not found. You must correct NameTimeZone element in config file");
-                        return null;
-                    }
-                    currentTimeZone = tz;
-                    TimeZone.setDefault(currentTimeZone);
-                    return tz;
-                }
-                log.fatal("<NameTimeZone> element not found. You must correct config file.");
-                return null;
-            } else {
-                currentTimeZone =
-                    new SimpleTimeZone(
-                        dts.getRawOffset(),
-                        dts.getId(),
-                        dts.getStart().getMonth(),
-                        dts.getStart().getDay(),
-                        dts.getStart().getDayOfWeek(),
-                        dts.getStart().getTime(),
-                        dts.getEnd().getMonth(),
-                        dts.getEnd().getDay(),
-                        dts.getEnd().getDayOfWeek(),
-                        dts.getEnd().getTime()
-                    );
-                TimeZone.setDefault(currentTimeZone);
-                return currentTimeZone;
-            }
-//            log.fatal("<DTS> element present, but is empty. You must correct <DTS> element in config file.");
-//            return null;
-        }
-    }
 
     private final static Object syncDebugDir = new Object();
 
@@ -234,7 +152,7 @@ public final class GenericConfig {
         if (!isConfigProcessed) readConfig();
         if (log.isDebugEnabled()) log.debug("#15.952");
 
-        return getConfig().getDefaultConnectionName();
+        return configObject.getDefaultConnectionName();
     }
 
     public static List<PropertyType> getProperty() {
@@ -243,6 +161,6 @@ public final class GenericConfig {
         if (!isConfigProcessed) readConfig();
         if (log.isDebugEnabled()) log.debug("#16.952");
 
-        return getConfig().getProperty();
+        return configObject.getProperty();
     }
 }
