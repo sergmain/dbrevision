@@ -37,5 +37,5 @@ import org.riverock.dbrevision.annotation.schema.db.DefinitionActionDataList;
  */
 public interface DefinitionProcessingInterface
 {
-    public void processAction(DatabaseAdapter db_, DefinitionActionDataList parameters) throws Exception;
+    public void processAction(DatabaseAdapter db_, DefinitionActionDataList parameters);
 }

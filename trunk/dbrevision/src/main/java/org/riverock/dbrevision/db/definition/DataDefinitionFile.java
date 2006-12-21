@@ -38,6 +38,7 @@ import org.apache.log4j.Logger;
 
 import org.riverock.dbrevision.annotation.schema.db.DefinitionList;
 import org.riverock.dbrevision.config.GenericConfig;
+import org.riverock.dbrevision.exception.DbRevisionException;
 
 /**
  * $Id: DataDefinitionFile.java 1111 2006-11-30 00:18:47Z serg_main $
@@ -51,8 +52,9 @@ public class DataDefinitionFile {
     public DataDefinitionFile(File tempFile) {
         this.definitionFile=tempFile;
 
-        if (log.isDebugEnabled())
+        if (log.isDebugEnabled()) {
             log.debug("Start unmarshalling file " + tempFile);
+        }
 
         processFile();
     }
@@ -91,7 +93,7 @@ public class DataDefinitionFile {
         catch (Exception e) {
             String errorString = "Error processing data definition file";
             log.error(errorString, e);
-            throw new IllegalStateException(errorString, e);
+            throw new DbRevisionException(errorString, e);
         }
     }
 }

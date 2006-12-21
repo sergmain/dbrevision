@@ -25,17 +25,8 @@
  */
 package org.riverock.dbrevision.db.definition;
 
-  //---------------------------------/
- //- Imported classes and packages -/
-//---------------------------------/
+import java.util.Date;
 
-
-/*
- * This class was automatically generated with
- * <a href="http://www.castor.org">Castor 0.9.4.3</a>, using an XML
- * Schema.
- * $Id: MainDbDefinitionItem.java 1075 2006-11-24 18:08:42Z serg_main $
- */
 /**
  * Class MainDbDefinitionItem.
  * 
@@ -43,124 +34,58 @@ package org.riverock.dbrevision.db.definition;
  */
 public class MainDbDefinitionItem implements java.io.Serializable {
 
-
-      //--------------------------/
-     //- Class/Member Variables -/
-    //--------------------------/
-
     /**
      * Field _idDbDefinition
      */
-    private long _idDbDefinition;
+    private long idDbDefinition;
 
     /**
      * keeps track of state for field: _idDbDefinition
      */
-    private boolean _has_idDbDefinition;
+    private boolean has_idDbDefinition;
 
     /**
      * Field _nameDefinition
      */
-    private java.lang.String _nameDefinition;
+    private java.lang.String nameDefinition;
 
     /**
      * Field _aplayDate
      */
-    private java.util.Date _aplayDate;
-
-
-      //----------------/
-     //- Constructors -/
-    //----------------/
+    private java.util.Date applayDate;
 
     public MainDbDefinitionItem() {
-        super();
-    } //-- org.riverock.schema.core.MainDbDefinitionItem()
+    }
 
+    public long getIdDbDefinition() {
+        return idDbDefinition;
+    }
 
-      //-----------/
-     //- Methods -/
-    //-----------/
+    public void setIdDbDefinition(long idDbDefinition) {
+        this.idDbDefinition = idDbDefinition;
+    }
 
-    /**
-     * Method deleteIdDbDefinition
-     */
-    public void deleteIdDbDefinition()
-    {
-        this._has_idDbDefinition= false;
-    } //-- void deleteIdDbDefinition() 
+    public boolean isHas_idDbDefinition() {
+        return has_idDbDefinition;
+    }
 
-    /**
-     * Method getAplayDateReturns the value of field 'aplayDate'.
-     * 
-     * @return the value of field 'aplayDate'.
-     */
-    public java.util.Date getAplayDate()
-    {
-        return this._aplayDate;
-    } //-- java.util.Date getAplayDate() 
+    public void setHas_idDbDefinition(boolean has_idDbDefinition) {
+        this.has_idDbDefinition = has_idDbDefinition;
+    }
 
-    /**
-     * Method getIdDbDefinitionReturns the value of field
-     * 'idDbDefinition'.
-     * 
-     * @return the value of field 'idDbDefinition'.
-     */
-    public long getIdDbDefinition()
-    {
-        return this._idDbDefinition;
-    } //-- long getIdDbDefinition() 
+    public String getNameDefinition() {
+        return nameDefinition;
+    }
 
-    /**
-     * Method getNameDefinitionReturns the value of field
-     * 'nameDefinition'.
-     * 
-     * @return the value of field 'nameDefinition'.
-     */
-    public java.lang.String getNameDefinition()
-    {
-        return this._nameDefinition;
-    } //-- java.lang.String getNameDefinition() 
+    public void setNameDefinition(String nameDefinition) {
+        this.nameDefinition = nameDefinition;
+    }
 
-    /**
-     * Method hasIdDbDefinition
-     */
-    public boolean hasIdDbDefinition()
-    {
-        return this._has_idDbDefinition;
-    } //-- boolean hasIdDbDefinition() 
+    public Date getApplayDate() {
+        return applayDate;
+    }
 
-    /**
-     * Method setAplayDateSets the value of field 'aplayDate'.
-     * 
-     * @param aplayDate the value of field 'aplayDate'.
-     */
-    public void setAplayDate(java.util.Date aplayDate)
-    {
-        this._aplayDate = aplayDate;
-    } //-- void setAplayDate(java.util.Date) 
-
-    /**
-     * Method setIdDbDefinitionSets the value of field
-     * 'idDbDefinition'.
-     * 
-     * @param idDbDefinition the value of field 'idDbDefinition'.
-     */
-    public void setIdDbDefinition(long idDbDefinition)
-    {
-        this._idDbDefinition = idDbDefinition;
-        this._has_idDbDefinition = true;
-    } //-- void setIdDbDefinition(long) 
-
-    /**
-     * Method setNameDefinitionSets the value of field
-     * 'nameDefinition'.
-     * 
-     * @param nameDefinition the value of field 'nameDefinition'.
-     */
-    public void setNameDefinition(java.lang.String nameDefinition)
-    {
-        this._nameDefinition = nameDefinition;
-    } //-- void setNameDefinition(java.lang.String) 
-
+    public void setApplayDate(Date applayDate) {
+        this.applayDate = applayDate;
+    }
 }

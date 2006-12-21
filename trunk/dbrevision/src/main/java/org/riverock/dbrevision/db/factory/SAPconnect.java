@@ -25,27 +25,26 @@
  */
 package org.riverock.dbrevision.db.factory;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.sql.Blob;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.sql.Types;
-import java.sql.Blob;
-import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
 
+import org.riverock.dbrevision.annotation.schema.db.CustomSequence;
+import org.riverock.dbrevision.annotation.schema.db.DbDataFieldData;
+import org.riverock.dbrevision.annotation.schema.db.DbField;
+import org.riverock.dbrevision.annotation.schema.db.DbImportedPKColumn;
+import org.riverock.dbrevision.annotation.schema.db.DbSequence;
+import org.riverock.dbrevision.annotation.schema.db.DbTable;
+import org.riverock.dbrevision.annotation.schema.db.DbView;
 import org.riverock.dbrevision.db.DatabaseAdapter;
 import org.riverock.dbrevision.db.DatabaseManager;
-import org.riverock.dbrevision.annotation.schema.db.DbView;
-import org.riverock.dbrevision.annotation.schema.db.DbField;
-import org.riverock.dbrevision.annotation.schema.db.DbTable;
-import org.riverock.dbrevision.annotation.schema.db.DbSequence;
-import org.riverock.dbrevision.annotation.schema.db.DbImportedPKColumn;
-import org.riverock.dbrevision.annotation.schema.db.DbDataFieldData;
-import org.riverock.dbrevision.annotation.schema.db.CustomSequence;
 
 /**
  * $Id: SAPconnect.java 1141 2006-12-14 14:43:29Z serg_main $
@@ -91,23 +90,12 @@ public class SAPconnect extends DatabaseAdapter {
     public void addColumn(DbTable table, DbField field) throws Exception {
     }
 
-    public String getNameDateBind() {
-        return "?";
-    }
-
     public String getOnDeleteSetNull() {
         return null;
     }
 
-    public void bindDate(PreparedStatement ps, int idx, Timestamp stamp) throws SQLException {
-        ps.setTimestamp(idx, stamp);
-    }
-
     public String getDefaultTimestampValue() {
         return "SYSDATE";
-    }
-
-    public void setDefaultValue(DbTable originTable, DbField originField) {
     }
 
     public List<DbView> getViewList(String schemaPattern, String tablePattern) throws Exception {
@@ -142,7 +130,7 @@ public class SAPconnect extends DatabaseAdapter {
         }
     }
 
-    public void createSequence(DbSequence seq) throws Exception {
+    public void createSequence(DbSequence seq) {
     }
 
     public void setLongVarbinary(PreparedStatement ps, int index, DbDataFieldData fieldData)
@@ -186,32 +174,6 @@ public class SAPconnect extends DatabaseAdapter {
 
 	return clob.getSubString(1, maxLength);
 */
-    }
-
-    public long getSequenceNextValue(String s)
-        throws SQLException {
-        long id_ = -1;
-
-        String sql_ =
-            "select " + s.trim() + ".nextval from dual";
-        PreparedStatement ps = null;
-        ResultSet rs = null;
-        try {
-            ps = this.getConnection().prepareStatement(sql_);
-
-            rs = ps.executeQuery();
-
-            if (rs.next())
-                id_ = rs.getLong(1);
-
-        }
-        finally {
-            DatabaseManager.close(rs, ps);
-            rs = null;
-            ps = null;
-        }
-
-        return id_;
     }
 
     /**

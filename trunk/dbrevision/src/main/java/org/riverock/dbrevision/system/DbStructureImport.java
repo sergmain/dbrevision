@@ -40,13 +40,14 @@ import org.riverock.dbrevision.utils.Utils;
 import org.riverock.dbrevision.utils.StartupApplication;
 
 /**
+ * import data from XML file to DB
+ * 
  * Author: mill
  * Date: Nov 28, 2002
  * Time: 3:10:19 PM
  * <p/>
  * $Id: DbStructureImport.java 1141 2006-12-14 14:43:29Z serg_main $
  * <p/>
- * import data from XML file to DB
  */
 @SuppressWarnings({"UnusedAssignment"})
 public class DbStructureImport {

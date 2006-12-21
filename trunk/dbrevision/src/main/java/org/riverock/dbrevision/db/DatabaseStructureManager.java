@@ -293,10 +293,7 @@ public class DatabaseStructureManager {
             else
                 sql_ += ", ";
 
-            if (field.getJavaType() != Types.DATE && field.getJavaType() != Types.TIMESTAMP)
-                sql_ += " ?";
-            else
-                sql_ += adapter.getNameDateBind();
+            sql_ += '?';
         }
         sql_ += ")";
 
@@ -377,7 +374,6 @@ public class DatabaseStructureManager {
                                     Timestamp stamp = new Timestamp(timeMillis);
                                     if (isDebug)
                                         System.out.println("param #" + (k + 1) + ", value " + stamp);
-                                    adapter.bindDate(ps, k + 1, stamp);
                                     ps.setTimestamp(k + 1, stamp);
                                     break;
 
@@ -686,11 +682,11 @@ public class DatabaseStructureManager {
      *
      * @return java.lang.ArrayList of DbTable
      */
-    public static ArrayList<DbTable> getTableList(Connection conn1, String schemaPattern, String tablePattern) {
+    public static List<DbTable> getTableList(Connection conn1, String schemaPattern, String tablePattern) {
         String[] types = {"TABLE"};
 
         ResultSet meta = null;
-        ArrayList<DbTable> v = new ArrayList<DbTable>();
+        List<DbTable> v = new ArrayList<DbTable>();
         try {
             DatabaseMetaData db = conn1.getMetaData();
 
@@ -712,7 +708,6 @@ public class DatabaseStructureManager {
         }
         catch (Exception e) {
             log.error("Error get list of view", e);
-//            System.out.println(e.toString());
         }
         return v;
     }
@@ -1056,7 +1051,7 @@ public class DatabaseStructureManager {
      * @param dc1
      * @return java.lang.Vector of DbTable
      */
-    public static ArrayList getTableList(Connection conn, DatabaseConnectionType dc1) {
+    public static List<DbTable> getTableList(Connection conn, DatabaseConnectionType dc1) {
         return getTableList(conn, dc1.getUsername().toUpperCase(), "%");
     }
 

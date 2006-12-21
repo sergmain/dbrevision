@@ -428,30 +428,12 @@ public final class MYSQLconnect extends DatabaseAdapter {
         }
     }
 
-    public String getNameDateBind() {
-        return "?";
-    }
-
     public String getOnDeleteSetNull() {
         return "";
     }
 
-    /**
-     * bind Timestamp value
-     *
-     * @param ps
-     * @param stamp @see java.sql.Timestamp
-     * @throws SQLException
-     */
-    public void bindDate(PreparedStatement ps, int idx, Timestamp stamp) throws SQLException {
-        ps.setTimestamp(idx, stamp);
-    }
-
     public String getDefaultTimestampValue() {
         return "'CURRENT_TIMESTAMP'";
-    }
-
-    public void setDefaultValue(DbTable originTable, DbField originField) {
     }
 
     public List<DbView> getViewList(String schemaPattern, String tablePattern) throws Exception {
@@ -498,7 +480,7 @@ public final class MYSQLconnect extends DatabaseAdapter {
 */
     }
 
-    public void createSequence(DbSequence seq) throws Exception {
+    public void createSequence(DbSequence seq) {
     }
 
     public void setLongVarbinary(PreparedStatement ps, int index, DbDataFieldData fieldData)

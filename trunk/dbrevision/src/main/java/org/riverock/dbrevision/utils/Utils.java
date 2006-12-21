@@ -28,9 +28,13 @@ package org.riverock.dbrevision.utils;
 import java.io.InputStream;
 import java.io.FileOutputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.Calendar;
+import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
 import java.text.SimpleDateFormat;
 import java.sql.Timestamp;
 
@@ -55,6 +59,34 @@ import org.apache.commons.lang.time.DateFormatUtils;
  */
 public class Utils {
     private final static Logger log = Logger.getLogger(Utils.class);
+
+    public static void putKey(final Map<String, Object> map, final String key, final Object value) {
+        Object obj = map.get(key);
+        if (obj == null) {
+            map.put(key, value);
+            return;
+        }
+
+        if (obj instanceof List) {
+            if (value instanceof List)
+                ((List) obj).addAll((List) value);
+            else
+                ((List) obj).add(value);
+        }
+        else {
+            List<Object> v = new ArrayList<Object>();
+            v.add(obj);
+
+            if (value instanceof List) {
+                v.addAll((List) value);
+            } else {
+                v.add(value);
+            }
+
+            map.remove(key);
+            map.put(key, v);
+        }
+    }
 
     public static java.sql.Timestamp getCurrentTime() {
         return new Timestamp(System.currentTimeMillis());
@@ -141,13 +173,17 @@ public class Utils {
         writeToFile(obj, fileName, "utf-8");
     }
 
-    public static void writeToFile(final Object obj, final String fileName, final String encoding)
-        throws Exception {
+    public static void writeToFile(final Object obj, final String fileName, final String encoding) {
+        writeObjectAsXml(obj, new FileOutputStream(fileName), encoding);
+    }
+
+    public static void writeObjectAsXml(final Object obj, OutputStream outputStream, final String encoding) {
         JAXBContext jaxbContext = JAXBContext.newInstance ( obj.getClass().getPackage().getName() );
         Marshaller marshaller = jaxbContext.createMarshaller();
-        marshaller.setProperty(Marshaller.JAXB_ENCODING, encoding);
-        FileOutputStream fos = new FileOutputStream(fileName);
-        marshaller.marshal(obj, fos);
+        if (encoding!=null && encoding.trim().length()>0) {
+            marshaller.setProperty(Marshaller.JAXB_ENCODING, encoding);
+        }
+        marshaller.marshal(obj, outputStream);
     }
 
     public static <T> T getObjectFromXml(final Class<T> classType, InputStream is) throws Exception {

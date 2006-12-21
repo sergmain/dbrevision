@@ -29,10 +29,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.List;
 
-import org.riverock.dbrevision.annotation.schema.config.DatabaseConnectionType;
 import org.riverock.dbrevision.annotation.schema.db.CustomSequence;
 import org.riverock.dbrevision.annotation.schema.db.DbDataFieldData;
 import org.riverock.dbrevision.annotation.schema.db.DbField;
@@ -47,8 +45,6 @@ import org.riverock.dbrevision.annotation.schema.db.DbView;
 public abstract class DatabaseAdapter {
     private Connection conn = null;
 
-    private DatabaseConnectionType dc = null;
-
     public DatabaseAdapter(Connection conn) {
         this.setConnection(conn);
     }
@@ -59,14 +55,6 @@ public abstract class DatabaseAdapter {
 
     public void setConnection(Connection conn) {
         this.conn = conn;
-    }
-
-    public DatabaseConnectionType getDc() {
-        return dc;
-    }
-
-    public void setDc(DatabaseConnectionType dc) {
-        this.dc = dc;
     }
 
     public abstract int getFamily();
@@ -89,7 +77,7 @@ public abstract class DatabaseAdapter {
 
     public abstract void createView(DbView view) throws Exception;
 
-    public abstract void createSequence(DbSequence seq) throws Exception;
+    public abstract void createSequence(DbSequence seq);
 
     public abstract void dropTable(DbTable table) throws Exception;
 
@@ -101,23 +89,7 @@ public abstract class DatabaseAdapter {
 
     public abstract void addColumn(DbTable table, DbField field) throws Exception;
 
-    /**
-     * in some DB (Oracle8.0) setTimestamp not work and we need work around
-     *
-     * @return String
-     */
-    public abstract String getNameDateBind();
-
     public abstract String getOnDeleteSetNull();
-
-    /**
-     * bind Timestamp value
-     *
-     * @param ps
-     * @param stamp @see java.sql.Timestamp
-     * @throws SQLException
-     */
-    public abstract void bindDate(final PreparedStatement ps, final int idx, final Timestamp stamp) throws SQLException;
 
     public abstract String getDefaultTimestampValue();
 

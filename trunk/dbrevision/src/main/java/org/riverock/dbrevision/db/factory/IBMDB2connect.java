@@ -333,23 +333,12 @@ public class IBMDB2connect extends DatabaseAdapter {
     public void addColumn(DbTable table, DbField field) throws Exception {
     }
 
-    public String getNameDateBind() {
-        return "?";
-    }
-
     public String getOnDeleteSetNull() {
         return null;
     }
 
-    public void bindDate(PreparedStatement ps, int idx, Timestamp stamp) throws SQLException {
-        ps.setTimestamp(idx, stamp);
-    }
-
     public String getDefaultTimestampValue() {
         return "CURRENT TIMESTAMP";
-    }
-
-    public void setDefaultValue(DbTable originTable, DbField originField) {
     }
 
     public List<DbView> getViewList(String schemaPattern, String tablePattern) throws Exception {
@@ -400,7 +389,7 @@ public class IBMDB2connect extends DatabaseAdapter {
         }
     }
 
-    public void createSequence(DbSequence seq) throws Exception {
+    public void createSequence(DbSequence seq) {
     }
 
     public void setLongVarbinary(PreparedStatement ps, int index, DbDataFieldData fieldData)
@@ -426,31 +415,6 @@ public class IBMDB2connect extends DatabaseAdapter {
             return clob.getSubString(1, maxLength);
         }
 */
-
-    public long getSequenceNextValue(String s)
-        throws SQLException {
-        long id_ = -1;
-
-        String sql_ =
-            "select " + s.trim() + ".nextval from dual";
-        PreparedStatement ps = null;
-        ResultSet rs = null;
-        try {
-            ps = this.getConnection().prepareStatement(sql_);
-
-            rs = ps.executeQuery();
-
-            if (rs.next())
-                id_ = rs.getLong(1);
-        }
-        finally {
-            DatabaseManager.close(rs, ps);
-            rs = null;
-            ps = null;
-        }
-
-        return id_;
-    }
 
     /**
      * Возвращает значение сиквенса(последовательности) для данного имени последовательности.
