@@ -30,7 +30,7 @@ import java.sql.SQLException;
 
 import org.xml.sax.InputSource;
 
-import org.riverock.dbrevision.offline.GenericConfig;
+import org.riverock.dbrevision.offline.DbRevisionConfig;
 import org.riverock.dbrevision.offline.StartupApplication;
 import org.riverock.dbrevision.db.DatabaseAdapter;
 import org.riverock.dbrevision.db.DatabaseManager;
@@ -109,7 +109,7 @@ public class ValidateStructure {
         DbSchema schema = DatabaseManager.getDbStructure(db_);
 
         String nameFile = "test-schema.xml";
-        String outputSchemaFile = GenericConfig.getGenericDebugDir() + nameFile;
+        String outputSchemaFile = DbRevisionConfig.getGenericDebugDir() + nameFile;
         System.out.println("Marshal data to file " + nameFile);
 
         Utils.writeToFile(schema, outputSchemaFile);
@@ -190,7 +190,7 @@ public class ValidateStructure {
         db_.getConnection().commit();
         DbSchema schemaResult = DatabaseManager.getDbStructure(db_);
         System.out.println("Marshal data to file");
-        Utils.writeToFile(schemaResult, GenericConfig.getGenericDebugDir() + "schema-result-" + nameConnection + ".xml");
+        Utils.writeToFile(schemaResult, DbRevisionConfig.getGenericDebugDir() + "schema-result-" + nameConnection + ".xml");
 //        DatabaseAdapter.close(db_);
     }
 
@@ -199,7 +199,7 @@ public class ValidateStructure {
         StartupApplication.init();
 
         System.out.println("Unmarshal data from file");
-        FileInputStream stream = new FileInputStream(GenericConfig.getGenericDebugDir() + "webmill-schema.xml");
+        FileInputStream stream = new FileInputStream(DbRevisionConfig.getGenericDebugDir() + "webmill-schema.xml");
         InputSource inSrc = new InputSource( stream );
         DbSchema millSchema = Utils.getObjectFromXml(DbSchema.class, stream);
 
