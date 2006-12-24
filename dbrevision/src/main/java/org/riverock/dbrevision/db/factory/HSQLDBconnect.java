@@ -82,8 +82,7 @@ public class HSQLDBconnect extends DatabaseAdapter {
         return false;
     }
 
-    public String getClobField(ResultSet rs, String nameField)
-        throws SQLException {
+    public String getClobField(ResultSet rs, String nameField) throws SQLException {
         return getClobField(rs, nameField, 20000);
     }
 
@@ -102,9 +101,10 @@ public class HSQLDBconnect extends DatabaseAdapter {
         return outputStream.toByteArray();
     }
 
-    public void createTable(DbTable table) throws Exception {
-        if (table == null || table.getFields().size() == 0)
+    public void createTable(DbTable table) {
+        if (table == null || table.getFields().isEmpty()) {
             return;
+        }
 
         String sql = "create table \"" + table.getName() + "\"\n" +
             "(";
@@ -219,19 +219,13 @@ public class HSQLDBconnect extends DatabaseAdapter {
         }
         sql += "\n)";
 
-//        System.out.println( sql );
-
         Statement ps = null;
         try {
             ps = this.getConnection().createStatement();
             ps.execute(sql);
         }
         catch (SQLException e) {
-//            System.out.println( "code "+e.getErrorCode() );
-//            System.out.println( "state "+e.getSQLState() );
-//            System.out.println( "message "+e.getMessage() );
-//            System.out.println( "string "+e.toString() );
-            throw e;
+            throw new DbRevisionException(e);
         }
         finally {
             DatabaseManager.close(ps);
@@ -240,35 +234,25 @@ public class HSQLDBconnect extends DatabaseAdapter {
 
     }
 
-    public void dropTable(DbTable table) throws Exception {
+    public void createForeignKey(DbTable view) {
+    }
+
+    public void dropTable(DbTable table) {
         dropTable(table.getName());
     }
 
-    public void dropTable(String nameTable) throws Exception {
-        if (nameTable == null)
+    public void dropTable(String nameTable) {
+        if (nameTable == null) {
             return;
-
+        }
         String sql = "drop table \"" + nameTable + "\"\n";
-
-//        System.out.println( sql );
-
-//        Statement ps = null;
-//        try
-//        {
-//            ps = this.conn.createStatement();
-//            ps.execute( sql );
-//        }
         PreparedStatement ps = null;
         try {
             ps = this.getConnection().prepareStatement(sql);
             ps.executeUpdate();
         }
         catch (SQLException e) {
-//            System.out.println( "code "+e.getErrorCode() );
-//            System.out.println( "state "+e.getSQLState() );
-//            System.out.println( "message "+e.getMessage() );
-//            System.out.println( "string "+e.toString() );
-            throw e;
+            throw new DbRevisionException(e);
         }
         finally {
             DatabaseManager.close(ps);
@@ -276,28 +260,22 @@ public class HSQLDBconnect extends DatabaseAdapter {
         }
     }
 
-    public void dropSequence(String nameSequence) throws Exception {
+    public void dropSequence(String nameSequence) {
     }
 
-    public void dropConstraint(DbImportedPKColumn impPk) throws Exception {
+    public void dropConstraint(DbImportedPKColumn impPk) {
         if (impPk == null)
             return;
 
         String sql = "ALTER TABLE " + impPk.getPkTableName() + " DROP CONSTRAINT " + impPk.getPkName();
 
-//        System.out.println( sql );
-
         PreparedStatement ps = null;
         try {
             ps = this.getConnection().prepareStatement(sql);
             ps.executeUpdate();
         }
         catch (SQLException e) {
-//            System.out.println( "code "+e.getErrorCode() );
-//            System.out.println( "state "+e.getSQLState() );
-//            System.out.println( "message "+e.getMessage() );
-//            System.out.println( "string "+e.toString() );
-            throw e;
+            throw new DbRevisionException(e);
         }
         finally {
             DatabaseManager.close(ps);
@@ -401,20 +379,19 @@ public class HSQLDBconnect extends DatabaseAdapter {
         return "current_timestamp";
     }
 
-    public List<DbView> getViewList(String schemaPattern, String tablePattern) throws Exception {
+    public List<DbView> getViewList(String schemaPattern, String tablePattern) {
         return DatabaseManager.getViewList(getConnection(), schemaPattern, tablePattern);
     }
 
-    public List<DbSequence> getSequnceList(String schemaPattern) throws Exception {
+    public List<DbSequence> getSequnceList(String schemaPattern) {
         return new ArrayList<DbSequence>();
     }
 
-    public String getViewText(DbView view) throws Exception {
+    public String getViewText(DbView view) {
         return null;
     }
 
-    public void createView(DbView view)
-        throws Exception {
+    public void createView(DbView view) {
         if (view == null ||
             view.getName() == null || view.getName().length() == 0 ||
             view.getText() == null || view.getText().length() == 0
@@ -427,7 +404,9 @@ public class HSQLDBconnect extends DatabaseAdapter {
             ps = this.getConnection().prepareStatement(sql_);
             ps.executeUpdate();
         }
-        finally {
+        catch (SQLException e) {
+            throw new DbRevisionException(e);
+        } finally {
             DatabaseManager.close(ps);
             ps = null;
         }

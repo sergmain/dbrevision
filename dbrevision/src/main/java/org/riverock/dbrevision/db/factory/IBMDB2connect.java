@@ -37,6 +37,7 @@ import org.riverock.dbrevision.annotation.schema.db.*;
 import org.riverock.dbrevision.db.DatabaseAdapter;
 import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.utils.Utils;
+import org.riverock.dbrevision.exception.DbRevisionException;
 
 /**
  * IBM DB2 connection
@@ -101,9 +102,10 @@ public class IBMDB2connect extends DatabaseAdapter {
         return outputStream.toByteArray();
     }
 
-    public void createTable(DbTable table) throws Exception {
-        if (table == null || table.getFields().size() == 0)
+    public void createTable(DbTable table) {
+        if (table == null || table.getFields().isEmpty()) {
             return;
+        }
 
         String sql = "create table \"" + table.getName() + "\" " +
             "(";
@@ -146,12 +148,10 @@ public class IBMDB2connect extends DatabaseAdapter {
                     break;
 
                 case Types.LONGVARCHAR:
-                    // Oracle 'long' fields type
                     sql += " VARCHAR(10)";
                     break;
 
                 case Types.LONGVARBINARY:
-                    // Oracle 'long raw' fields type
                     sql += " LONGVARBINARY";
                     break;
 
@@ -180,13 +180,6 @@ public class IBMDB2connect extends DatabaseAdapter {
             DbPrimaryKey pk = table.getPrimaryKey();
 
             String namePk = pk.getColumns().get(0).getPkName();
-//            if (namePk.length()>16)
-//            {
-//                System.out.println( "Name of PK is too long - "+namePk );
-//                namePk = StringTools.truncateString(namePk, 15)+"_PK";
-//                System.out.println( "New name of PK is too long - "+namePk );
-//            }
-
             sql += ", CONSTRAINT " + namePk + " PRIMARY KEY ( ";
 
             int seq = Integer.MIN_VALUE;
@@ -214,8 +207,6 @@ public class IBMDB2connect extends DatabaseAdapter {
 
         sql += " )";
 
-        System.out.println(sql);
-
         Statement ps = null;
         try {
             ps = this.getConnection().createStatement();
@@ -223,16 +214,7 @@ public class IBMDB2connect extends DatabaseAdapter {
             this.getConnection().commit();
         }
         catch (SQLException e) {
-            log.error("SqlCode " + e.getErrorCode());
-            log.error("state " + e.getSQLState());
-            log.error("message " + e.getMessage());
-            log.error("sql " + sql);
-            log.error("string " + e.toString());
-            throw e;
-        }
-        catch (Exception e) {
-            log.error("Exception in dropTable()", e);
-            throw e;
+            throw new DbRevisionException(e);
         }
         finally {
             DatabaseManager.close(ps);
@@ -241,23 +223,21 @@ public class IBMDB2connect extends DatabaseAdapter {
 
     }
 
-    public void createForeignKey(DbTable view) throws Exception {
+    public void createForeignKey(DbTable view) {
     }
 
-    public void dropTable(DbTable table) throws Exception {
+    public void dropTable(DbTable table) {
         if (table == null)
             return;
 
         dropTable(table.getName());
     }
 
-    public void dropTable(String nameTable) throws Exception {
+    public void dropTable(String nameTable) {
         if (nameTable == null || nameTable.trim().length() == 0)
             return;
 
         String sql = "drop table " + nameTable;
-
-//        System.out.println( sql );
 
         Statement ps = null;
         try {
@@ -265,15 +245,7 @@ public class IBMDB2connect extends DatabaseAdapter {
             ps.executeUpdate(sql);
         }
         catch (SQLException e) {
-            log.error("code " + e.getErrorCode());
-            log.error("state " + e.getSQLState());
-            log.error("message " + e.getMessage());
-            log.error("string " + e.toString());
-            throw e;
-        }
-        catch (Exception e) {
-            log.error("Exception in dropTable()", e);
-            throw e;
+            throw new DbRevisionException(e);
         }
         finally {
             DatabaseManager.close(ps);
@@ -281,16 +253,15 @@ public class IBMDB2connect extends DatabaseAdapter {
         }
     }
 
-    public void dropSequence(String nameSequence) throws Exception {
+    public void dropSequence(String nameSequence) {
     }
 
-    public void dropConstraint(DbImportedPKColumn impPk) throws Exception {
-        if (impPk == null)
+    public void dropConstraint(DbImportedPKColumn impPk) {
+        if (impPk == null) {
             return;
+        }
 
         String sql = "ALTER TABLE " + impPk.getPkTableName() + " DROP CONSTRAINT " + impPk.getPkName();
-
-//        System.out.println( sql );
 
         PreparedStatement ps = null;
         try {
@@ -298,15 +269,7 @@ public class IBMDB2connect extends DatabaseAdapter {
             ps.executeUpdate();
         }
         catch (SQLException e) {
-            log.error("code " + e.getErrorCode());
-            log.error("state " + e.getSQLState());
-            log.error("message " + e.getMessage());
-            log.error("string " + e.toString());
-            throw e;
-        }
-        catch (Exception e) {
-            log.error("Exception in dropTable()", e);
-            throw e;
+            throw new DbRevisionException(e);
         }
         finally {
             DatabaseManager.close(ps);
@@ -325,20 +288,19 @@ public class IBMDB2connect extends DatabaseAdapter {
         return "CURRENT TIMESTAMP";
     }
 
-    public List<DbView> getViewList(String schemaPattern, String tablePattern) throws Exception {
+    public List<DbView> getViewList(String schemaPattern, String tablePattern) {
         return DatabaseManager.getViewList(getConnection(), schemaPattern, tablePattern);
     }
 
-    public List<DbSequence> getSequnceList(String schemaPattern) throws Exception {
+    public List<DbSequence> getSequnceList(String schemaPattern) {
         return new ArrayList<DbSequence>();
     }
 
-    public String getViewText(DbView view) throws Exception {
+    public String getViewText(DbView view) {
         return null;
     }
 
-    public void createView(DbView view)
-        throws Exception {
+    public void createView(DbView view) {
         if (view == null ||
             view.getName() == null || view.getName().length() == 0 ||
             view.getText() == null || view.getText().length() == 0
@@ -355,17 +317,11 @@ public class IBMDB2connect extends DatabaseAdapter {
         try {
             ps = this.getConnection().createStatement();
             ps.execute(sql_);
-//            ps.execute();
         }
         catch (SQLException e) {
             String errorString = "Error create view. Error code " + e.getErrorCode() + "\n" + sql_;
             log.error(errorString, e);
-            System.out.println(errorString);
-            throw e;
-        }
-        catch (Exception e) {
-            log.error("Exception in dropTable()", e);
-            throw e;
+            throw new DbRevisionException(errorString, e);
         }
         finally {
             DatabaseManager.close(ps);
@@ -482,9 +438,5 @@ public class IBMDB2connect extends DatabaseAdapter {
                 return true;
         }
         return false;
-    }
-
-    public void nop() {
-        int i = 0;
     }
 }

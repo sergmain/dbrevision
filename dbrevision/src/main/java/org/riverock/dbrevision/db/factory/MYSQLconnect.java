@@ -101,9 +101,10 @@ public final class MYSQLconnect extends DatabaseAdapter {
         return outputStream.toByteArray();
     }
 
-    public void createTable(DbTable table) throws Exception {
-        if (table == null || table.getFields().size() == 0)
+    public void createTable(DbTable table) {
+        if (table == null || table.getFields().isEmpty()) {
             return;
+        }
 
         String sql = "create table " + table.getName() + "\n" +
             "(";
@@ -213,8 +214,7 @@ public final class MYSQLconnect extends DatabaseAdapter {
             for (DbPrimaryKeyColumn c : pk.getColumns()) {
                 DbPrimaryKeyColumn column = c;
                 int seqTemp = Integer.MAX_VALUE;
-                for (DbPrimaryKeyColumn dbPrimaryKeyColumn : pk.getColumns()) {
-                    DbPrimaryKeyColumn columnTemp = dbPrimaryKeyColumn;
+                for (DbPrimaryKeyColumn columnTemp : pk.getColumns()) {
                     if (seq < columnTemp.getKeySeq() && columnTemp.getKeySeq() < seqTemp) {
                         seqTemp = columnTemp.getKeySeq();
                         column = columnTemp;
@@ -233,19 +233,13 @@ public final class MYSQLconnect extends DatabaseAdapter {
         }
         sql += "\n)";
 
-        System.out.println(sql);
-
         PreparedStatement ps = null;
         try {
             ps = this.getConnection().prepareStatement(sql);
             ps.executeUpdate();
         }
         catch (SQLException e) {
-//            System.out.println( "code "+e.getErrorCode() );
-//            System.out.println( "state "+e.getSQLState() );
-//            System.out.println( "message "+e.getMessage() );
-//            System.out.println( "string "+e.toString() );
-            throw e;
+            throw new DbRevisionException(e);
         }
         finally {
             DatabaseManager.close(ps);
@@ -254,35 +248,26 @@ public final class MYSQLconnect extends DatabaseAdapter {
 
     }
 
-    public void dropTable(DbTable table) throws Exception {
+    public void createForeignKey(DbTable view) {
+    }
+
+    public void dropTable(DbTable table) {
         dropTable(table.getName());
     }
 
-    public void dropTable(String nameTable) throws Exception {
+    public void dropTable(String nameTable) {
         if (nameTable == null)
             return;
 
         String sql = "drop table " + nameTable;
 
-//        System.out.println( sql );
-
         Statement ps = null;
         try {
-//            stmt = conn.createStatement();
-//            stmt.executeUpdate("DROP TABLE statement_test");
-
             ps = this.getConnection().createStatement();
             ps.executeUpdate(sql);
-
-//            ps = this.conn.prepareStatement(sql);
-//            ps.executeUpdate();
         }
         catch (SQLException e) {
-            System.out.println("code " + e.getErrorCode());
-            System.out.println("state " + e.getSQLState());
-            System.out.println("message " + e.getMessage());
-            System.out.println("string " + e.toString());
-            throw e;
+            throw new DbRevisionException(e);
         }
         finally {
             DatabaseManager.close(ps);
@@ -294,8 +279,9 @@ public final class MYSQLconnect extends DatabaseAdapter {
     }
 
     public void dropConstraint(DbImportedPKColumn impPk) {
-        if (impPk == null)
+        if (impPk == null) {
             return;
+        }
 
         String sql = "ALTER TABLE " + impPk.getPkTableName() + " DROP CONSTRAINT " + impPk.getPkName();
         PreparedStatement ps = null;

@@ -25,23 +25,17 @@
  */
 package org.riverock.dbrevision.db;
 
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Types;
+import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 
 import org.apache.log4j.Logger;
 
 import org.riverock.dbrevision.annotation.schema.db.*;
-import org.riverock.dbrevision.utils.Utils;
 import org.riverock.dbrevision.utils.DbUtils;
+import org.riverock.dbrevision.utils.Utils;
 
 /**
  * User: Admin
@@ -54,6 +48,8 @@ import org.riverock.dbrevision.utils.DbUtils;
 public final class DatabaseManager {
     private static Logger log = Logger.getLogger(DatabaseManager.class);
 
+    private static final String DEFAULT_DATE_VALUES[] = {"sysdate", "current_timestamp", "current_time", "current_date"};
+
     public final static int ORACLE_FAMALY = 1;
     public final static int MYSQL_FAMALY = 2;
     public final static int DB2_FAMALY = 3;
@@ -62,9 +58,9 @@ public final class DatabaseManager {
     public final static int SAPDB_FAMALY = 6;
     public final static int INTERBASE_FAMALY = 7;
 
-    public static final String NUMBER_TYPE="number";
-    public static final String STRING_TYPE="string";
-    public static final String DATE_TYPE="date";
+    public static final String NUMBER_TYPE = "number";
+    public static final String STRING_TYPE = "string";
+    public static final String DATE_TYPE = "date";
 
     private static final int UNKNOWN_TYPE_VALUE = 0;
     private static final int NUMBER_TYPE_VALUE = 1;
@@ -351,25 +347,29 @@ public final class DatabaseManager {
         return null;
     }
 
-    // check is 'tableName' is table or view
+    // cheak what 'tableName' is a table or a view
     public static DbTable getTableFromStructure(final DbSchema schema, final String tableName) {
-        if (schema == null || tableName == null)
+        if (schema == null || tableName == null) {
             return null;
+        }
 
         for (DbTable checkTable : schema.getTables()) {
-            if (tableName.equalsIgnoreCase(checkTable.getName()))
+            if (tableName.equalsIgnoreCase(checkTable.getName())) {
                 return checkTable;
+            }
         }
         return null;
     }
 
     public static DbView getViewFromStructure(final DbSchema schema, final String viewName) {
-        if (schema == null || viewName == null)
+        if (schema == null || viewName == null) {
             return null;
+        }
 
         for (DbView checkView : schema.getViews()) {
-            if (viewName.equalsIgnoreCase(checkView.getName()))
+            if (viewName.equalsIgnoreCase(checkView.getName())) {
                 return checkView;
+            }
         }
         return null;
     }
@@ -424,7 +424,7 @@ public final class DatabaseManager {
         return false;
     }
 
-    public static DbSchema getDbStructure(DatabaseAdapter db_) {
+    public static DbSchema getDbStructure(DatabaseAdapter db_) throws SQLException {
         DbSchema schema = new DbSchema();
 
         DatabaseMetaData db = db_.getConnection().getMetaData();
@@ -434,11 +434,7 @@ public final class DatabaseManager {
         for (DbTable table : list) {
             schema.getTables().add(table);
         }
-
-        List<DbView> viewVector = db_.getViewList(dbSchema, "%");
-        if (viewVector != null)
-            schema.getViews().addAll( viewVector );
-
+        schema.getViews().addAll(db_.getViewList(dbSchema, "%"));
         schema.getSequences().addAll(db_.getSequnceList(dbSchema));
 
         for (DbTable table : schema.getTables()) {
@@ -569,7 +565,7 @@ public final class DatabaseManager {
      * Check what field's default value is default timestamp(date) for bd column
      * For example for Oracle value is 'SYSDATE'
      *
-     * @param val value for check
+     * @param val value for DEFAULT_DATE_VALUES
      * @return true, if value is date, otherwise false
      */
     public static boolean checkDefaultTimestamp(final String val) {
@@ -577,14 +573,10 @@ public final class DatabaseManager {
             return false;
 
         String s = val.trim().toLowerCase();
-        String check[] =
-            {"sysdate",
-//                  'now', 'today',
-                "current_timestamp", "current_time", "current_date"
-            };
-        for (String aCheck : check) {
-            if (aCheck.equals(s))
+        for (String aCheck : DEFAULT_DATE_VALUES) {
+            if (aCheck.equalsIgnoreCase(s)) {
                 return true;
+            }
         }
         return false;
     }
@@ -610,7 +602,7 @@ public final class DatabaseManager {
         final String insertString,
         final boolean isDelete
     ) throws Exception {
-        if (pkType.getType()==null) {
+        if (pkType.getType() == null) {
             throw new IllegalStateException("type of PK is null");
         }
         String sql_ = null;
@@ -655,12 +647,12 @@ public final class DatabaseManager {
                     ps1.setLong(1, idSeq);
 
                     Integer type = dataType.get(pkType.getType().toLowerCase());
-                    if (type==null) {
+                    if (type == null) {
                         log.warn("Integer value of primary not found. PK type: " + pkType.getType().toLowerCase());
                         type = UNKNOWN_TYPE_VALUE;
                     }
 
-                    switch(type) {
+                    switch (type) {
                         case NUMBER_TYPE_VALUE:
 
                             if (log.isDebugEnabled()) log.debug("Bind param #2 " + idRec);
@@ -683,7 +675,7 @@ public final class DatabaseManager {
                             content.getQueryArea().getPrimaryKeyMask(), "error", Locale.ENGLISH);
 */
                             throw new Exception("Type of PK 'date' for big_text not implemented");
-                        
+
                         default:
                             throw new Exception("Wrong type of primary key");
                     }
@@ -701,7 +693,7 @@ public final class DatabaseManager {
                     ps1.clearParameters();
                     prevPos = pos;
 
-                } 
+                }
             }
             finally {
                 close(ps1);
@@ -715,7 +707,7 @@ public final class DatabaseManager {
     }
 
     public static void deleteFromBigTable(final DatabaseAdapter dbDyn, final String nameTargetTable, final String pkName, final PrimaryKey pkType, final Object idRec) throws Exception {
-        if (pkType.getType()==null) {
+        if (pkType.getType() == null) {
             throw new IllegalStateException("type of PK is null");
         }
         PreparedStatement ps = null;
@@ -726,15 +718,15 @@ public final class DatabaseManager {
             ps = dbDyn.getConnection().prepareStatement(sql_);
 
             Integer type = dataType.get(pkType.getType().toLowerCase());
-            if (type==null) {
+            if (type == null) {
                 log.warn("Integer value of primary not found. PK type: " + pkType.getType().toLowerCase());
                 type = UNKNOWN_TYPE_VALUE;
             }
-            switch(type) {
+            switch (type) {
                 case NUMBER_TYPE_VALUE:
                     if (log.isDebugEnabled()) log.debug("#88.01.02 " + idRec.getClass().getName());
 
-                    ps.setLong(1, ((Long)idRec));
+                    ps.setLong(1, ((Long) idRec));
                     break;
                 case STRING_TYPE_VALUE:
                     ps.setString(1, (String) idRec);
@@ -826,8 +818,8 @@ public final class DatabaseManager {
             ;
     }
 
-    public static Map<String,DbImportedPKColumn> getFkNames(final List<DbImportedPKColumn> keys) {
-        Map<String,DbImportedPKColumn> hash = new HashMap<String,DbImportedPKColumn>();
+    public static Map<String, DbImportedPKColumn> getFkNames(final List<DbImportedPKColumn> keys) {
+        Map<String, DbImportedPKColumn> hash = new HashMap<String, DbImportedPKColumn>();
         for (DbImportedPKColumn column : keys) {
             String search = getRelateString(column);
             Object obj = hash.get(search);
@@ -914,124 +906,42 @@ public final class DatabaseManager {
         return null;
     }
 
-    public static void createDbStructure(final DatabaseAdapter db_, final DbSchema millSchema) throws Exception {
-        // create sequences
-        for (DbSequence seq : millSchema.getSequences()) {
-            try {
-                if (log.isDebugEnabled())
-                    log.debug("create sequence " + seq.getName());
-
-                db_.createSequence(seq);
-            }
-            catch (Exception e) {
-                if (db_.testExceptionSequenceExists(e)) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("sequence " + seq.getName() + " already exists");
-                        log.debug("drop sequence " + seq.getName());
-                    }
-                    db_.dropSequence(seq.getName());
-
-                    if (log.isDebugEnabled())
-                        log.debug("create sequence " + seq.getName());
-
-                    try {
-                        db_.createSequence(seq);
-                    }
-                    catch (Exception e1) {
-                        log.error("Error create sequence - ", e1);
-                        throw e;
-                    }
-                } else {
-                    log.error("Error create sequence - ", e);
-                    throw e;
-                }
-            }
-        }
-        for (DbTable table : millSchema.getTables()) {
-
-            fixBigTextTable(
-                table,
-                millSchema.getBigTextTable(),
-                db_.getMaxLengthStringField()
-            );
-
-            if (!isSkipTable(table.getName())) {
-                try {
-                    if (log.isDebugEnabled())
-                        log.debug("create table " + table.getName());
-
-                    db_.createTable(table);
-                }
-                catch (SQLException e) {
-                    if (db_.testExceptionTableExists(e)) {
-                        if (log.isDebugEnabled()) {
-                            log.debug("table " + table.getName() + " already exists");
-                            log.debug("drop table " + table.getName());
-                        }
-                        db_.dropTable(table);
-                        db_.getConnection().commit();
-
-                        if (log.isDebugEnabled())
-                            log.debug("create table " + table.getName());
-
-                        db_.createTable(table);
-                        db_.getConnection().commit();
-                    } else {
-                        log.error("Error create table " + table.getName(), e);
-                        throw e;
-                    }
-                }
-                DatabaseStructureManager.setDataTable(db_, table, millSchema.getBigTextTable());
-                db_.getConnection().commit();
-            } else {
-                if (log.isDebugEnabled())
-                    log.debug("skip table " + table.getName());
-            }
+    public static DbKeyActionRule decodeUpdateRule(final ResultSet rs) throws SQLException {
+        Object obj = rs.getObject("UPDATE_RULE");
+        if (obj == null) {
+            return null;
         }
 
-        createWithReplaceAllView(db_, millSchema);
-    }
+        DbKeyActionRule rule = new DbKeyActionRule();
+        rule.setRuleType(DbUtils.getInteger(rs, "UPDATE_RULE"));
 
-    public static DbKeyActionRule decodeUpdateRule(final ResultSet rs) {
-        try {
-            Object obj = rs.getObject("UPDATE_RULE");
-            if (obj == null)
-                return null;
+        switch (rule.getRuleType()) {
+            case DatabaseMetaData.importedKeyNoAction:
+                rule.setRuleName("java.sql.DatabaseMetaData.importedKeyNoAction");
+                break;
 
-            DbKeyActionRule rule = new DbKeyActionRule();
-            rule.setRuleType(DbUtils.getInteger(rs, "UPDATE_RULE"));
+            case DatabaseMetaData.importedKeyCascade:
+                rule.setRuleName("java.sql.DatabaseMetaData.importedKeyCascade");
+                break;
 
-            switch (rule.getRuleType().intValue()) {
-                case DatabaseMetaData.importedKeyNoAction:
-                    rule.setRuleName("java.sql.DatabaseMetaData.importedKeyNoAction");
-                    break;
+            case DatabaseMetaData.importedKeySetNull:
+                rule.setRuleName("java.sql.DatabaseMetaData.importedKeySetNull");
+                break;
 
-                case DatabaseMetaData.importedKeyCascade:
-                    rule.setRuleName("java.sql.DatabaseMetaData.importedKeyCascade");
-                    break;
+            case DatabaseMetaData.importedKeySetDefault:
+                rule.setRuleName("java.sql.DatabaseMetaData.importedKeySetDefault");
+                break;
 
-                case DatabaseMetaData.importedKeySetNull:
-                    rule.setRuleName("java.sql.DatabaseMetaData.importedKeySetNull");
-                    break;
+            case DatabaseMetaData.importedKeyRestrict:
+                rule.setRuleName("java.sql.DatabaseMetaData.importedKeyRestrict");
+                break;
 
-                case DatabaseMetaData.importedKeySetDefault:
-                    rule.setRuleName("java.sql.DatabaseMetaData.importedKeySetDefault");
-                    break;
-
-                case DatabaseMetaData.importedKeyRestrict:
-                    rule.setRuleName("java.sql.DatabaseMetaData.importedKeyRestrict");
-                    break;
-
-                default:
-                    rule.setRuleName("unknown UPDATE_RULE(" + rule.getRuleType() + ")");
-                    System.out.println("unknown UPDATE_RULE(" + rule.getRuleType() + ")");
-                    break;
-            }
-            return rule;
+            default:
+                rule.setRuleName("unknown UPDATE_RULE(" + rule.getRuleType() + ")");
+                System.out.println("unknown UPDATE_RULE(" + rule.getRuleType() + ")");
+                break;
         }
-        catch (Exception e) {
-        }
-        return null;
+        return rule;
     }
 
     public static DbKeyActionRule decodeDeleteRule(final ResultSet rs) {
@@ -1161,10 +1071,9 @@ public final class DatabaseManager {
             } else {
                 pstm = db.getConnection().prepareStatement(sql);
                 for (int i = 0; i < params.length; i++) {
-                    if (types==null) {
+                    if (types == null) {
                         pstm.setObject(i + 1, params[i]);
-                    }
-                    else {
+                    } else {
                         pstm.setObject(i + 1, params[i], types[i]);
                     }
                 }
@@ -1208,10 +1117,9 @@ public final class DatabaseManager {
             } else {
                 pstm = db.getConnection().prepareStatement(sql);
                 for (int i = 0; i < params.length; i++) {
-                    if (types==null) {
+                    if (types == null) {
                         pstm.setObject(i + 1, params[i]);
-                    }
-                    else {
+                    } else {
                         pstm.setObject(i + 1, params[i], types[i]);
                     }
                 }

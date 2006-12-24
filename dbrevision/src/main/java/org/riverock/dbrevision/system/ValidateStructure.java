@@ -26,7 +26,6 @@
 package org.riverock.dbrevision.system;
 
 import java.io.FileInputStream;
-import java.sql.SQLException;
 
 import org.xml.sax.InputSource;
 
@@ -85,19 +84,14 @@ public class ValidateStructure {
     private static void processForeignKey(DatabaseAdapter db_, DbSchema millSchema) throws Exception {
         for (DbTable table : millSchema.getTables()) {
             if (!DatabaseManager.isSkipTable(table.getName())) {
-                try {
-                    System.out.println("Create foreign key for table " + table.getName());
-                    DbImportedKeyList fk = new DbImportedKeyList();
-                    fk.getKeys().addAll(table.getImportedKeys());
-                    DatabaseStructureManager.createForeignKey(db_, fk);
-                }
-                catch (SQLException e) {
-                    System.out.println("Error code " + e.getErrorCode());
-                    System.out.println("Error create foreign key " + e.getMessage());
-                }
+                System.out.println("Create foreign key for table " + table.getName());
+                DbImportedKeyList fk = new DbImportedKeyList();
+                fk.getKeys().addAll(table.getImportedKeys());
+                DatabaseStructureManager.createForeignKey(db_, fk);
             }
-            else
+            else {
                 System.out.println("skip table " + table.getName());
+            }
         }
     }
 
@@ -118,14 +112,8 @@ public class ValidateStructure {
             if (!DatabaseManager.isSkipTable(table.getName())) {
                 DbTable originTable = DatabaseManager.getTableFromStructure(schema, table.getName());
                 if (!DatabaseManager.isTableExists(schema, table)) {
-                    try {
-                        System.out.println("Create new table " + table.getName());
-                        db_.createTable(table);
-                    }
-                    catch (SQLException e) {
-                        System.out.println("Error code " + e.getErrorCode());
-                        System.out.println("Error create table " + e.getMessage());
-                    }
+                    System.out.println("Create new table " + table.getName());
+                    db_.createTable(table);
                 }
                 else {
                     // check valid structure of fields
@@ -143,9 +131,7 @@ public class ValidateStructure {
                                 " not set to " + field.getDefaultValue());
                             if (DatabaseManager.checkDefaultTimestamp(field.getDefaultValue())) {
                                 System.out.println("Field recognized as default date field");
-                                DatabaseStructureManager.setDefaultValueTimestamp(db_, originTable,
-                                    field
-                                );
+                                DatabaseStructureManager.setDefaultValueTimestamp(db_, originTable, field );
                             }
                             else
                                 System.out.println("Unknown default type of field");
