@@ -121,6 +121,7 @@ public final class DefinitionService {
 
     private final static Object syncDebug = new Object();
 
+/*
     public synchronized static void validateDatabaseStructure(DatabaseAdapter db_) throws Exception {
 
         if (!isDefinitionProcessed || DataDefinitionManager.isNeedReload()) {
@@ -169,7 +170,7 @@ public final class DefinitionService {
 
         processDefinitionList(db_);
     }
-
+*/
     public static void processDefinitionList(DatabaseAdapter db_, DefinitionList definitionList) throws Exception {
         if (log.isDebugEnabled()) {
             log.debug("definitionList " + definitionList);

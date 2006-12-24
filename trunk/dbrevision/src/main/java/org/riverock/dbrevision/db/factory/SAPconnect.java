@@ -45,6 +45,7 @@ import org.riverock.dbrevision.annotation.schema.db.DbTable;
 import org.riverock.dbrevision.annotation.schema.db.DbView;
 import org.riverock.dbrevision.db.DatabaseAdapter;
 import org.riverock.dbrevision.db.DatabaseManager;
+import org.riverock.dbrevision.exception.DbRevisionException;
 
 /**
  * $Id: SAPconnect.java 1141 2006-12-14 14:43:29Z serg_main $
@@ -68,8 +69,8 @@ public class SAPconnect extends DatabaseAdapter {
         return false;
     }
 
-    public void createTable(DbTable table) throws Exception {
-        throw new Exception("not implemented");
+    public void createTable(DbTable table) {
+        throw new DbRevisionException("not implemented");
     }
 
     public void createForeignKey(DbTable view) {
@@ -110,8 +111,7 @@ public class SAPconnect extends DatabaseAdapter {
         return null;
     }
 
-    public void createView(DbView view)
-        throws Exception {
+    public void createView(DbView view) {
         if (view == null ||
             view.getName() == null || view.getName().length() == 0 ||
             view.getText() == null || view.getText().length() == 0
@@ -124,7 +124,9 @@ public class SAPconnect extends DatabaseAdapter {
             ps = this.getConnection().prepareStatement(sql_);
             ps.executeUpdate();
         }
-        finally {
+        catch (SQLException e) {
+            throw new DbRevisionException(e);
+        } finally {
             DatabaseManager.close(ps);
             ps = null;
         }

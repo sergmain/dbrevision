@@ -27,6 +27,7 @@ package org.riverock.dbrevision.db.factory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.io.IOException;
 import java.sql.Blob;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
@@ -211,6 +212,9 @@ public class PostgreeSQLconnect extends DatabaseAdapter {
             ps = null;
         }
 
+    }
+
+    public void createForeignKey(DbTable view) {
     }
 
     /*
@@ -408,7 +412,7 @@ DEFERRABLE INITIALLY DEFERRED
             return null;
     }
 
-    public String getViewText(DbView view) throws Exception {
+    public String getViewText(DbView view) {
         String sql_ = "select TEXT from SYS.ALL_VIEWS where OWNER=? and VIEW_NAME=?";
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -423,14 +427,14 @@ DEFERRABLE INITIALLY DEFERRED
                 if (log.isDebugEnabled())
                     log.debug("Found text of view " + view.getSchema() + "." + view.getName());
 
-//                return getBlobField(rs, "TEXT", 0x10000);
-//                return getClobField(rs, "TEXT", 0x10000);
                 return getStream(rs, "TEXT", 0x10000);
-//                InputStream stream=resultset.getAsciiStream(1);
-//                return DbUtils.getString(rs, "TEXT", null);
             }
         }
-        finally {
+        catch (SQLException e) {
+            throw new DbRevisionException(e);
+        } catch (IOException e) {
+            throw new DbRevisionException(e);
+        } finally {
             DatabaseManager.close(rs, ps);
             rs = null;
             ps = null;
@@ -438,8 +442,7 @@ DEFERRABLE INITIALLY DEFERRED
         return null;
     }
 
-    public void createView(DbView view)
-        throws Exception {
+    public void createView(DbView view) {
         if (view == null ||
             view.getName() == null || view.getName().length() == 0 ||
             view.getText() == null || view.getText().length() == 0
@@ -451,6 +454,9 @@ DEFERRABLE INITIALLY DEFERRED
         try {
             ps = this.getConnection().prepareStatement(sql_);
             ps.executeUpdate();
+        }
+        catch (SQLException e) {
+            throw new DbRevisionException(e);
         }
         finally {
             DatabaseManager.close(ps);
@@ -539,10 +545,8 @@ DEFERRABLE INITIALLY DEFERRED
         return clob.getSubString(1, maxLength);
     }
 
-    public String getStream(ResultSet rs, String nameField, int maxLength)
-        throws Exception {
+    public String getStream(ResultSet rs, String nameField, int maxLength) throws SQLException, IOException {
 
-//        InputStream instream = rs.getAsciiStream(1);
         InputStream instream = rs.getBinaryStream(1);
 
         // Create temporary buffer for read

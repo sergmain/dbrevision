@@ -73,31 +73,33 @@ public abstract class DatabaseAdapter {
 
     public abstract byte[] getBlobField(ResultSet rs, String nameField, int maxLength) throws Exception;
 
-    public abstract void createTable(DbTable table) throws Exception;
+    public abstract void createTable(DbTable table);
 
-    public abstract void createView(DbView view) throws Exception;
+    public abstract void createView(DbView view);
 
     public abstract void createSequence(DbSequence seq);
 
-    public abstract void dropTable(DbTable table) throws Exception;
+    public abstract void dropTable(DbTable table);
 
-    public abstract void dropTable(String nameTable) throws Exception;
+    public abstract void dropTable(String nameTable);
 
-    public abstract void dropSequence(String nameSequence) throws Exception;
+    public abstract void dropSequence(String nameSequence);
 
     public abstract void dropConstraint(DbImportedPKColumn impPk);
 
     public abstract void addColumn(DbTable table, DbField field);
 
+    public abstract void createForeignKey(DbTable view);
+
     public abstract String getOnDeleteSetNull();
 
     public abstract String getDefaultTimestampValue();
 
-    public abstract List<DbView> getViewList(String schemaPattern, String tablePattern) throws Exception;
+    public abstract List<DbView> getViewList(String schemaPattern, String tablePattern);
 
-    public abstract List<DbSequence> getSequnceList(String schemaPattern) throws Exception;
+    public abstract List<DbSequence> getSequnceList(String schemaPattern);
 
-    public abstract String getViewText(DbView view) throws Exception;
+    public abstract String getViewText(DbView view);
 
     public abstract void setLongVarbinary(PreparedStatement ps, int index, DbDataFieldData fieldData)
         throws SQLException;
@@ -158,4 +160,5 @@ public abstract class DatabaseAdapter {
      * @return - int. Max size of char field
      */
     public abstract int getMaxLengthStringField();
+
 }

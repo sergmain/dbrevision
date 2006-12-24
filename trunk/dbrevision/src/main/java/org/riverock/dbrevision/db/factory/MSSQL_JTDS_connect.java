@@ -27,6 +27,8 @@ package org.riverock.dbrevision.db.factory;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.hsqldb.Trace;
+
 import org.riverock.dbrevision.annotation.schema.db.*;
 import org.riverock.dbrevision.db.DatabaseAdapter;
 import org.riverock.dbrevision.db.DatabaseManager;
@@ -45,6 +47,7 @@ import java.util.List;
  * <p/>
  * $Id: MSSQL_JTDS_connect.java 1141 2006-12-14 14:43:29Z serg_main $
  */
+@SuppressWarnings({"UnusedAssignment"})
 public class MSSQL_JTDS_connect extends DatabaseAdapter {
     private static Logger log = Logger.getLogger(MSSQL_JTDS_connect.class);
 
@@ -100,9 +103,10 @@ public class MSSQL_JTDS_connect extends DatabaseAdapter {
         return outputStream.toByteArray();
     }
 
-    public void createTable(DbTable table) throws Exception {
-        if (table == null || table.getFields().size() == 0)
+    public void createTable(DbTable table) {
+        if (table == null || table.getFields().isEmpty() ) {
             return;
+        }
 
         String sql = "create table \"" + table.getName() + "\"\n" +
             "(";
@@ -217,23 +221,17 @@ public class MSSQL_JTDS_connect extends DatabaseAdapter {
         }
         sql += "\n)";
 
-//        System.out.println( sql );
-
         Statement st = null;
         try {
             st = this.getConnection().createStatement();
             st.execute(sql);
             int count = st.getUpdateCount();
-            if (log.isDebugEnabled())
+            if (log.isDebugEnabled()) {
                 log.debug("count of processed records " + count);
+            }
         }
         catch (SQLException e) {
-            log.error("code " + e.getErrorCode());
-            log.error("state " + e.getSQLState());
-            log.error("sql:\n" + sql);
-            log.error("message " + e.getMessage());
-            log.error("string ", e);
-            throw e;
+            throw new DbRevisionException(e);
         }
         finally {
             DatabaseManager.close(st);
@@ -242,11 +240,14 @@ public class MSSQL_JTDS_connect extends DatabaseAdapter {
 
     }
 
-    public void dropTable(DbTable table) throws Exception {
+    public void createForeignKey(DbTable view) {
+    }
+
+    public void dropTable(DbTable table) {
         dropTable(table.getName());
     }
 
-    public void dropTable(String nameTable) throws Exception {
+    public void dropTable(String nameTable) {
         if (nameTable == null)
             return;
 
@@ -257,16 +258,13 @@ public class MSSQL_JTDS_connect extends DatabaseAdapter {
             st = this.getConnection().createStatement();
             st.execute(sql);
             int count = st.getUpdateCount();
-            if (log.isDebugEnabled())
+            if (log.isDebugEnabled()) {
                 log.debug("count of deleted object " + count);
+            }
         }
         catch (SQLException e) {
             log.error("Error drop table " + nameTable, e);
-//            System.out.println( "code "+e.getErrorCode() );
-//            System.out.println( "state "+e.getSQLState() );
-//            System.out.println( "message "+e.getMessage() );
-//            System.out.println( "string "+e.toString() );
-            throw e;
+            throw new DbRevisionException(e);
         }
         finally {
             DatabaseManager.close(st);
@@ -274,16 +272,15 @@ public class MSSQL_JTDS_connect extends DatabaseAdapter {
         }
     }
 
-    public void dropSequence(String nameSequence) throws Exception {
+    public void dropSequence(String nameSequence) {
     }
 
-    public void dropConstraint(DbImportedPKColumn impPk) throws Exception {
-        if (impPk == null)
+    public void dropConstraint(DbImportedPKColumn impPk) {
+        if (impPk == null) {
             return;
+        }
 
         String sql = "ALTER TABLE " + impPk.getPkTableName() + " DROP CONSTRAINT " + impPk.getPkName();
-
-//        System.out.println( sql );
 
         PreparedStatement ps = null;
         try {
@@ -291,11 +288,7 @@ public class MSSQL_JTDS_connect extends DatabaseAdapter {
             ps.executeUpdate();
         }
         catch (SQLException e) {
-//            System.out.println( "code "+e.getErrorCode() );
-//            System.out.println( "state "+e.getSQLState() );
-//            System.out.println( "message "+e.getMessage() );
-//            System.out.println( "string "+e.toString() );
-            throw e;
+            throw new DbRevisionException(e);
         }
         finally {
             DatabaseManager.close(ps);
@@ -464,20 +457,19 @@ ALTER TABLE table
 
 */
 
-    public List<DbView> getViewList(String schemaPattern, String tablePattern) throws Exception {
+    public List<DbView> getViewList(String schemaPattern, String tablePattern) {
         return DatabaseManager.getViewList(getConnection(), schemaPattern, tablePattern);
     }
 
-    public List<DbSequence> getSequnceList(String schemaPattern) throws Exception {
+    public List<DbSequence> getSequnceList(String schemaPattern) {
         return new ArrayList<DbSequence>();
     }
 
-    public String getViewText(DbView view) throws Exception {
+    public String getViewText(DbView view) {
         return null;
     }
 
-    public void createView(DbView view)
-        throws Exception {
+    public void createView(DbView view) {
         if (view == null ||
             view.getName() == null || view.getName().length() == 0 ||
             view.getText() == null || view.getText().length() == 0
@@ -492,13 +484,11 @@ ALTER TABLE table
         try {
             ps = this.getConnection().createStatement();
             ps.execute(sql_);
-//            ps.execute();
         }
         catch (SQLException e) {
             String errorString = "Error create view. Error code " + e.getErrorCode() + "\n" + sql_;
             log.error(errorString, e);
-            System.out.println(errorString);
-            throw e;
+            throw new DbRevisionException(errorString, e);
         }
         finally {
             DatabaseManager.close(ps);
@@ -563,23 +553,18 @@ ALTER TABLE table
     }
 
     public boolean testExceptionTableNotFound(Exception e) {
-        if (((SQLException) e).getErrorCode() == 208)
-            return true;
+        if (e instanceof SQLException) {
+//        return ((SQLException) e).getErrorCode() == 208;
+            return ((SQLException) e).getErrorCode() == -(Trace.TABLE_NOT_FOUND);
+        }
         return false;
     }
 
     public boolean testExceptionIndexUniqueKey(Exception e, String index) {
         if (e instanceof SQLException) {
-            if (((SQLException) e).getErrorCode() == -(org.hsqldb.Trace.VIOLATION_OF_UNIQUE_INDEX))
+            if (((SQLException) e).getErrorCode() == -(Trace.VIOLATION_OF_UNIQUE_INDEX))
                 return true;
         }
-/*
-        if ((e instanceof SQLException) &&
-                ((e.toString().indexOf("ORA-00001") != -1) &&
-                (e.toString().indexOf(index) != -1)))
-
-            return true;
-*/
         return false;
     }
 

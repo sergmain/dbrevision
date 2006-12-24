@@ -27,6 +27,7 @@ package org.riverock.dbrevision.db.factory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.io.IOException;
 import java.sql.Blob;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
@@ -232,6 +233,9 @@ public class ORAconnect extends DatabaseAdapter {
 
     }
 
+    public void createForeignKey(DbTable view) {
+    }
+
     /**
      * ALTER TABLE a_test_1<br>
      * ADD CONSTRAINT a_test_1_fk FOREIGN KEY (id, id_test)&<br>
@@ -393,11 +397,11 @@ public class ORAconnect extends DatabaseAdapter {
         return "SYSDATE";
     }
 
-    public List<DbView> getViewList(String schemaPattern, String tablePattern) throws Exception {
+    public List<DbView> getViewList(String schemaPattern, String tablePattern) {
         return DatabaseManager.getViewList(getConnection(), schemaPattern, tablePattern);
     }
 
-    public List<DbSequence> getSequnceList(String schemaPattern) throws Exception {
+    public List<DbSequence> getSequnceList(String schemaPattern) {
         String sql_ =
             "select SEQUENCE_NAME, MIN_VALUE, TO_CHAR(MAX_VALUE) MAX_VALUE, " +
                 "INCREMENT_BY, CYCLE_FLAG, ORDER_FLAG, CACHE_SIZE, LAST_NUMBER " +
@@ -426,7 +430,9 @@ public class ORAconnect extends DatabaseAdapter {
                 v.add(seq);
             }
         }
-        finally {
+        catch (SQLException e) {
+            throw new DbRevisionException(e);
+        } finally {
             DatabaseManager.close(rs, ps);
             rs = null;
             ps = null;
@@ -437,7 +443,7 @@ public class ORAconnect extends DatabaseAdapter {
             return null;
     }
 
-    public String getViewText(DbView view) throws Exception {
+    public String getViewText(DbView view) {
         String sql_ = "select TEXT from SYS.ALL_VIEWS where OWNER=? and VIEW_NAME=?";
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -449,26 +455,26 @@ public class ORAconnect extends DatabaseAdapter {
             rs = ps.executeQuery();
 
             if (rs.next()) {
-                if (log.isDebugEnabled())
+                if (log.isDebugEnabled()) {
                     log.debug("Found text of view " + view.getSchema() + "." + view.getName());
+                }
 
-//                return getBlobField(rs, "TEXT", 0x10000);
-//                return getClobField(rs, "TEXT", 0x10000);
                 return getStream(rs, "TEXT", 0x10000);
-//                InputStream stream=resultset.getAsciiStream(1);
-//                return DbUtils.getString(rs, "TEXT", null);
             }
-        }
-        finally {
+            return null;
+
+        } catch (SQLException e) {
+            throw new DbRevisionException(e);
+        } catch (IOException e) {
+            throw new DbRevisionException(e);
+        } finally {
             DatabaseManager.close(rs, ps);
             rs = null;
             ps = null;
         }
-        return null;
     }
 
-    public void createView(DbView view)
-        throws Exception {
+    public void createView(DbView view) {
         if (view == null ||
             view.getName() == null || view.getName().length() == 0 ||
             view.getText() == null || view.getText().length() == 0
@@ -481,7 +487,9 @@ public class ORAconnect extends DatabaseAdapter {
             ps = this.getConnection().prepareStatement(sql_);
             ps.executeUpdate();
         }
-        finally {
+        catch (SQLException e) {
+            throw new DbRevisionException(e);
+        } finally {
             DatabaseManager.close(ps);
             ps = null;
         }
@@ -568,10 +576,8 @@ public class ORAconnect extends DatabaseAdapter {
         return clob.getSubString(1, maxLength);
     }
 
-    public String getStream(ResultSet rs, String nameField, int maxLength)
-        throws Exception {
+    public String getStream(ResultSet rs, String nameField, int maxLength) throws SQLException, IOException {
 
-//        InputStream instream = rs.getAsciiStream(1);
         InputStream instream = rs.getBinaryStream(1);
 
         // Create temporary buffer for read
@@ -640,10 +646,7 @@ public class ORAconnect extends DatabaseAdapter {
             return false;
         }
 
-        if ((e instanceof SQLException) &&
-            (e.toString().indexOf("ORA-00942") != -1))
-            return true;
-        return false;
+        return (e instanceof SQLException) && (e.toString().indexOf("ORA-00942") != -1);
     }
 
     public boolean testExceptionIndexUniqueKey(Exception e, String index) {
