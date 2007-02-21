@@ -44,12 +44,14 @@ import java.util.GregorianCalendar;
 import javax.xml.datatype.DatatypeFactory;
 
 import org.apache.log4j.Logger;
+import org.apache.commons.codec.binary.Base64;
 
 import org.riverock.dbrevision.offline.config.DatabaseConnectionType;
 import org.riverock.dbrevision.annotation.schema.db.*;
 import org.riverock.dbrevision.utils.Utils;
 import org.riverock.dbrevision.utils.DbUtils;
 import org.riverock.dbrevision.exception.DbRevisionException;
+import org.riverock.dbrevision.db.factory.ORAconnect;
 
 /**
  * @author SergeMaslyukov
@@ -644,6 +646,21 @@ public class DatabaseStructureManager {
                             case Types.LONGVARCHAR:
                             case Types.LONGVARBINARY:
                                 fieldData.setStringData(rs.getString(field.getName()));
+                                break;
+                            case Types.BLOB:
+                                byte[] bytes=null;
+                                switch(dbFamily) {
+                                    case DatabaseManager.ORACLE_FAMALY:
+                                        DatabaseAdapter db = new ORAconnect(connection);
+                                        bytes = db.getBlobField(rs, field.getName(), 1000000);
+                                        break;
+
+                                }
+                                if (bytes!=null) {
+                                    Base64 base64 = new Base64();
+                                    byte[] encodedBytes = base64.encode(bytes);
+                                    fieldData.setStringData( new String(encodedBytes) );
+                                }
                                 break;
                             default:
                                 System.out.println("Unknown field type. Field '" + field.getName() + "' type '" + field.getJavaStringType() + "'");
