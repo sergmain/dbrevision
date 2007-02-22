@@ -36,11 +36,7 @@ package org.riverock.dbrevision.annotation.schema.db;
 
 import java.util.ArrayList;
 import java.util.List;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
-
+import javax.xml.bind.annotation.*;
 
 /**
  * <p>Java class for DbSchema complex type.
@@ -65,12 +61,14 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
+@XmlRootElement(name = "SchemaElement")
 @XmlType(name = "DbSchema", propOrder = {
     "tables",
     "views",
     "sequences",
     "bigTextTable"
 })
+
 public class DbSchema {
 
     @XmlElement(name = "Tables")
