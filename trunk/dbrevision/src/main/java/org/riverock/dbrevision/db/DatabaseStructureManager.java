@@ -602,7 +602,7 @@ public class DatabaseStructureManager {
                 throw new Exception("Count for field in ResultSet not equals in DbTable");
             }
 
-            System.out.println("count of fields " + table.getFields());
+//            System.out.println("count of fields " + table.getFields());
 
             int countRecords = 0;
             while (rs.next()) {
@@ -676,7 +676,7 @@ public class DatabaseStructureManager {
                 }
                 tableData.getRecords().add(record);
             }
-            System.out.println("count of records " + countRecords);
+//            System.out.println("count of records " + countRecords);
             return tableData;
         }
         catch (Exception e) {
