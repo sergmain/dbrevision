@@ -52,6 +52,7 @@ import org.riverock.dbrevision.utils.Utils;
 import org.riverock.dbrevision.utils.DbUtils;
 import org.riverock.dbrevision.exception.DbRevisionException;
 import org.riverock.dbrevision.db.factory.ORAconnect;
+import org.riverock.dbrevision.db.factory.MYSQLconnect;
 
 /**
  * @author SergeMaslyukov
@@ -649,9 +650,14 @@ public class DatabaseStructureManager {
                                 break;
                             case Types.BLOB:
                                 byte[] bytes=null;
+                                DatabaseAdapter db=null;
                                 switch(dbFamily) {
                                     case DatabaseManager.ORACLE_FAMALY:
-                                        DatabaseAdapter db = new ORAconnect(connection);
+                                        db = new ORAconnect(connection);
+                                        bytes = db.getBlobField(rs, field.getName(), 1000000);
+                                        break;
+                                    case DatabaseManager.MYSQL_FAMALY:
+                                        db = new MYSQLconnect(connection);
                                         bytes = db.getBlobField(rs, field.getName(), 1000000);
                                         break;
 
@@ -824,8 +830,9 @@ public class DatabaseStructureManager {
                     log.debug("Field decimalDigit - " + field.getDecimalDigit());
                     log.debug("Field nullable - " + field.getNullable());
 
-                    if (field.getNullable() == DatabaseMetaData.columnNullableUnknown)
+                    if (field.getNullable() == DatabaseMetaData.columnNullableUnknown) {
                         log.debug("Table " + tablePattern + " field - " + field.getName() + " with unknown nullable status");
+                    }
 
                 }
                 v.add(field);

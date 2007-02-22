@@ -120,9 +120,15 @@ public class Utils {
         }
         ByteArrayOutputStream fos = new ByteArrayOutputStream(1000);
 
-        if (log.isDebugEnabled())
+        if (log.isDebugEnabled()) {
             log.debug("ByteArrayOutputStream object - " + fos);
+        }
 
+        writeMarshalToOutputStream(obj, encoding, rootElement, fos);
+        return fos.toByteArray();
+    }
+
+    public static void writeMarshalToOutputStream(Object obj, String encoding, String rootElement, OutputStream fos) throws JAXBException {
         JAXBContext jaxbContext = JAXBContext.newInstance ( obj.getClass().getPackage().getName() );
         Marshaller marshaller = jaxbContext.createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_ENCODING, encoding);
@@ -134,7 +140,6 @@ public class Utils {
         else {
             marshaller.marshal(obj, fos);
         }
-        return fos.toByteArray();
     }
 
     public static void writeToFile(final Object obj, final String fileName) throws JAXBException, FileNotFoundException {
@@ -142,16 +147,11 @@ public class Utils {
     }
 
     public static void writeToFile(final Object obj, final String fileName, final String encoding) throws FileNotFoundException, JAXBException {
-        writeObjectAsXml(obj, new FileOutputStream(fileName), encoding);
+        writeMarshalToOutputStream(obj, encoding, null, new FileOutputStream(fileName) );
     }
 
     public static void writeObjectAsXml(final Object obj, OutputStream outputStream, final String encoding) throws JAXBException {
-        JAXBContext jaxbContext = JAXBContext.newInstance ( obj.getClass().getPackage().getName() );
-        Marshaller marshaller = jaxbContext.createMarshaller();
-        if (encoding!=null && encoding.trim().length()>0) {
-            marshaller.setProperty(Marshaller.JAXB_ENCODING, encoding);
-        }
-        marshaller.marshal(obj, outputStream);
+        writeMarshalToOutputStream(obj, encoding, null, outputStream );
     }
 
     public static <T> T getObjectFromXml(final Class<T> classType, InputStream is) throws Exception {

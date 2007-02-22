@@ -91,7 +91,7 @@ public class ORAconnect extends DatabaseAdapter {
         if (table == null || table.getFields().isEmpty())
             return;
 
-        String sql = "create table \"" + table.getName() + "\"\n" +
+        String sql = "create table " + table.getName() + " \n" +
             "(";
 
         boolean isFirst = true;

@@ -65,10 +65,6 @@ public class DbStructureExport {
         try {
             DbSchema schema = DatabaseManager.getDbStructure(db);
             for (DbTable table : schema.getTables()) {
-                table.getFields().addAll(DatabaseStructureManager.getFieldsList(db.getConnection(), table.getSchema(), table.getName(), db.getFamily()));
-                table.setPrimaryKey(DatabaseStructureManager.getPrimaryKey(db.getConnection(), table.getSchema(), table.getName()));
-                table.getImportedKeys().addAll(DatabaseStructureManager.getImportedKeys(db.getConnection(), table.getSchema(), table.getName()));
-
                 if (isData) {
                     table.setData(DatabaseStructureManager.getDataTable(db.getConnection(), table, db.getFamily()));
                 }
