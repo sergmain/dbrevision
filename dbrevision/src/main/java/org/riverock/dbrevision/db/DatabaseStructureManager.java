@@ -40,6 +40,7 @@ import java.util.TreeSet;
 import java.util.Map;
 import java.util.List;
 import java.util.GregorianCalendar;
+import java.io.ByteArrayInputStream;
 
 import javax.xml.datatype.DatatypeFactory;
 
@@ -262,8 +263,9 @@ public class DatabaseStructureManager {
 
 
         boolean isDebug = false;
-        if (table.getName().equalsIgnoreCase("WM_NEWS_ITEM_TEXT"))
+        if (table.getName().equalsIgnoreCase("WM_NEWS_ITEM")) {
             isDebug = true;
+        }
 
         String sql_ =
             "insert into " + table.getName() +
@@ -299,7 +301,6 @@ public class DatabaseStructureManager {
                 "records " + tableData.getRecords().size() + ", sql:\n" + sql_
         );
 
-
         if (big == null) {
 
             for (DbDataRecord record : tableData.getRecords()) {
@@ -329,11 +330,11 @@ public class DatabaseStructureManager {
                                 case Types.DECIMAL:
                                 case Types.DOUBLE:
                                 case Types.NUMERIC:
-                                    if (field.getDecimalDigit() == null ||
-                                        field.getDecimalDigit() == 0) {
+                                    if (field.getDecimalDigit() == null || field.getDecimalDigit() == 0) {
                                         if (isDebug)
                                             System.out.println("Types.NUMERIC as Types.INTEGER param #" + (k + 1) + ", " +
-                                                "value " + fieldData.getNumberData().doubleValue() + ", long value " + ((long) fieldData.getNumberData().doubleValue())
+                                                "value " + fieldData.getNumberData().doubleValue() + ", long value " + ((long) fieldData.getNumberData().doubleValue() +
+                                                    ", extracted value: " + fieldData.getNumberData().longValueExact())
                                             );
                                         ps.setLong(k + 1, fieldData.getNumberData().longValueExact());
                                     }
@@ -377,6 +378,24 @@ public class DatabaseStructureManager {
 
                                 case Types.LONGVARBINARY:
                                     adapter.setLongVarbinary(ps, k + 1, fieldData);
+                                    break;
+
+                                case Types.BLOB:
+                                    if (adapter.getFamily()== DatabaseManager.MYSQL_FAMALY) {
+                                        byte[] bytes = Base64.decodeBase64(fieldData.getStringData().getBytes());
+
+                                        byte[] fileBytes = new byte[]{};
+                                        if (bytes!=null) {
+                                            fileBytes = bytes;
+                                        }
+                                        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(fileBytes);
+                                        ps.setBinaryStream(k + 1, byteArrayInputStream, fileBytes.length);
+                                        
+                                        bytes = null;
+                                        byteArrayInputStream = null;
+                                        fileBytes = null;
+                                    }
+
                                     break;
 
                                 case 1111:
@@ -604,9 +623,21 @@ public class DatabaseStructureManager {
 
 //            System.out.println("count of fields " + table.getFields());
 
-            int countRecords = 0;
+            byte[] bytes=null;
+            Base64 base64 = new Base64();
+//            DatabaseAdapter db = DbConnectionProvider.openConnect(connection, dbFamily);
+            DatabaseAdapter db=null;
+            switch(dbFamily) {
+                case DatabaseManager.ORACLE_FAMALY:
+                    db = new ORAconnect(connection);
+                    break;
+                case DatabaseManager.MYSQL_FAMALY:
+                    db = new MYSQLconnect(connection);
+                    break;
+
+            }
+
             while (rs.next()) {
-                countRecords++;
                 DbDataRecord record = new DbDataRecord();
                 for (DbField field : table.getFields()) {
                     DbDataFieldData fieldData = new DbDataFieldData();
@@ -646,27 +677,34 @@ public class DatabaseStructureManager {
 
                             case Types.LONGVARCHAR:
                             case Types.LONGVARBINARY:
-                                fieldData.setStringData(rs.getString(field.getName()));
+                                switch(dbFamily) {
+                                    case DatabaseManager.MYSQL_FAMALY:
+                                        bytes = db.getBlobField(rs, field.getName(), 1000000);
+                                        if (bytes!=null) {
+                                            byte[] encodedBytes = base64.encode(bytes);
+                                            fieldData.setStringData( new String(encodedBytes) );
+                                        }
+                                        bytes = null;
+                                        break;
+                                    default:
+                                        fieldData.setStringData(rs.getString(field.getName()));
+                                }
                                 break;
                             case Types.BLOB:
-                                byte[] bytes=null;
-                                DatabaseAdapter db=null;
                                 switch(dbFamily) {
                                     case DatabaseManager.ORACLE_FAMALY:
-                                        db = new ORAconnect(connection);
                                         bytes = db.getBlobField(rs, field.getName(), 1000000);
                                         break;
                                     case DatabaseManager.MYSQL_FAMALY:
-                                        db = new MYSQLconnect(connection);
                                         bytes = db.getBlobField(rs, field.getName(), 1000000);
                                         break;
 
                                 }
                                 if (bytes!=null) {
-                                    Base64 base64 = new Base64();
                                     byte[] encodedBytes = base64.encode(bytes);
                                     fieldData.setStringData( new String(encodedBytes) );
                                 }
+                                bytes = null;
                                 break;
                             default:
                                 System.out.println("Unknown field type. Field '" + field.getName() + "' type '" + field.getJavaStringType() + "'");
