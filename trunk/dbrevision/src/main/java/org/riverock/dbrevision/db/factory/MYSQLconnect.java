@@ -239,6 +239,7 @@ public final class MYSQLconnect extends DatabaseAdapter {
             ps.executeUpdate();
         }
         catch (SQLException e) {
+            log.error("Error create table\nSQL:\n"+sql+"\n");
             throw new DbRevisionException(e);
         }
         finally {

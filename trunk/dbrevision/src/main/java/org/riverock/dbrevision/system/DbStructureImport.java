@@ -71,6 +71,10 @@ public class DbStructureImport {
         FileInputStream stream = new FileInputStream(fileName);
         DbSchema millSchema = Utils.getObjectFromXml(DbSchema.class, stream);
 
+        importStructure(millSchema, db_, isData);
+    }
+
+    public static void importStructure(DbSchema millSchema, DatabaseAdapter db_, boolean isData) throws Exception {
         for (DbTable table : millSchema.getTables()) {
             if (table.getName().toLowerCase().startsWith("tb_"))
                 continue;

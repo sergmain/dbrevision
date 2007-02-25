@@ -154,6 +154,10 @@ public class Utils {
         writeMarshalToOutputStream(obj, encoding, null, outputStream );
     }
 
+    public static void writeObjectAsXml(final Object obj, OutputStream outputStream, String rootElement, final String encoding) throws JAXBException {
+        writeMarshalToOutputStream(obj, encoding, rootElement, outputStream );
+    }
+
     public static <T> T getObjectFromXml(final Class<T> classType, InputStream is) throws Exception {
         try {
             JAXBContext jaxbContext = JAXBContext.newInstance ( classType.getPackage().getName() );
