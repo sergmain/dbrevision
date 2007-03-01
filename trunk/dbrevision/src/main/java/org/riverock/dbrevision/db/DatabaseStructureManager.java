@@ -46,6 +46,7 @@ import javax.xml.datatype.DatatypeFactory;
 
 import org.apache.log4j.Logger;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang.CharEncoding;
 
 import org.riverock.dbrevision.offline.config.DatabaseConnectionType;
 import org.riverock.dbrevision.annotation.schema.db.*;
@@ -386,7 +387,7 @@ public class DatabaseStructureManager {
 
                                         byte[] fileBytes = new byte[]{};
                                         if (bytes!=null) {
-                                            fileBytes = bytes;
+                                            fileBytes = new String(bytes, CharEncoding.UTF_8).getBytes();
                                         }
                                         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(fileBytes);
                                         ps.setBinaryStream(k + 1, byteArrayInputStream, fileBytes.length);
@@ -624,7 +625,6 @@ public class DatabaseStructureManager {
 //            System.out.println("count of fields " + table.getFields());
 
             byte[] bytes=null;
-            Base64 base64 = new Base64();
 //            DatabaseAdapter db = DbConnectionProvider.openConnect(connection, dbFamily);
             DatabaseAdapter db=null;
             switch(dbFamily) {
@@ -681,7 +681,10 @@ public class DatabaseStructureManager {
                                     case DatabaseManager.MYSQL_FAMALY:
                                         bytes = db.getBlobField(rs, field.getName(), 1000000);
                                         if (bytes!=null) {
-                                            byte[] encodedBytes = base64.encode(bytes);
+                                            byte[] encodedBytes =
+                                                    Base64.encodeBase64(
+                                                            new String(bytes, CharEncoding.UTF_8).getBytes()
+                                                    );
                                             fieldData.setStringData( new String(encodedBytes) );
                                         }
                                         bytes = null;
@@ -701,7 +704,10 @@ public class DatabaseStructureManager {
 
                                 }
                                 if (bytes!=null) {
-                                    byte[] encodedBytes = base64.encode(bytes);
+                                    byte[] encodedBytes =
+                                            Base64.encodeBase64( 
+                                                    new String(bytes, CharEncoding.UTF_8).getBytes()
+                                            );
                                     fieldData.setStringData( new String(encodedBytes) );
                                 }
                                 bytes = null;
