@@ -387,7 +387,8 @@ public class DatabaseStructureManager {
 
                                         byte[] fileBytes = new byte[]{};
                                         if (bytes!=null) {
-                                            fileBytes = new String(bytes, CharEncoding.UTF_8).getBytes();
+//                                            fileBytes = new String(bytes, CharEncoding.UTF_8).getBytes();
+                                            fileBytes = bytes;
                                         }
                                         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(fileBytes);
                                         ps.setBinaryStream(k + 1, byteArrayInputStream, fileBytes.length);
@@ -683,7 +684,8 @@ public class DatabaseStructureManager {
                                         if (bytes!=null) {
                                             byte[] encodedBytes =
                                                     Base64.encodeBase64(
-                                                            new String(bytes, CharEncoding.UTF_8).getBytes()
+//                                                            new String(bytes, CharEncoding.UTF_8).getBytes()
+                                                            bytes
                                                     );
                                             fieldData.setStringData( new String(encodedBytes) );
                                         }
@@ -706,7 +708,8 @@ public class DatabaseStructureManager {
                                 if (bytes!=null) {
                                     byte[] encodedBytes =
                                             Base64.encodeBase64( 
-                                                    new String(bytes, CharEncoding.UTF_8).getBytes()
+//                                                    new String(bytes, CharEncoding.UTF_8).getBytes()
+                                                    bytes
                                             );
                                     fieldData.setStringData( new String(encodedBytes) );
                                 }
