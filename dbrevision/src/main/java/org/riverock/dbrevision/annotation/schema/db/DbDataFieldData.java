@@ -70,7 +70,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "DbDataFieldData", propOrder = {
-    "javaTypeField",
+//    "javaTypeField",
     "stringData",
     "dateData",
     "numberData",
@@ -78,8 +78,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 })
 public class DbDataFieldData {
 
-    @XmlElement(name = "JavaTypeField")
-    protected int javaTypeField;
+//    @XmlElement(name = "JavaTypeField")
+//    protected int javaTypeField;
     @XmlElement(name = "StringData")
     protected String stringData;
     @XmlElement(name = "DateData")
@@ -97,17 +97,17 @@ public class DbDataFieldData {
      * Gets the value of the javaTypeField property.
      * 
      */
-    public int getJavaTypeField() {
-        return javaTypeField;
-    }
+//    public int getJavaTypeField() {
+//        return javaTypeField;
+//    }
 
     /**
      * Sets the value of the javaTypeField property.
      * 
      */
-    public void setJavaTypeField(int value) {
-        this.javaTypeField = value;
-    }
+//    public void setJavaTypeField(int value) {
+//        this.javaTypeField = value;
+//    }
 
     /**
      * Gets the value of the stringData property.
