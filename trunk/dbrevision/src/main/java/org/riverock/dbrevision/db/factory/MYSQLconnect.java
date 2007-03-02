@@ -27,11 +27,13 @@ package org.riverock.dbrevision.db.factory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.io.ByteArrayInputStream;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
 
 import org.riverock.dbrevision.annotation.schema.db.*;
@@ -146,7 +148,7 @@ public final class MYSQLconnect extends DatabaseAdapter {
                     break;
 
                 case Types.VARCHAR:
-                    if (field.getSize() < 256)
+                    if (field.getSize() < 0x5555)
                         sql += " VARCHAR(" + field.getSize() + ")";
                     else
                         sql += " TEXT";
@@ -161,6 +163,7 @@ public final class MYSQLconnect extends DatabaseAdapter {
                     sql += " text ";
                     break;
 
+                case Types.LONGVARBINARY:
                 case Types.BLOB:
                     sql += " LONGBLOB";
                     break;
@@ -449,7 +452,18 @@ public final class MYSQLconnect extends DatabaseAdapter {
     }
 
     public void setLongVarbinary(PreparedStatement ps, int index, DbDataFieldData fieldData) throws SQLException {
-        ps.setNull(index, Types.VARCHAR);
+        byte[] bytes = Base64.decodeBase64(fieldData.getStringData().getBytes());
+
+        byte[] fileBytes = new byte[]{};
+        if (bytes!=null) {
+            fileBytes = bytes;
+        }
+        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(fileBytes);
+        ps.setBinaryStream(index, byteArrayInputStream, fileBytes.length);
+
+        bytes = null;
+        byteArrayInputStream = null;
+        fileBytes = null;
     }
 
     public void setLongVarchar(PreparedStatement ps, int index, DbDataFieldData fieldData) throws SQLException {

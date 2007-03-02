@@ -46,7 +46,6 @@ import javax.xml.datatype.DatatypeFactory;
 
 import org.apache.log4j.Logger;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.lang.CharEncoding;
 
 import org.riverock.dbrevision.offline.config.DatabaseConnectionType;
 import org.riverock.dbrevision.annotation.schema.db.*;
@@ -264,9 +263,9 @@ public class DatabaseStructureManager {
 
 
         boolean isDebug = false;
-        if (table.getName().equalsIgnoreCase("WM_NEWS_ITEM")) {
-            isDebug = true;
-        }
+//        if (table.getName().equalsIgnoreCase("WM_NEWS_ITEM")) {
+//            isDebug = true;
+//        }
 
         String sql_ =
             "insert into " + table.getName() +
@@ -284,7 +283,7 @@ public class DatabaseStructureManager {
         sql_ += ")values(";
 
         isFirst = true;
-        for (DbField field : table.getFields()) {
+        for (int i=0; i<table.getFields().size(); i++) {
             if (isFirst)
                 isFirst = false;
             else
@@ -317,17 +316,19 @@ public class DatabaseStructureManager {
                         field = table.getFields().get(fieldPtr++);
 
                         if (fieldData.isIsNull()) {
-                            int type = fieldData.getJavaTypeField();
-                            if (fieldData.getJavaTypeField() == Types.TIMESTAMP)
+                            int type = table.getFields().get(k).getJavaType();
+                            if (type == Types.TIMESTAMP) {
                                 type = Types.DATE;
+                            }
 
                             ps.setNull(k + 1, type);
                         }
                         else {
-                            if (isDebug)
-                                System.out.println("param #" + (k + 1) + ", type " + fieldData.getJavaTypeField());
+                            if (isDebug) {
+                                System.out.println("param #" + (k + 1) + ", type " + table.getFields().get(k).getJavaType());
+                            }
 
-                            switch (fieldData.getJavaTypeField()) {
+                            switch (table.getFields().get(k).getJavaType()) {
                                 case Types.DECIMAL:
                                 case Types.DOUBLE:
                                 case Types.NUMERIC:
@@ -387,7 +388,6 @@ public class DatabaseStructureManager {
 
                                         byte[] fileBytes = new byte[]{};
                                         if (bytes!=null) {
-//                                            fileBytes = new String(bytes, CharEncoding.UTF_8).getBytes();
                                             fileBytes = bytes;
                                         }
                                         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(fileBytes);
@@ -415,14 +415,16 @@ public class DatabaseStructureManager {
                 }
                 catch (Exception e) {
                     log.error("Error get data for table " + table.getName(), e);
+                    int k=0;
                     for (DbDataFieldData data : record.getFieldsData()) {
                         log.error("date: " + data.getDateData());
                         log.error("decimal digit: " + data.getDecimalDigit());
                         log.error("is null: " + data.isIsNull());
-                        log.error("java type: " + data.getJavaTypeField());
+                        log.error("java type: " + table.getFields().get(k).getJavaType());
                         log.error("number: " + data.getNumberData());
                         log.error("size: " + data.getSize());
                         log.error("string: " + data.getStringData());
+                        k++;
                     }
                     throw e;
                 }
@@ -623,10 +625,7 @@ public class DatabaseStructureManager {
                 throw new Exception("Count for field in ResultSet not equals in DbTable");
             }
 
-//            System.out.println("count of fields " + table.getFields());
-
             byte[] bytes=null;
-//            DatabaseAdapter db = DbConnectionProvider.openConnect(connection, dbFamily);
             DatabaseAdapter db=null;
             switch(dbFamily) {
                 case DatabaseManager.ORACLE_FAMALY:
@@ -645,7 +644,7 @@ public class DatabaseStructureManager {
 
                     Object obj = rs.getObject(field.getName());
 
-                    fieldData.setJavaTypeField(field.getJavaType());
+//                    fieldData.setJavaTypeField(field.getJavaType());
 
                     if (obj == null) {
                         fieldData.setIsNull(Boolean.TRUE);
@@ -682,11 +681,7 @@ public class DatabaseStructureManager {
                                     case DatabaseManager.MYSQL_FAMALY:
                                         bytes = db.getBlobField(rs, field.getName(), 1000000);
                                         if (bytes!=null) {
-                                            byte[] encodedBytes =
-                                                    Base64.encodeBase64(
-//                                                            new String(bytes, CharEncoding.UTF_8).getBytes()
-                                                            bytes
-                                                    );
+                                            byte[] encodedBytes = Base64.encodeBase64(bytes);
                                             fieldData.setStringData( new String(encodedBytes) );
                                         }
                                         bytes = null;
@@ -706,11 +701,7 @@ public class DatabaseStructureManager {
 
                                 }
                                 if (bytes!=null) {
-                                    byte[] encodedBytes =
-                                            Base64.encodeBase64( 
-//                                                    new String(bytes, CharEncoding.UTF_8).getBytes()
-                                                    bytes
-                                            );
+                                    byte[] encodedBytes = Base64.encodeBase64(bytes);
                                     fieldData.setStringData( new String(encodedBytes) );
                                 }
                                 bytes = null;
@@ -723,7 +714,6 @@ public class DatabaseStructureManager {
                 }
                 tableData.getRecords().add(record);
             }
-//            System.out.println("count of records " + countRecords);
             return tableData;
         }
         catch (Exception e) {
@@ -735,13 +725,15 @@ public class DatabaseStructureManager {
             rs = null;
             ps = null;
         }
-
     }
 
     /**
-     * Возвращает список таблиц по фильтру
+     * Return filtered list of tables
      *
-     * @return java.lang.ArrayList of DbTable
+     * @param conn1 db connection
+     * @param schemaPattern schema name filter 
+     * @param tablePattern table name filter
+     * @return List of DbTable
      */
     public static List<DbTable> getTableList(Connection conn1, String schemaPattern, String tablePattern) {
         String[] types = {"TABLE"};
@@ -1104,17 +1096,16 @@ public class DatabaseStructureManager {
     }
 
     /**
-     * Возвращает список таблиц по фильтру
-     * обычно schemaPattern это имя юзера
-     * можно получить типа dc.username.toUpperCase()
-     * tablePattern == "%" обозначает что выбрать все таблицы
+     * return list of tables filtered by concrete fileter
+     * usually schemaPattern is a username
+     * tablePattern == "%" - mean select all tables
      *
-     * @param conn
-     * @param dc1
-     * @return java.lang.Vector of DbTable
+     * @param conn db connection
+     * @param dc db connection descriptor
+     * @return List of DbTable
      */
-    public static List<DbTable> getTableList(Connection conn, DatabaseConnectionType dc1) {
-        return getTableList(conn, dc1.getUsername().toUpperCase(), "%");
+    public static List<DbTable> getTableList(Connection conn, DatabaseConnectionType dc) {
+        return getTableList(conn, dc.getUsername().toUpperCase(), "%");
     }
 
     public static void setDefaultValueTimestamp(DatabaseAdapter adapter, DbTable originTable, DbField originField)
