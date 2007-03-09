@@ -20,13 +20,24 @@ import java.io.UnsupportedEncodingException;
 public class FixUTF8Issue {
 
     public static void main(String[] args) throws SQLException, IOException, ClassNotFoundException {
+        System.out.println("FixUTF8Issue <[<driver> <url> <login> <pass>] | [none of parameters]>");
+
         String url = "jdbc:mysql://localhost/test?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull";
         String username = "root";
         String password = "qqq";
 
-        Class.forName("com.mysql.jdbc.Driver");
-        Connection conn = DriverManager.getConnection(url, username, password);
+        Connection conn;
+        if (args!=null && args.length==4) {
+            System.out.println("User's invoke\ndriver: "+args[0]+"\nurl: "+args[1]+"\nlogin: " +args[2]+"\npass: "+args[3]);
+            Class.forName(args[0]);
+            conn = DriverManager.getConnection(args[1], args[2], args[3]);
+        }
+        else {
+            Class.forName("com.mysql.jdbc.Driver");
+            conn = DriverManager.getConnection(url, username, password);
+        }
         conn.setAutoCommit(false);
+
 
         StartupApplication.init();
         System.out.println("DebugDir: " + DbRevisionConfig.getGenericDebugDir());
