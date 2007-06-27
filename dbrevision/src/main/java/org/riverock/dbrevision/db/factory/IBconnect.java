@@ -110,7 +110,7 @@ public class IBconnect extends DatabaseAdapter {
                 case Types.NUMERIC:
                 case Types.DECIMAL:
                     if (field.getDecimalDigit()!=0) {
-                        sql += " DECIMAL(" + (field.getSize() > 38 ? 38 : field.getSize()) + ',' + field.getDecimalDigit() + ")";
+                        sql += " DECIMAL(" + (field.getSize()==null || field.getSize() > 38 ? 38 : field.getSize()) + ',' + field.getDecimalDigit() + ")";
                     }
                     else {
                         if (field.getSize() == 1)

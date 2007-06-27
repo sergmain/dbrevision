@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2005 rel. 3 U (http://www.altova.com) by Serg (Ru-Board) -->
 <!--
   ~ org.riverock.dbrevision - Database revision engine
   ~ For more information about DbRevision, please visit project site
@@ -24,7 +25,7 @@
   ~ License along with this library; if not, write to the Free Software
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
   -->
-<xs:schema targetNamespace="http://generic.riverock.org/xsd/riverock-database-structure.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:riverock-db-stuct="http://generic.riverock.org/xsd/riverock-database-structure.xsd">
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:riverock-db-stuct="http://generic.riverock.org/xsd/riverock-database-structure.xsd" targetNamespace="http://generic.riverock.org/xsd/riverock-database-structure.xsd">
 	<xs:annotation>
 		<xs:documentation>Copyright 2002-2003, jSmithy.com, http://www.jSmithy.com</xs:documentation>
 	</xs:annotation>
@@ -119,7 +120,7 @@
 		<xs:attribute name="applType" type="xs:string"/>
 		<xs:attribute name="javaType" type="xs:int"/>
 		<xs:attribute name="javaStringType" type="xs:string"/>
-		<xs:attribute name="size" type="xs:int" use="required"/>
+		<xs:attribute name="size" type="xs:int" use="optional"/>
 		<xs:attribute name="decimalDigit" type="xs:int"/>
 		<xs:attribute name="nullable" type="xs:int"/>
 		<xs:attribute name="defaultValue" type="xs:string"/>

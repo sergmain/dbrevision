@@ -114,21 +114,35 @@ public final class MYSQLconnect extends DatabaseAdapter {
         boolean isFirst = true;
 
         for (DbField field : table.getFields()) {
-            if (!isFirst)
+            if (!isFirst) {
                 sql += ",";
-            else
+            }
+            else {
                 isFirst = !isFirst;
+            }
 
             sql += "\n" + field.getName() + "";
             int fieldType = field.getJavaType();
             switch (fieldType) {
+
+                case Types.BIT:
+                    sql += " BIT";
+                    break;
+
+                case Types.TINYINT:
+                    sql += " TINYINT";
+                    break;
+
+                case Types.BIGINT:
+                    sql += " BIGINT";
+                    break;
 
                 case Types.NUMERIC:
                 case Types.DECIMAL:
                     if (field.getDecimalDigit() == null || field.getDecimalDigit() == 0)
                         sql += " DECIMAL";
                     else
-                        sql += " DECIMAL(" + field.getSize() + "," + field.getDecimalDigit() + ")";
+                        sql += " DECIMAL(" + (field.getSize()==null || field.getSize()>31?31:field.getSize()) + "," + field.getDecimalDigit() + ")";
                     break;
 
                 case Types.INTEGER:
@@ -136,11 +150,10 @@ public final class MYSQLconnect extends DatabaseAdapter {
                     break;
 
                 case Types.DOUBLE:
-                    sql += " DOUBLE";
                     if (field.getDecimalDigit() == null || field.getDecimalDigit() == 0)
                         sql += " DOUBLE";
                     else
-                        sql += " DOUBLE(" + field.getSize() + "," + field.getDecimalDigit() + ")";
+                        sql += " DOUBLE(" + (field.getSize()==null || field.getSize()>31?31:field.getSize()) + "," + field.getDecimalDigit() + ")";
                     break;
 
                 case Types.CHAR:
@@ -366,7 +379,7 @@ public final class MYSQLconnect extends DatabaseAdapter {
                     case Types.TIMESTAMP:
                     case Types.DATE:
                         if (DatabaseManager.checkDefaultTimestamp(val))
-                            val = "'CURRENT_TIMESTAMP'";
+                            val = "CURRENT_TIMESTAMP";
 
                         break;
                     default:
@@ -401,7 +414,7 @@ public final class MYSQLconnect extends DatabaseAdapter {
     }
 
     public String getDefaultTimestampValue() {
-        return "'CURRENT_TIMESTAMP'";
+        return "CURRENT_TIMESTAMP";
     }
 
     public List<DbView> getViewList(String schemaPattern, String tablePattern) {
@@ -561,10 +574,6 @@ public final class MYSQLconnect extends DatabaseAdapter {
     }
 
     public boolean testExceptionConstraintExists(Exception e) {
-        if (e instanceof SQLException) {
-            if (((SQLException) e).getErrorCode() == -(org.hsqldb.Trace.CONSTRAINT_ALREADY_EXISTS))
-                return true;
-        }
         return false;
     }
 }

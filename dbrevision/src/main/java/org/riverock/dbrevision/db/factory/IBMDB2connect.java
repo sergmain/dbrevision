@@ -123,7 +123,7 @@ public class IBMDB2connect extends DatabaseAdapter {
 
                 case Types.NUMERIC:
                 case Types.DECIMAL:
-                    sql += " DECIMAL(" + (field.getSize() > 31 ? 31 : field.getSize()) + ',' + field.getDecimalDigit() + ")";
+                    sql += " DECIMAL(" + (field.getSize()==null || field.getSize() > 31 ? 31 : field.getSize()) + ',' + field.getDecimalDigit() + ")";
                     break;
 
                 case Types.INTEGER:
