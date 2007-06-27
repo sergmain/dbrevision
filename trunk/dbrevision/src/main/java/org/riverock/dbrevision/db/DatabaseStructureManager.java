@@ -41,6 +41,7 @@ import java.util.Map;
 import java.util.List;
 import java.util.GregorianCalendar;
 import java.io.ByteArrayInputStream;
+import java.io.UnsupportedEncodingException;
 
 import javax.xml.datatype.DatatypeFactory;
 
@@ -201,8 +202,7 @@ public class DatabaseStructureManager {
         adapter.addColumn(table, field);
     }
 
-    public static void dropColumn(DatabaseAdapter adapter, DbTable table, DbField field)
-        throws Exception {
+    public static void dropColumn(DatabaseAdapter adapter, DbTable table, DbField field) {
         if (table == null ||
             table.getName() == null || table.getName().length() == 0
             )
@@ -219,14 +219,16 @@ public class DatabaseStructureManager {
             ps = adapter.getConnection().prepareStatement(sql_);
             ps.executeUpdate();
         }
+        catch (SQLException e) {
+            throw new DbRevisionException(e);
+        }
         finally {
             DatabaseManager.close(ps);
             ps = null;
         }
     }
 
-    public static void dropView(DatabaseAdapter adapter, DbView view)
-        throws Exception {
+    public static void dropView(DatabaseAdapter adapter, DbView view) {
         if (view == null ||
             view.getName() == null || view.getName().length() == 0
             )
@@ -238,34 +240,33 @@ public class DatabaseStructureManager {
             ps = adapter.getConnection().prepareStatement(sql_);
             ps.executeUpdate();
         }
+        catch (SQLException e) {
+            throw new DbRevisionException(e);
+        }
         finally {
             DatabaseManager.close(ps);
             ps = null;
         }
     }
 
-    public static void setDataTable(DatabaseAdapter adapter, DbTable table)
-        throws Exception {
+    public static void setDataTable(DatabaseAdapter adapter, DbTable table) {
         setDataTable(adapter, table, null);
     }
 
-    public static void setDataTable(DatabaseAdapter adapter, DbTable table, List<DbBigTextTable> bigTables)
-        throws Exception {
+    public static void setDataTable(DatabaseAdapter adapter, DbTable table, List<DbBigTextTable> bigTables) {
         if (table == null || table.getData() == null || table.getData().getRecords().size() == 0) {
-            System.out.println("Table is empty");
+            log.debug("Table is empty");
             return;
         }
 
         DbBigTextTable big = DatabaseManager.getBigTextTableDesc(table, bigTables);
 
-        if (table.getFields().isEmpty())
-            throw new Exception("Table has zero count of fields");
+        if (table.getFields().isEmpty()) {
+            throw new DbRevisionException("Table has zero count of fields");
+        }
 
 
         boolean isDebug = false;
-//        if (table.getName().equalsIgnoreCase("WM_NEWS_ITEM")) {
-//            isDebug = true;
-//        }
 
         String sql_ =
             "insert into " + table.getName() +
@@ -273,10 +274,12 @@ public class DatabaseStructureManager {
 
         boolean isFirst = true;
         for (DbField field : table.getFields()) {
-            if (isFirst)
+            if (isFirst) {
                 isFirst = false;
-            else
+            }
+            else {
                 sql_ += ", ";
+            }
 
             sql_ += field.getName();
         }
@@ -295,11 +298,13 @@ public class DatabaseStructureManager {
 
         DbDataTable tableData = table.getData();
 
+/*
         System.out.println(
             "\nTable " + table.getName() + ", " +
                 "fields " + table.getFields().size() + ", " +
                 "records " + tableData.getRecords().size() + ", sql:\n" + sql_
         );
+*/
 
         if (big == null) {
 
@@ -329,39 +334,48 @@ public class DatabaseStructureManager {
                             }
 
                             switch (table.getFields().get(k).getJavaType()) {
+                                case Types.BIT:
+                                case Types.TINYINT:
+                                case Types.BIGINT:
+
                                 case Types.DECIMAL:
                                 case Types.DOUBLE:
                                 case Types.NUMERIC:
                                     if (field.getDecimalDigit() == null || field.getDecimalDigit() == 0) {
-                                        if (isDebug)
+                                        if (isDebug) {
                                             System.out.println("Types.NUMERIC as Types.INTEGER param #" + (k + 1) + ", " +
                                                 "value " + fieldData.getNumberData().doubleValue() + ", long value " + ((long) fieldData.getNumberData().doubleValue() +
                                                     ", extracted value: " + fieldData.getNumberData().longValueExact())
                                             );
+                                        }
                                         ps.setLong(k + 1, fieldData.getNumberData().longValueExact());
                                     }
                                     else {
-                                        if (isDebug)
+                                        if (isDebug) {
                                             System.out.println("Types.NUMERIC param #" + (k + 1) + ", value " + fieldData.getNumberData().doubleValue());
+                                        }
                                         ps.setBigDecimal(k + 1, fieldData.getNumberData());
                                     }
                                     break;
 
                                 case Types.INTEGER:
-                                    if (isDebug)
+                                    if (isDebug) {
                                         System.out.println("Types.INTEGER param #" + (k + 1) + ", value " + fieldData.getNumberData().doubleValue());
+                                    }
                                     ps.setLong(k + 1, fieldData.getNumberData().longValueExact());
                                     break;
 
                                 case Types.CHAR:
-                                    if (isDebug)
+                                    if (isDebug) {
                                         System.out.println("param #" + (k + 1) + ", value " + fieldData.getStringData().substring(0, 1));
+                                    }
                                     ps.setString(k + 1, fieldData.getStringData().substring(0, 1));
                                     break;
 
                                 case Types.VARCHAR:
-                                    if (isDebug)
+                                    if (isDebug) {
                                         System.out.println("param #" + (k + 1) + ", value " + fieldData.getStringData());
+                                    }
                                     ps.setString(k + 1, fieldData.getStringData());
                                     break;
 
@@ -369,8 +383,9 @@ public class DatabaseStructureManager {
                                 case Types.TIMESTAMP:
                                     long timeMillis = fieldData.getDateData().toGregorianCalendar().getTimeInMillis();
                                     Timestamp stamp = new Timestamp(timeMillis);
-                                    if (isDebug)
+                                    if (isDebug) {
                                         System.out.println("param #" + (k + 1) + ", value " + stamp);
+                                    }
                                     ps.setTimestamp(k + 1, stamp);
                                     break;
 
@@ -401,8 +416,9 @@ public class DatabaseStructureManager {
                                     break;
 
                                 case 1111:
-                                    if (isDebug)
+                                    if (isDebug) {
                                         System.out.println("param #" + (k + 1) + ", value " + fieldData.getStringData());
+                                    }
                                     ps.setString(k + 1, "");
                                     break;
                                 default:
@@ -414,7 +430,8 @@ public class DatabaseStructureManager {
                     ps.executeUpdate();
                 }
                 catch (Exception e) {
-                    log.error("Error get data for table " + table.getName(), e);
+                    String es = "Error get data for table " + table.getName();
+                    log.error(es, e);
                     int k=0;
                     for (DbDataFieldData data : record.getFieldsData()) {
                         log.error("date: " + data.getDateData());
@@ -426,7 +443,7 @@ public class DatabaseStructureManager {
                         log.error("string: " + data.getStringData());
                         k++;
                     }
-                    throw e;
+                    throw new DbRevisionException(es, e);
                 }
                 finally {
                     DatabaseManager.close(rs, ps);
@@ -435,8 +452,7 @@ public class DatabaseStructureManager {
                 }
             }
         }
-        else // process big text table
-        {
+        else { // process big text table
 
             int idx = 0;
             int idxFk = 0;
@@ -457,8 +473,9 @@ public class DatabaseStructureManager {
                 }
                 i++;
             }
-            if (isNotFound)
-                throw new Exception("Storage field '" + big.getStorageField() + "' not found in table " + table.getName());
+            if (isNotFound) {
+                throw new DbRevisionException("Storage field '" + big.getStorageField() + "' not found in table " + table.getName());
+            }
 
             if (isDebug) {
                 System.out.println("pk idx " + idxPk);
@@ -477,8 +494,9 @@ public class DatabaseStructureManager {
             for (Enumeration e = hashFk.keys(); e.hasMoreElements();) {
                 Long idFk = (Long) e.nextElement();
 
-                if (isDebug)
+                if (isDebug) {
                     System.out.println("ID of fk " + idFk);
+                }
 
                 TreeSet<Long> setPk = new TreeSet<Long>();
 
@@ -515,14 +533,16 @@ public class DatabaseStructureManager {
                 }
 
 
-                if (isDebug)
+                if (isDebug) {
                     System.out.println("Big text " + tempData);
+                }
 
                 PreparedStatement ps1 = null;
                 try {
 
-                    if (log.isDebugEnabled())
+                    if (log.isDebugEnabled()) {
                         log.debug("Start insert data in bigtext field ");
+                    }
 
                     int pos = 0;
                     int prevPos = 0;
@@ -536,15 +556,17 @@ public class DatabaseStructureManager {
                             "values" +
                             "(?,?,?)";
 
-                    if (log.isDebugEnabled())
+                    if (log.isDebugEnabled()) {
                         log.debug("insert bigtext. sql 2 - " + sql_);
+                    }
 
                     byte b[] = Utils.getBytesUTF(tempData);
 
                     ps1 = adapter.getConnection().prepareStatement(sql_);
                     while ((pos = Utils.getStartUTF(b, maxByte, pos)) != -1) {
-                        if (log.isDebugEnabled())
+                        if (log.isDebugEnabled()) {
                             log.debug("Name sequence - " + big.getSequenceName());
+                        }
 
                         CustomSequence seq = new CustomSequence();
                         seq.setSequenceName(big.getSequenceName());
@@ -552,8 +574,9 @@ public class DatabaseStructureManager {
                         seq.setColumnName(big.getSlavePkField());
                         long idSeq = adapter.getSequenceNextValue(seq);
 
-                        if (log.isDebugEnabled())
+                        if (log.isDebugEnabled()) {
                             log.debug("Bind param #1" + idSeq);
+                        }
 
                         ps1.setLong(1, idSeq);
 
@@ -573,17 +596,25 @@ public class DatabaseStructureManager {
                         if (log.isDebugEnabled())
                             log.debug("Bind param #3 " + s + (s != null ? ", len " + s.length() : ""));
 
-                        if (isDebug && s != null && s.length() > 2000)
+                        if (isDebug && s != null && s.length() > 2000) {
                             System.out.println("Do executeUpdate");
+                        }
 
                         int count = ps1.executeUpdate();
 
-                        if (log.isDebugEnabled())
+                        if (log.isDebugEnabled()) {
                             log.debug("number of updated records - " + count);
+                        }
 
                         prevPos = pos;
 
                     } // while ( (pos=StringTools.getStartUTF ...
+                }
+                catch (SQLException e1) {
+                    throw new DbRevisionException(e1);
+                }
+                catch (UnsupportedEncodingException e1) {
+                    throw new DbRevisionException(e1);
                 }
                 finally {
                     DatabaseManager.close(ps1);
@@ -599,9 +630,8 @@ public class DatabaseStructureManager {
      * @param dbFamily
      * @return DbDataTable
      */
-    public static DbDataTable getDataTable(Connection connection, DbTable table, int dbFamily)
-        throws Exception {
-        System.out.println("Start get data for table " + table.getName());
+    public static DbDataTable getDataTable(Connection connection, DbTable table, int dbFamily) throws DbRevisionException {
+//        System.out.println("Start get data for table " + table.getName());
         DbDataTable tableData = new DbDataTable();
 
         PreparedStatement ps = null;
@@ -622,7 +652,7 @@ public class DatabaseStructureManager {
                     System.out.println("\tfield " + field.getName());
                 }
 
-                throw new Exception("Count for field in ResultSet not equals in DbTable");
+                throw new DbRevisionException("Count for field in ResultSet not equals in DbTable");
             }
 
             byte[] bytes=null;
@@ -644,8 +674,6 @@ public class DatabaseStructureManager {
 
                     Object obj = rs.getObject(field.getName());
 
-//                    fieldData.setJavaTypeField(field.getJavaType());
-
                     if (obj == null) {
                         fieldData.setIsNull(Boolean.TRUE);
                     }
@@ -653,6 +681,10 @@ public class DatabaseStructureManager {
                         fieldData.setIsNull(Boolean.FALSE);
 
                         switch (field.getJavaType()) {
+
+                            case Types.BIT:
+                            case Types.TINYINT:
+                            case Types.BIGINT:
 
                             case Types.DECIMAL:
                             case Types.INTEGER:
@@ -676,6 +708,9 @@ public class DatabaseStructureManager {
                                 break;
 
                             case Types.LONGVARCHAR:
+                                fieldData.setStringData(rs.getString(field.getName()));
+                                break;
+                            
                             case Types.LONGVARBINARY:
                                 switch(dbFamily) {
                                     case DatabaseManager.MYSQL_FAMALY:
@@ -717,8 +752,9 @@ public class DatabaseStructureManager {
             return tableData;
         }
         catch (Exception e) {
-            log.error("Error get data for table " + table.getName(), e);
-            throw e;
+            String es = "Error get data for table " + table.getName();
+            log.error(es, e);
+            throw new DbRevisionException(es, e);
         }
         finally {
             DatabaseManager.close(rs, ps);
@@ -753,14 +789,16 @@ public class DatabaseStructureManager {
                 table.setType(meta.getString("TABLE_TYPE"));
                 table.setRemark(meta.getString("REMARKS"));
 
-                if (log.isDebugEnabled())
+                if (log.isDebugEnabled()) {
                     log.debug("Table - " + table.getName() + "  remak - " + table.getRemark());
+                }
 
                 v.add(table);
             }
         }
         catch (Exception e) {
             log.error("Error get list of view", e);
+            throw new DbRevisionException(e);
         }
         return v;
     }
@@ -841,18 +879,35 @@ public class DatabaseStructureManager {
                             break;
 
                         case Types.LONGVARCHAR:
-                            // Oracle 'long' fields type
                             field.setJavaStringType("java.sql.Types.LONGVARCHAR");
                             break;
 
                         case Types.LONGVARBINARY:
-                            // Oracle 'long raw' fields type
                             field.setJavaStringType("java.sql.Types.LONGVARBINARY");
                             break;
 
                         case Types.TIMESTAMP:
                             field.setJavaStringType("java.sql.Types.TIMESTAMP");
-                            
+                            break;
+
+                        case Types.BIT:
+                            // Work around with MySql JDBC driver bug: TINYINT(1)==BIT
+                            // always process as TINYINT
+                            if (dbFamily==DatabaseManager.MYSQL_FAMALY) {
+                                field.setDataType("tinyint");
+                                field.setJavaType(Types.TINYINT);
+                                field.setJavaStringType("java.sql.Types.TINYINT");
+                                break;
+                            }
+                            field.setJavaStringType("java.sql.Types.BIT");
+                            break;
+
+                        case Types.TINYINT:
+                            field.setJavaStringType("java.sql.Types.TINYINT");
+                            break;
+
+                        case Types.BIGINT:
+                            field.setJavaStringType("java.sql.Types.BIGINT");
                             break;
 
                         default:
@@ -878,8 +933,8 @@ public class DatabaseStructureManager {
             }
         }
         catch (Exception e) {
-            System.out.println("schemaPattern: " + schemaPattern + ", tablePattern: " + tablePattern);
-            e.printStackTrace(System.out);
+            log.error("schemaPattern: " + schemaPattern + ", tablePattern: " + tablePattern, e);
+            throw new DbRevisionException(e);
         }
         finally {
             if (metaField != null) {
@@ -1019,7 +1074,7 @@ public class DatabaseStructureManager {
 
         }
         catch (Exception e) {
-            System.out.println(e.toString());
+            throw new DbRevisionException(e);
         }
         return v;
     }
@@ -1029,8 +1084,9 @@ public class DatabaseStructureManager {
         DbPrimaryKey pk = new DbPrimaryKey();
         ArrayList<DbPrimaryKeyColumn> v = new ArrayList<DbPrimaryKeyColumn>();
 
-        if (log.isDebugEnabled())
+        if (log.isDebugEnabled()) {
             log.debug("Get data from getPrimaryKeys");
+        }
 
         try {
             DatabaseMetaData db = connection.getMetaData();
@@ -1068,8 +1124,9 @@ public class DatabaseStructureManager {
             log.warn("Method db.getPrimaryKeys(null, null, tableName) not supported", e1);
         }
 
-        if (log.isDebugEnabled())
+        if (log.isDebugEnabled()) {
             log.debug("Done data from getPrimaryKeys");
+        }
 
         if (log.isDebugEnabled()) {
             if (v.size() > 1) {

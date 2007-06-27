@@ -105,6 +105,18 @@ public class ORAconnect extends DatabaseAdapter {
             sql += "\n\"" + field.getName() + "\"";
             int fieldType = field.getJavaType();
             switch (fieldType) {
+                case Types.BIT:
+                    sql += " NUMBER(1,0)";
+                    break;
+
+                case Types.TINYINT:
+                    sql += " NUMBER(4,0)";
+                    break;
+
+                case Types.BIGINT:
+                    sql += " NUMBER(38,0)";
+                    break;
+
                 case Types.DECIMAL:
                 case Types.DOUBLE:
                 case Types.NUMERIC:
@@ -112,7 +124,7 @@ public class ORAconnect extends DatabaseAdapter {
                     if (field.getDecimalDigit() == null || field.getDecimalDigit() == 0)
                         sql += " NUMBER";
                     else
-                        sql += " NUMBER(" + field.getSize() + "," + field.getDecimalDigit() + ")";
+                        sql += " NUMBER(" + (field.getSize()==null || field.getSize()>38?38:field.getSize()) + "," + field.getDecimalDigit() + ")";
                     break;
 
                 case Types.CHAR:
@@ -164,7 +176,7 @@ public class ORAconnect extends DatabaseAdapter {
                     case Types.DATE:
                     case Types.TIMESTAMP:
                         if (DatabaseManager.checkDefaultTimestamp(val)) {
-                            val = "SYSDATE";
+                            val = getDefaultTimestampValue();
                         }
                         break;
                 }
@@ -310,7 +322,7 @@ public class ORAconnect extends DatabaseAdapter {
                 if (field.getDecimalDigit() == null || field.getDecimalDigit() == 0)
                     sql += " NUMBER";
                 else
-                    sql += " NUMBER(" + field.getSize() + "," + field.getDecimalDigit() + ")";
+                    sql += " NUMBER(" + (field.getSize()==null || field.getSize()>38?38:field.getSize()) + "," + field.getDecimalDigit() + ")";
                 break;
 
             case Types.CHAR:

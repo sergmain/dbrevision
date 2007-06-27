@@ -24,7 +24,7 @@
   ~ License along with this library; if not, write to the Free Software
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
   -->
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:riverock-db-stuct="http://dbrevision.sourceforge.net/xsd/riverock-database-structure.xsd">
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:riverock-db-stuct="http://generic.riverock.org/xsd/riverock-database-structure.xsd">
 	<xs:annotation>
 		<xs:documentation>Copyright 2002-2006, riverock, http://www.riverock.org</xs:documentation>
 	</xs:annotation>

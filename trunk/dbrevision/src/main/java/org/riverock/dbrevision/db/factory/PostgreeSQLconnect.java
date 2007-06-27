@@ -108,7 +108,7 @@ public class PostgreeSQLconnect extends DatabaseAdapter {
                     if (field.getDecimalDigit()==0)
                         sql += " NUMBER";
                     else
-                        sql += " NUMBER(" + field.getSize() + "," + field.getDecimalDigit() + ")";
+                        sql += " NUMBER(" + (field.getSize()==null || field.getSize()>31?31:field.getSize()) + "," + field.getDecimalDigit() + ")";
                     break;
 
                 case Types.CHAR:
@@ -291,7 +291,7 @@ DEFERRABLE INITIALLY DEFERRED
                 if (field.getDecimalDigit() == 0)
                     sql += " NUMBER";
                 else
-                    sql += " NUMBER(" + field.getSize() + "," + field.getDecimalDigit() + ")";
+                    sql += " NUMBER(" + (field.getSize()==null || field.getSize()>31?31:field.getSize()) + "," + field.getDecimalDigit() + ")";
                 break;
 
             case Types.CHAR:

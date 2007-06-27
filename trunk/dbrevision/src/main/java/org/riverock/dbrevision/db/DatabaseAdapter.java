@@ -114,26 +114,10 @@ public abstract class DatabaseAdapter {
      * @return
      * @throws SQLException
      */
-    public abstract String getClobField(ResultSet rs, String nameFeld, int maxLength)
-        throws SQLException;
+    public abstract String getClobField(ResultSet rs, String nameFeld, int maxLength) throws SQLException;
 
-    /**
-     * ��������� �������� �� ������ ����������� ��������� � �� ������������ � ���� �������.
-     *
-     * @param e - Exception
-     * @return boolean. true - ���� ������ �������� � ���������� ��������� � �� ������������
-     *         �������. ����� false.
-     */
     public abstract boolean testExceptionTableNotFound(Exception e);
 
-    /**
-     * ��������� �������� �� ������ ����������� ������� ������� ���������� ������ � ���������� ����
-     *
-     * @param e     - Exception
-     * @param index - String. ��� ����������� ����� ��� �������� ��� ������ �������� ������ � ���.
-     * @return boolean. true - ���� ������ ���� ����������� ������� ������� ���������� ������
-     *         � ���������� ����. ����� false.
-     */
     public abstract boolean testExceptionIndexUniqueKey(Exception e, String index);
 
     public abstract boolean testExceptionIndexUniqueKey(Exception e);
@@ -146,14 +130,6 @@ public abstract class DatabaseAdapter {
 
     public abstract boolean testExceptionConstraintExists(Exception e);
 
-    /**
-     * ���������� �������� ��������(������������������) ��� ������� ����� ������������������.
-     * ��� ������ ��������� � ������ ����� ������ ����� ���� ������ �� �������.
-     *
-     * @param sequence - String. ��� ����������������� ��� ��������� ���������� ��������.
-     * @return long - ��������� �������� ��� ����� �� ������������������
-     * @throws SQLException
-     */
     public abstract long getSequenceNextValue(final CustomSequence sequence) throws SQLException;
 
     /**

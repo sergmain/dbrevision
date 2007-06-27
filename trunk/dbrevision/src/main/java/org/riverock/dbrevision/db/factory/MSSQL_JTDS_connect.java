@@ -123,11 +123,23 @@ public class MSSQL_JTDS_connect extends DatabaseAdapter {
             int javaType = field.getJavaType();
             switch (javaType) {
 
+                case Types.BIT:
+                    sql += " DECIMAL(1,0)";
+                    break;
+
+                case Types.TINYINT:
+                    sql += " DECIMAL(4,0)";
+                    break;
+
+                case Types.BIGINT:
+                    sql += " DECIMAL(38,0)";
+                    break;
+
                 case Types.NUMERIC:
                 case Types.DECIMAL:
                     Integer digit = field.getDecimalDigit();
                     if (digit==null) digit=0;
-                    sql += " DECIMAL(" + (field.getSize() > 38 ? 38 : field.getSize()) + ',' + digit + ")";
+                    sql += " DECIMAL(" + (field.getSize()==null || field.getSize() > 38 ? 38 : field.getSize()) + ',' + digit + ")";
                     break;
 
                 case Types.INTEGER:
@@ -155,11 +167,11 @@ public class MSSQL_JTDS_connect extends DatabaseAdapter {
                     sql += " IMAGE"; // Image type not compatible with hibernated blob
 
                         break;
-                case Types.LONGVARCHAR:
+//                case Types.LONGVARCHAR:
 //                    sql += " VARCHAR(10)";
 //                    break;
 
-                case Types.LONGVARBINARY:
+//                case Types.LONGVARBINARY:
 //                    sql += " LONGVARBINARY";
 //                    break;
 
@@ -299,11 +311,23 @@ public class MSSQL_JTDS_connect extends DatabaseAdapter {
     public void addColumn(DbTable table, DbField field) {
         String sql = "alter table \"" + table.getName() + "\" add " + field.getName() + " ";
 
+        int fieldType = field.getJavaType();
+        switch (fieldType) {
 
-        // Todo if number before point ==1 and number after point ==0
-        // set type to tinyint(1,0)
-        switch (field.getJavaType().intValue()) {
+            case Types.BIT:
+                sql += " BIT";
+                break;
 
+            case Types.TINYINT:
+                sql += " TINYINT";
+                break;
+
+            case Types.BIGINT:
+                sql += " BIGINT";
+                break;
+
+                // Todo if number before point ==1 and number after point ==0
+                // set type to bit
             case Types.NUMERIC:
             case Types.DECIMAL:
                 sql += " DECIMAL";
@@ -346,12 +370,20 @@ public class MSSQL_JTDS_connect extends DatabaseAdapter {
         if (field.getDefaultValue() != null) {
             String val = field.getDefaultValue().trim();
 
-            //TODO rewrite init of def as in createTable
-//                if (!val.equalsIgnoreCase("null"))
-//                    val = "'"+val+"'";
-            if (DatabaseManager.checkDefaultTimestamp(val))
-                val = "current_timestamp";
-
+            switch (fieldType) {
+                case Types.CHAR:
+                case Types.VARCHAR:
+                    if (!val.equalsIgnoreCase("null")) {
+                        val = "'" + val + "'";
+                    }
+                    break;
+                case Types.DATE:
+                case Types.TIMESTAMP:
+                    if (DatabaseManager.checkDefaultTimestamp(val)) {
+                        val = getDefaultTimestampValue();
+                    }
+                    break;
+            }
             sql += (" DEFAULT " + val);
         }
 
@@ -359,8 +391,9 @@ public class MSSQL_JTDS_connect extends DatabaseAdapter {
             sql += " NOT NULL ";
         }
 
-        if (log.isDebugEnabled())
+        if (log.isDebugEnabled()) {
             log.debug("MSSQL addColumn sql - \n" + sql);
+        }
 
         Statement ps = null;
         try {
