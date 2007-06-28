@@ -105,9 +105,9 @@
       <url>scp://shell.sourceforge.net/home/groups/d/db/dbrevision/htdocs</url>
     </site>
     <repository>
-      <id>mycompany-repository</id>
-      <name>MyCompany Repository</name>
-      <url>scp://repository.mycompany.com/repository/maven2</url>
+      <id>riverock-repository</id>
+      <name>Riverock repository</name>
+      <url>scp://shell.sourceforge.net/home/groups/r/ri/riverock/htdocs/repo</url>
     </repository>
   </distributionManagement>
 
