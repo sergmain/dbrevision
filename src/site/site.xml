@@ -31,7 +31,7 @@
 
     <menu name="DbRevision">
       <item name="Introduction" href="index.html"/>
-      <item name="General Information" href="about.html"/>
+      <item name="Getting started" href="getting-started.html"/>
       <item name="Download" href="download.html"/>
       <item name="Release Notes" href="release-notes.html" />
       <item name="Road Map" href="roadmap.html" />

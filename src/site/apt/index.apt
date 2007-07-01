@@ -1,13 +1,17 @@
-      * List item 1.
+            ------
+            Introduction to DbRevision project
+            ------
 
-      * List item 2.
 
-        * Sub-list item 1.
+Introduction to DbRevision peoject
 
-        * Sub-list item 2.
+ Main aim of this project is provide to developer interface for maintain of DB revision. 
+All db initial structure and revisions described in XML format. This project contain all necessary program methods for develop 
+user-friendly interface for create intial DB structure or update DB structure from one version to other.
 
-      []
+ For example, you develop web-based application, which used HIbernate as persistence layer. You support short period of release
+new version of your application. DbRevision project helped to you create independet from DB type a patch in XML format. All 
+db-specific method, like create table or add new index to table, implemented in DbRevision project.
 
--------------------------------------------------------------------
-Verbatim text contained in list item 2, but not in sub-list item 2
--------------------------------------------------------------------
+
+ 
