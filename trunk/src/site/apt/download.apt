@@ -1,7 +1,9 @@
-*----------*--------------+----------------:
-| Centered | Left-aligned | Right-aligned  |
-| cell 1,1 | cell 1,2     | cell 1,3       |
-*----------*--------------+----------------:
-| cell 2,1 | cell 2,2     | cell 2,3       |
-*----------*--------------+----------------:
-Table caption
+            ------
+            Download project release
+            ------
+
+Download release
+
+ You can download last or previous releases at sourceforge.net download project page:
+
+ {{{http://sourceforge.net/project/showfiles.php?group_id=184952}download}}

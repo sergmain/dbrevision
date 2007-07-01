@@ -1,4 +1,10 @@
-<!-- edited with XMLSpy v2005 rel. 3 U (http://www.altova.com) by Serg (Ru-Board) -->
+<!--
+
+http://maven.apache.org/guides/mini/guide-apt-format.html
+http://www.sonatype.com/book/reporting.html
+
+-->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.riverock</groupId>
@@ -18,17 +24,34 @@
 		</license>
 	</licenses>
 
-	<repositories>
-		<!--
-        <repository>
-            <id>Riverock repo</id>
-            <url>http://test.askmore/repo</url>
-        </repository>
-        <repository>
-            <id>java.net</id>
-            <url>https://maven-repository.dev.java.net/repository</url>
-        </repository>
+<scm>
+    <developerConnection>scm:svn:https://dbrevision.svn.sourceforge.net/svnroot/dbrevision/trunk</developerConnection>
+    <connection>scm:svn:https://dbrevision.svn.sourceforge.net/svnroot/dbrevision/trunk</connection>
+    <url>http://dbrevision.svn.sourceforge.net/viewvc/dbrevision/trunk</url>
+  </scm>
+
+ <developers>
+    <developer>
+      <id>serg</id>
+      <name>Serge Maslyukov</name>
+      <email>serg_main@yahoo.com</email>
+      <url>http://webmill.riverock.org</url>
+      <organization>Riverock</organization>
+      <organizationUrl>http://www.riverock.org</organizationUrl>
+      <roles>
+        <role>Architect</role>
+        <role>Developer</role>
+      </roles>
+      <timezone>+3</timezone>
+<!--
+      <properties>
+        <gpg-key>jsmith@personal.com</gpg-key>
+      </properties>
 -->
+    </developer>
+  </developers>
+
+	<repositories>
 		<repository>
 			<id>Riverock repo</id>
 			<url>http://riverock.sourceforge.net/repo</url>
@@ -110,6 +133,53 @@
       <url>scp://shell.sourceforge.net/home/groups/r/ri/riverock/htdocs/repo</url>
     </repository>
   </distributionManagement>
+
+  
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jxr-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>taglist-maven-plugin</artifactId>
+        
+        <configuration>
+          <tags>
+            <!-- Add the definitions for FIXME javadoc and code comments... -->
+            <tag>@fixme</tag>
+            <tag>FIXME</tag>
+            <tag>@todo</tag>
+            <tag>TODO</tag>
+          </tags>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>jdepend-maven-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>javancss-maven-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-changelog-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+       <configuration>
+          <links>
+            <link>http://java.sun.com/j2se/1.5.0/docs/api</link>
+            <link>http://jakarta.apache.org/commons/collections/apidocs</link>
+            <link>http://www.junit.org/junit/javadoc/</link>
+          </links>
+        </configuration>
+      </plugin>
+    </plugins>
+  </reporting>
 
 	<build>
 		<plugins>
