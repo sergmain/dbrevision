@@ -58,13 +58,13 @@ import org.riverock.dbrevision.utils.DbUtils;
 import org.riverock.dbrevision.exception.DbRevisionException;
 
 /**
- * Класс ORAconnect прденазначен для коннекта к оракловской базе данных.
+ * Класс OracleAdapter прденазначен для коннекта к оракловской базе данных.
  * <p/>
- * $Id: ORAconnect.java 1141 2006-12-14 14:43:29Z serg_main $
+ * $Id: OracleAdapter.java 1141 2006-12-14 14:43:29Z serg_main $
  */
 @SuppressWarnings({"UnusedAssignment"})
-public class ORAconnect extends DatabaseAdapter {
-    private final static Logger log = Logger.getLogger(ORAconnect.class);
+public class OracleAdapter extends DatabaseAdapter {
+    private final static Logger log = Logger.getLogger(OracleAdapter.class);
 
     public int getMaxLengthStringField() {
         return 4000;
@@ -723,10 +723,10 @@ public class ORAconnect extends DatabaseAdapter {
      * @return family
      */
     public Family getFamily() {
-        return Family.ORACLE_FAMALY;
+        return Family.ORACLE;
     }
 
-    public ORAconnect(Connection conn) {
+    public OracleAdapter(Connection conn) {
         super(conn);
     }
 

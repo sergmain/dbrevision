@@ -48,9 +48,9 @@ import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.exception.DbRevisionException;
 
 /**
- * $Id: SAPconnect.java 1141 2006-12-14 14:43:29Z serg_main $
+ * $Id: MaxDBAdapter.java 1141 2006-12-14 14:43:29Z serg_main $
  */
-public class SAPconnect extends DatabaseAdapter {
+public class MaxDBAdapter extends DatabaseAdapter {
 
     public int getMaxLengthStringField() {
         return 2000;
@@ -235,10 +235,10 @@ public class SAPconnect extends DatabaseAdapter {
      * @return family
      */
     public Family getFamily() {
-        return Family.SAPDB_FAMALY;
+        return Family.MAXDB;
     }
 
-    public SAPconnect(Connection conn) {
+    public MaxDBAdapter(Connection conn) {
         super(conn);
     }
 }
