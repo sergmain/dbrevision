@@ -64,7 +64,14 @@ import org.riverock.dbrevision.db.factory.MYSQLconnect;
 @SuppressWarnings({"UnusedAssignment"})
 public class DatabaseStructureManager {
     private final static Logger log = Logger.getLogger(DatabaseStructureManager.class);
+    private static final int MAX_LENGTH_BLOB = 1000000;
 
+    /**
+     * create foreign key
+     *
+     * @param adapter db adapter
+     * @param fkList list of foreign keys
+     */
     public static void createForeignKey(DatabaseAdapter adapter, DbImportedKeyList fkList) {
         if (fkList == null || fkList.getKeys().isEmpty()) {
             return;
@@ -195,12 +202,25 @@ public class DatabaseStructureManager {
         }
     }
 
+    /**
+     * add column to table
+     *
+     * @param adapter db adapter
+     * @param tableName table name
+     * @param field column descriptor
+     */
     public static void addColumn(DatabaseAdapter adapter, String tableName, DbField field) {
         DbTable table = new DbTable();
         table.setName(tableName);
         adapter.addColumn(table, field);
     }
 
+    /**
+     * 
+     * @param adapter
+     * @param table
+     * @param field
+     */
     public static void dropColumn(DatabaseAdapter adapter, DbTable table, DbField field) {
         if (table == null ||
             table.getName() == null || table.getName().length() == 0
@@ -296,14 +316,6 @@ public class DatabaseStructureManager {
         sql_ += ")";
 
         DbDataTable tableData = table.getData();
-
-/*
-        System.out.println(
-            "\nTable " + table.getName() + ", " +
-                "fields " + table.getFields().size() + ", " +
-                "records " + tableData.getRecords().size() + ", sql:\n" + sql_
-        );
-*/
 
         if (big == null) {
 
@@ -489,7 +501,7 @@ public class DatabaseStructureManager {
                 hashFk.put(idRec, new Object());
             }
 
-            // вставляем записи двигаясь по списку вторичных ключей
+            // Insert records while we moved over list of foreign keys
             for (Enumeration e = hashFk.keys(); e.hasMoreElements();) {
                 Long idFk = (Long) e.nextElement();
 
@@ -630,7 +642,6 @@ public class DatabaseStructureManager {
      * @return DbDataTable
      */
     public static DbDataTable getDataTable(Connection connection, DbTable table, int dbFamily) throws DbRevisionException {
-//        System.out.println("Start get data for table " + table.getName());
         DbDataTable tableData = new DbDataTable();
 
         PreparedStatement ps = null;
@@ -713,7 +724,7 @@ public class DatabaseStructureManager {
                             case Types.LONGVARBINARY:
                                 switch(dbFamily) {
                                     case DatabaseManager.MYSQL_FAMALY:
-                                        bytes = db.getBlobField(rs, field.getName(), 1000000);
+                                        bytes = db.getBlobField(rs, field.getName(), MAX_LENGTH_BLOB);
                                         if (bytes!=null) {
                                             byte[] encodedBytes = Base64.encodeBase64(bytes);
                                             fieldData.setStringData( new String(encodedBytes) );
@@ -727,10 +738,10 @@ public class DatabaseStructureManager {
                             case Types.BLOB:
                                 switch(dbFamily) {
                                     case DatabaseManager.ORACLE_FAMALY:
-                                        bytes = db.getBlobField(rs, field.getName(), 1000000);
+                                        bytes = db.getBlobField(rs, field.getName(), MAX_LENGTH_BLOB);
                                         break;
                                     case DatabaseManager.MYSQL_FAMALY:
-                                        bytes = db.getBlobField(rs, field.getName(), 1000000);
+                                        bytes = db.getBlobField(rs, field.getName(), MAX_LENGTH_BLOB);
                                         break;
 
                                 }
