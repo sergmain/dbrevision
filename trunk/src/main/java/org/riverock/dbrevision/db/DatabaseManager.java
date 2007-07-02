@@ -36,6 +36,7 @@ import org.apache.log4j.Logger;
 import org.riverock.dbrevision.annotation.schema.db.*;
 import org.riverock.dbrevision.utils.DbUtils;
 import org.riverock.dbrevision.utils.Utils;
+import org.riverock.dbrevision.exception.DbRevisionException;
 
 /**
  * User: Admin
@@ -450,7 +451,7 @@ public final class DatabaseManager {
         return schema;
     }
 
-    public static void createWithReplaceAllView(final DatabaseAdapter db_, final DbSchema millSchema) throws Exception {
+    public static void createWithReplaceAllView(final DatabaseAdapter db_, final DbSchema millSchema) {
         boolean[] idx = new boolean[millSchema.getViews().size()];
         for (int i = 0; i < idx.length; i++) {
             idx[i] = false;
@@ -475,8 +476,9 @@ public final class DatabaseManager {
                             DatabaseStructureManager.dropView(db_, view);
                         }
                         catch (Exception e1) {
-                            log.error("Error drop view", e1);
-                            throw e1;
+                            String es = "Error drop view";
+                            log.error(es, e1);
+                            throw new DbRevisionException(es, e1);
                         }
 
                         try {
@@ -484,8 +486,9 @@ public final class DatabaseManager {
                             idx[i] = true;
                         }
                         catch (Exception e1) {
-                            log.error("Error create view", e1);
-//                            throw e1;
+                            String es = "Error create view";
+                            log.error(es, e1);
+                            throw new DbRevisionException(es, e1);
                         }
                     }
                 }

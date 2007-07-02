@@ -144,8 +144,6 @@ public class PostgreeSQLconnect extends DatabaseAdapter {
                 String val = field.getDefaultValue().trim();
 
                 //TODO rewrite init of def as in createTable
-//                if (!val.equalsIgnoreCase("null"))
-//                    val = "'"+val+"'";
 
                 if (DatabaseManager.checkDefaultTimestamp(val))
                     val = "SYSDATE";
@@ -209,9 +207,7 @@ public class PostgreeSQLconnect extends DatabaseAdapter {
         }
         finally {
             DatabaseManager.close(ps);
-            ps = null;
         }
-
     }
 
     public void createForeignKey(DbTable view) {
@@ -460,7 +456,6 @@ DEFERRABLE INITIALLY DEFERRED
         }
         finally {
             DatabaseManager.close(ps);
-            ps = null;
         }
     }
 
@@ -491,7 +486,7 @@ DEFERRABLE INITIALLY DEFERRED
                 "INCREMENT BY " + seq.getIncrementBy() + " " +
                 "MINVALUE " + seq.getMinValue() + " " +
                 "MAXVALUE " + seq.getMaxValue() + " " +
-                (seq.getCacheSize().intValue() == 0 ? "NOCACHE" : "CACHE " + seq.getCacheSize()) + " " +
+                (seq.getCacheSize()==null || seq.getCacheSize()==0 ? "NOCACHE" : "CACHE " + seq.getCacheSize()) + " " +
                 (Boolean.TRUE.equals(seq.isIsCycle()) ? "CYCLE" : "NOCYCLE") + " " +
                 (Boolean.TRUE.equals(seq.isIsOrder()) ? "ORDER" : "") + " ";
 
@@ -506,7 +501,6 @@ DEFERRABLE INITIALLY DEFERRED
         }
         finally {
             DatabaseManager.close(ps);
-            ps = null;
         }
     }
 

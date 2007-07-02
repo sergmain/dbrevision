@@ -275,4 +275,8 @@ public class Utils {
         }
         return -1;
     }
+
+    public static String getTempDir() {
+        return System.getProperty("java.io.tmpdir");
+    }
 }
