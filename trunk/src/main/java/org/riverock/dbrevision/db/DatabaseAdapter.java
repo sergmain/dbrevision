@@ -40,34 +40,47 @@ import org.riverock.dbrevision.annotation.schema.db.DbTable;
 import org.riverock.dbrevision.annotation.schema.db.DbView;
 
 /**
+ * DatabaseAdapter
+ *
  * $Revision: 1141 $ $Date: 2006-12-14 17:43:29 +0300 (Чт, 14 дек 2006) $
  */
 public abstract class DatabaseAdapter {
     private Connection conn = null;
 
+    /**
+     * DatabaseAdapter family
+     */
+    public enum Family { ORACLE_FAMALY, MYSQL_FAMALY, DB2_FAMALY, MSSQL_FAMALY, HSQLDB_FAMALY, SAPDB_FAMALY, INTERBASE_FAMALY }
+
+    /**
+     * Constructor
+     *
+     * @param conn connection
+     */
     public DatabaseAdapter(Connection conn) {
-        this.setConnection(conn);
+        this.conn = conn;
     }
 
+    /**
+     * Get jdbc connection
+     *
+     * @return connection
+     */
     public Connection getConnection() {
         return conn;
     }
 
-    public void setConnection(Connection conn) {
-        this.conn = conn;
-    }
+    /**
+     * get family for this adapter
+     * @return family
+     */
+    public abstract Family getFamily();
 
-    public abstract int getFamily();
+    public abstract boolean isBatchUpdate();
 
-    public abstract int getVersion();
+    public abstract boolean isNeedUpdateBracket();
 
-    public abstract int getSubVersion();
-
-    public abstract boolean getIsBatchUpdate();
-
-    public abstract boolean getIsNeedUpdateBracket();
-
-    public abstract boolean getIsByteArrayInUtf8();
+    public abstract boolean isByteArrayInUtf8();
 
     public abstract String getClobField(ResultSet rs, String nameFeld) throws SQLException;
 
@@ -136,5 +149,4 @@ public abstract class DatabaseAdapter {
      * @return - int. Max size of char field
      */
     public abstract int getMaxLengthStringField();
-
 }

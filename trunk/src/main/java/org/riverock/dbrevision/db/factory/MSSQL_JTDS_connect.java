@@ -51,16 +51,12 @@ import java.util.List;
 public class MSSQL_JTDS_connect extends DatabaseAdapter {
     private static Logger log = Logger.getLogger(MSSQL_JTDS_connect.class);
 
-    public int getFamily() {
-        return DatabaseManager.MSSQL_FAMALY;
-    }
-
-    public int getVersion() {
-        return 7;
-    }
-
-    public int getSubVersion() {
-        return 0;
+    /**
+     * get family for this adapter
+     * @return family
+     */
+    public Family getFamily() {
+        return Family.MSSQL_FAMALY;
     }
 
     public MSSQL_JTDS_connect(Connection conn) {
@@ -71,15 +67,15 @@ public class MSSQL_JTDS_connect extends DatabaseAdapter {
         return 4000;
     }
 
-    public boolean getIsBatchUpdate() {
+    public boolean isBatchUpdate() {
         return false;
     }
 
-    public boolean getIsNeedUpdateBracket() {
+    public boolean isNeedUpdateBracket() {
         return false;
     }
 
-    public boolean getIsByteArrayInUtf8() {
+    public boolean isByteArrayInUtf8() {
         return false;
     }
 

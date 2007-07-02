@@ -40,6 +40,8 @@ import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.log4j.Logger;
 
 /**
+ * Common utils
+ *
  * @author Sergei Maslyukov
  *         Date: 14.12.2006
  *         Time: 16:37:21
@@ -47,8 +49,19 @@ import org.apache.log4j.Logger;
  *         $Id$
  */
 public class Utils {
+    /**
+     * Logger for this class
+     */
     private final static Logger log = Logger.getLogger(Utils.class);
 
+    /**
+     * Put value in map. If map already contained value for specified key, this value and previous value
+     * inserted in list and this list associated with given key
+     *
+     * @param map map
+     * @param key key
+     * @param value value
+     */
     public static void putKey(final Map<String, Object> map, final String key, final Object value) {
         Object obj = map.get(key);
         if (obj == null) {
@@ -57,10 +70,12 @@ public class Utils {
         }
 
         if (obj instanceof List) {
-            if (value instanceof List)
+            if (value instanceof List) {
                 ((List) obj).addAll((List) value);
-            else
+            }
+            else {
                 ((List) obj).add(value);
+            }
         }
         else {
             List<Object> v = new ArrayList<Object>();
@@ -68,7 +83,8 @@ public class Utils {
 
             if (value instanceof List) {
                 v.addAll((List) value);
-            } else {
+            }
+            else {
                 v.add(value);
             }
 
@@ -77,18 +93,46 @@ public class Utils {
         }
     }
 
+    /**
+     * Get current time as java.sql.Timestamp
+     *
+     * @return current time
+     */
     public static java.sql.Timestamp getCurrentTime() {
         return new Timestamp(System.currentTimeMillis());
     }
+
+    /**
+     * convert given Calendar with mask and locale to String
+     *
+     * @param c calendar
+     * @param mask format mask
+     * @param loc locale
+     * @return date as String
+     */
     public static String getStringDate( final Calendar c, final String mask, final Locale loc ) {
         if (c == null) return null;
         return DateFormatUtils.format(c.getTimeInMillis(), mask, c.getTimeZone(), loc);
     }
 
+    /**
+     * convert given Calendar with mask to String. 
+     *
+     * @param c calendar
+     * @param mask format mask
+     * @return date as String
+     */
     public static String getStringDate( final Calendar c, final String mask ) {
         return DateFormatUtils.format(c.getTimeInMillis(), mask, c.getTimeZone(), Locale.ENGLISH);
     }
 
+    /**
+     *
+     * @param date
+     * @param mask
+     * @return
+     * @throws java.text.ParseException
+     */
     public static java.util.Date getDateWithMask( final String date, final String mask )
         throws java.text.ParseException {
         if (date == null || mask == null)
@@ -99,6 +143,14 @@ public class Utils {
         return dFormat.parse(date);
     }
 
+    /**
+     *
+     * @param date
+     * @param mask
+     * @param loc
+     * @param tz
+     * @return
+     */
     public static String getStringDate( final java.util.Date date, final String mask, final Locale loc, final TimeZone tz) {
         if (date == null) return null;
 
@@ -108,10 +160,25 @@ public class Utils {
         return df.format( date );
     }
 
+    /**
+     *
+     * @param obj
+     * @param rootElement
+     * @return
+     * @throws Exception
+     */
     public static byte[] getXml(final Object obj, final String rootElement) throws Exception {
         return getXml(obj, rootElement, "utf-8");
     }
 
+    /**
+     *
+     * @param obj
+     * @param rootElement
+     * @param encoding
+     * @return
+     * @throws JAXBException
+     */
     public static byte[] getXml(final Object obj, final String rootElement, final String encoding) throws JAXBException {
         if (log.isDebugEnabled()) {
             log.debug("getXml(). Object to marshaling " + obj);
@@ -128,6 +195,14 @@ public class Utils {
         return fos.toByteArray();
     }
 
+    /**
+     * 
+     * @param obj
+     * @param encoding
+     * @param rootElement
+     * @param fos
+     * @throws JAXBException
+     */
     public static void writeMarshalToOutputStream(Object obj, String encoding, String rootElement, OutputStream fos) throws JAXBException {
         JAXBContext jaxbContext = JAXBContext.newInstance ( obj.getClass().getPackage().getName() );
         Marshaller marshaller = jaxbContext.createMarshaller();
@@ -142,22 +217,59 @@ public class Utils {
         }
     }
 
+    /**
+     *
+     * @param obj
+     * @param fileName
+     * @throws JAXBException
+     * @throws FileNotFoundException
+     */
     public static void writeToFile(final Object obj, final String fileName) throws JAXBException, FileNotFoundException {
         writeToFile(obj, fileName, "utf-8");
     }
 
+    /**
+     *
+     * @param obj
+     * @param fileName
+     * @param encoding
+     * @throws FileNotFoundException
+     * @throws JAXBException
+     */
     public static void writeToFile(final Object obj, final String fileName, final String encoding) throws FileNotFoundException, JAXBException {
         writeMarshalToOutputStream(obj, encoding, null, new FileOutputStream(fileName) );
     }
 
+    /**
+     *
+     * @param obj
+     * @param outputStream
+     * @param encoding
+     * @throws JAXBException
+     */
     public static void writeObjectAsXml(final Object obj, OutputStream outputStream, final String encoding) throws JAXBException {
         writeMarshalToOutputStream(obj, encoding, null, outputStream );
     }
 
+    /**
+     *
+     * @param obj
+     * @param outputStream
+     * @param rootElement
+     * @param encoding
+     * @throws JAXBException
+     */
     public static void writeObjectAsXml(final Object obj, OutputStream outputStream, String rootElement, final String encoding) throws JAXBException {
         writeMarshalToOutputStream(obj, encoding, rootElement, outputStream );
     }
 
+    /**
+     *
+     * @param classType
+     * @param is
+     * @return
+     * @throws Exception
+     */
     public static <T> T getObjectFromXml(final Class<T> classType, InputStream is) throws Exception {
         try {
             JAXBContext jaxbContext = JAXBContext.newInstance ( classType.getPackage().getName() );
@@ -172,6 +284,14 @@ public class Utils {
         }
     }
 
+    /**
+     *
+     * @param s
+     * @return
+     * @throws ClassNotFoundException
+     * @throws InstantiationException
+     * @throws IllegalAccessException
+     */
     public static Object createCustomObject(final String s)
         throws ClassNotFoundException, InstantiationException, IllegalAccessException {
         Object obj;
@@ -235,6 +355,11 @@ public class Utils {
 
     }
 
+    /**
+     *
+     * @param s
+     * @return
+     */
     public static byte[] getBytesUTF( final String s) {
         if (s==null)
             return new byte[0];
@@ -248,14 +373,33 @@ public class Utils {
         }
     }
 
+    /**
+     *
+     * @param s
+     * @param maxByte
+     * @return
+     */
     public static int getStartUTF( final String s, final int maxByte) {
         return getStartUTF(getBytesUTF(s), maxByte);
     }
 
+    /**
+     *
+     * @param b
+     * @param maxByte
+     * @return
+     */
     public static int getStartUTF( final byte[] b, final int maxByte) {
         return getStartUTF(b, maxByte, 0);
     }
 
+    /**
+     *
+     * @param b
+     * @param maxByte
+     * @param offset
+     * @return
+     */
     public static int getStartUTF( final byte[] b, final int maxByte, final int offset) {
         if (b.length <= offset)
             return -1;
@@ -276,6 +420,10 @@ public class Utils {
         return -1;
     }
 
+    /**
+     * 
+     * @return
+     */
     public static String getTempDir() {
         return System.getProperty("java.io.tmpdir");
     }

@@ -51,7 +51,7 @@ public class DbStructureExport {
             DbSchema schema = DatabaseManager.getDbStructure(db);
             for (DbTable table : schema.getTables()) {
                 if (isData) {
-                    table.setData(DatabaseStructureManager.getDataTable(db.getConnection(), table, db.getFamily()));
+                    table.setData(DatabaseStructureManager.getDataTable(db, table));
                 }
             }
             Utils.writeObjectAsXml(schema, outputStream, "utf-8");

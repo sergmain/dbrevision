@@ -51,14 +51,6 @@ public final class DatabaseManager {
 
     private static final String DEFAULT_DATE_VALUES[] = {"sysdate", "current_timestamp", "current_time", "current_date"};
 
-    public final static int ORACLE_FAMALY = 1;
-    public final static int MYSQL_FAMALY = 2;
-    public final static int DB2_FAMALY = 3;
-    public final static int MSSQL_FAMALY = 4;
-    public final static int HSQLDB_FAMALY = 5;
-    public final static int SAPDB_FAMALY = 6;
-    public final static int INTERBASE_FAMALY = 7;
-
     public static final String NUMBER_TYPE = "number";
     public static final String STRING_TYPE = "string";
     public static final String DATE_TYPE = "date";
@@ -118,7 +110,7 @@ public final class DatabaseManager {
             return;
         }
 
-        DbPrimaryKey checkPk = DatabaseStructureManager.getPrimaryKey(db_.getConnection(), table.getSchema(), table.getName());
+        DbPrimaryKey checkPk = DatabaseStructureManager.getPrimaryKey(db_, table.getSchema(), table.getName());
 
         if (checkPk != null && checkPk.getColumns().size() != 0) {
             String s = "primary key already exists";
@@ -163,9 +155,9 @@ public final class DatabaseManager {
         String sql_ =
             "insert into " + targetTableName +
                 "(" + fields + ")" +
-                (db_.getIsNeedUpdateBracket() ? "(" : "") +
+                (db_.isNeedUpdateBracket() ? "(" : "") +
                 "select " + fields + " from " + sourceTable +
-                (db_.getIsNeedUpdateBracket() ? ")" : "");
+                (db_.isNeedUpdateBracket() ? ")" : "");
 
         Statement ps = null;
         try {
@@ -439,9 +431,9 @@ public final class DatabaseManager {
         schema.getSequences().addAll(db_.getSequnceList(dbSchema));
 
         for (DbTable table : schema.getTables()) {
-            table.getFields().addAll(DatabaseStructureManager.getFieldsList(db_.getConnection(), table.getSchema(), table.getName(), db_.getFamily()));
-            table.setPrimaryKey(DatabaseStructureManager.getPrimaryKey(db_.getConnection(), table.getSchema(), table.getName()));
-            table.getImportedKeys().addAll(DatabaseStructureManager.getImportedKeys(db_.getConnection(), table.getSchema(), table.getName()));
+            table.getFields().addAll(DatabaseStructureManager.getFieldsList(db_, table.getSchema(), table.getName()));
+            table.setPrimaryKey(DatabaseStructureManager.getPrimaryKey(db_, table.getSchema(), table.getName()));
+            table.getImportedKeys().addAll(DatabaseStructureManager.getImportedKeys(db_, table.getSchema(), table.getName()));
         }
 
         for (DbView view : schema.getViews()) {
@@ -585,7 +577,7 @@ public final class DatabaseManager {
     }
 
     /**
-     * @param dbDyn
+     * @param adapter db adapter
      * @param idRec             - value of PK in main table
      * @param pkName            - name PK in main table
      * @param pkType            - type of PK in main table
@@ -594,17 +586,16 @@ public final class DatabaseManager {
      * @param nameTargetField   - name of filed with BigText data in slave table
      * @param insertString      - insert string
      * @param isDelete          - delete data from slave table before insert true/false
-     * @throws Exception
      */
     public static void insertBigText(
-        final DatabaseAdapter dbDyn, final Object idRec, final String pkName,
+        final DatabaseAdapter adapter, final Object idRec, final String pkName,
         final PrimaryKey pkType,
         final String nameTargetTable,
         final String namePkTargetTable,
         final String nameTargetField,
         final String insertString,
         final boolean isDelete
-    ) throws Exception {
+    ) {
         if (pkType.getType() == null) {
             throw new IllegalStateException("type of PK is null");
         }
@@ -614,7 +605,7 @@ public final class DatabaseManager {
             if (log.isDebugEnabled()) log.debug("First delete data flag - " + isDelete);
 
             if (isDelete)
-                deleteFromBigTable(dbDyn, nameTargetTable, pkName, pkType, idRec);
+                deleteFromBigTable(adapter, nameTargetTable, pkName, pkType, idRec);
 
             PreparedStatement ps1 = null;
             try {
@@ -623,7 +614,7 @@ public final class DatabaseManager {
 
                 int pos = 0;
                 int prevPos = 0;
-                int maxByte = dbDyn.getMaxLengthStringField();
+                int maxByte = adapter.getMaxLengthStringField();
 
                 sql_ =
                     "insert into " + nameTargetTable +
@@ -635,7 +626,7 @@ public final class DatabaseManager {
 
                 byte b[] = Utils.getBytesUTF(insertString);
 
-                ps1 = dbDyn.getConnection().prepareStatement(sql_);
+                ps1 = adapter.getConnection().prepareStatement(sql_);
                 while ((pos = Utils.getStartUTF(b, maxByte, pos)) != -1) {
                     if (log.isDebugEnabled()) log.debug("Name sequence - " + "seq_" + nameTargetTable);
 
@@ -643,7 +634,7 @@ public final class DatabaseManager {
                     seq.setSequenceName("seq_" + nameTargetTable);
                     seq.setTableName(nameTargetTable);
                     seq.setColumnName(namePkTargetTable);
-                    long idSeq = dbDyn.getSequenceNextValue(seq);
+                    long idSeq = adapter.getSequenceNextValue(seq);
 
                     if (log.isDebugEnabled()) log.debug("Bind param #1" + idSeq);
 
@@ -705,7 +696,7 @@ public final class DatabaseManager {
         }
         catch (Exception e) {
             log.error("Error insert dat in bigText field.\nSql:\n" + sql_, e);
-            throw e;
+            throw new DbRevisionException(e);
         }
     }
 
@@ -948,76 +939,78 @@ public final class DatabaseManager {
     }
 
     public static DbKeyActionRule decodeDeleteRule(final ResultSet rs) {
+        DbKeyActionRule rule = null;
         try {
             Object obj = rs.getObject("DELETE_RULE");
             if (obj == null)
                 return null;
 
-            DbKeyActionRule rule = new DbKeyActionRule();
+            rule = new DbKeyActionRule();
             rule.setRuleType(DbUtils.getInteger(rs, "DELETE_RULE"));
-
-            switch (rule.getRuleType().intValue()) {
-                case DatabaseMetaData.importedKeyNoAction:
-                    rule.setRuleName("java.sql.DatabaseMetaData.importedKeyNoAction");
-                    break;
-
-                case DatabaseMetaData.importedKeyCascade:
-                    rule.setRuleName("java.sql.DatabaseMetaData.importedKeyCascade");
-                    break;
-
-                case DatabaseMetaData.importedKeySetNull:
-                    rule.setRuleName("java.sql.DatabaseMetaData.importedKeySetNull");
-                    break;
-
-                case DatabaseMetaData.importedKeyRestrict:
-                    rule.setRuleName("java.sql.DatabaseMetaData.importedKeyRestrict");
-                    break;
-
-                case DatabaseMetaData.importedKeySetDefault:
-                    rule.setRuleName("java.sql.DatabaseMetaData.importedKeySetDefault");
-                    break;
-
-                default:
-                    rule.setRuleName("unknown DELETE_RULE(" + rule.getRuleType() + ")");
-                    System.out.println("unknown DELETE_RULE(" + rule.getRuleType() + ")");
-                    break;
-            }
-            return rule;
         }
-        catch (Exception e) {
+        catch (SQLException e) {
+            throw new DbRevisionException(e);
         }
-        return null;
+
+        switch (rule.getRuleType()) {
+            case DatabaseMetaData.importedKeyNoAction:
+                rule.setRuleName("java.sql.DatabaseMetaData.importedKeyNoAction");
+                break;
+
+            case DatabaseMetaData.importedKeyCascade:
+                rule.setRuleName("java.sql.DatabaseMetaData.importedKeyCascade");
+                break;
+
+            case DatabaseMetaData.importedKeySetNull:
+                rule.setRuleName("java.sql.DatabaseMetaData.importedKeySetNull");
+                break;
+
+            case DatabaseMetaData.importedKeyRestrict:
+                rule.setRuleName("java.sql.DatabaseMetaData.importedKeyRestrict");
+                break;
+
+            case DatabaseMetaData.importedKeySetDefault:
+                rule.setRuleName("java.sql.DatabaseMetaData.importedKeySetDefault");
+                break;
+
+            default:
+                rule.setRuleName("unknown DELETE_RULE(" + rule.getRuleType() + ")");
+                System.out.println("unknown DELETE_RULE(" + rule.getRuleType() + ")");
+                break;
+        }
+        return rule;
     }
 
     public static DbKeyActionRule decodeDeferrabilityRule(final ResultSet rs) {
+        DbKeyActionRule rule = null;
         try {
             Object obj = rs.getObject("DEFERRABILITY");
             if (obj == null)
                 return null;
 
-            DbKeyActionRule rule = new DbKeyActionRule();
+            rule = new DbKeyActionRule();
             rule.setRuleType(DbUtils.getInteger(rs, "DEFERRABILITY"));
+        }
+        catch (SQLException e) {
+            throw new DbRevisionException(e);
+        }
 
-            switch (rule.getRuleType().intValue()) {
-                case DatabaseMetaData.importedKeyInitiallyDeferred:
-                    rule.setRuleName("java.sql.DatabaseMetaData.importedKeyInitiallyDeferred");
-                    break;
-                case DatabaseMetaData.importedKeyInitiallyImmediate:
-                    rule.setRuleName("java.sql.DatabaseMetaData.importedKeyInitiallyImmediate");
-                    break;
-                case DatabaseMetaData.importedKeyNotDeferrable:
-                    rule.setRuleName("java.sql.DatabaseMetaData.importedKeyNotDeferrable");
-                    break;
-                default:
-                    rule.setRuleName("unknown DEFERRABILITY(" + rule.getRuleType() + ")");
-                    System.out.println("unknown DEFERRABILITY(" + rule.getRuleType() + ")");
-                    break;
-            }
-            return rule;
+        switch (rule.getRuleType()) {
+            case DatabaseMetaData.importedKeyInitiallyDeferred:
+                rule.setRuleName("java.sql.DatabaseMetaData.importedKeyInitiallyDeferred");
+                break;
+            case DatabaseMetaData.importedKeyInitiallyImmediate:
+                rule.setRuleName("java.sql.DatabaseMetaData.importedKeyInitiallyImmediate");
+                break;
+            case DatabaseMetaData.importedKeyNotDeferrable:
+                rule.setRuleName("java.sql.DatabaseMetaData.importedKeyNotDeferrable");
+                break;
+            default:
+                rule.setRuleName("unknown DEFERRABILITY(" + rule.getRuleType() + ")");
+                System.out.println("unknown DEFERRABILITY(" + rule.getRuleType() + ")");
+                break;
         }
-        catch (Exception e) {
-        }
-        return null;
+        return rule;
     }
 
     public static int runSQL(final DatabaseAdapter db, final String query, final Object[] params, final int[] types)

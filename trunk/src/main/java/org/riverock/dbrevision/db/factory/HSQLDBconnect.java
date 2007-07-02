@@ -50,16 +50,12 @@ import org.riverock.dbrevision.exception.DbRevisionException;
 public class HSQLDBconnect extends DatabaseAdapter {
     private static Logger log = Logger.getLogger( HSQLDBconnect.class );
 
-    public int getFamily() {
-        return DatabaseManager.HSQLDB_FAMALY;
-    }
-
-    public int getVersion() {
-        return 1;
-    }
-
-    public int getSubVersion() {
-        return 7;
+    /**
+     * get family for this adapter
+     * @return family
+     */
+    public Family getFamily() {
+        return Family.HSQLDB_FAMALY;
     }
 
     public HSQLDBconnect(Connection conn) {
@@ -70,15 +66,15 @@ public class HSQLDBconnect extends DatabaseAdapter {
         return 1000000;
     }
 
-    public boolean getIsBatchUpdate() {
+    public boolean isBatchUpdate() {
         return false;
     }
 
-    public boolean getIsNeedUpdateBracket() {
+    public boolean isNeedUpdateBracket() {
         return true;
     }
 
-    public boolean getIsByteArrayInUtf8() {
+    public boolean isByteArrayInUtf8() {
         return false;
     }
 
