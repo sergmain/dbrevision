@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- edited with XMLSpy v2005 rel. 3 U (http://www.altova.com) by Serg (Ru-Board) -->
 <!--
-  ~ org.riverock.dbrevision - Database revision engine
+  ~ org.riverock.dbrevision - Database revision framework
   ~ For more information about DbRevision, please visit project site
-  ~ http://www.riverock.org
+  ~ http://dbrevision.sourceforge.net
   ~
-  ~ Copyright (C) 2006-2006, Riverock Software, All Rights Reserved.
+  ~ Copyright (C) 2006-2007, Riverock Software, All Rights Reserved.
   ~
   ~ Riverock - The Open-source Java Development Community
   ~ http://www.riverock.org
@@ -25,25 +24,25 @@
   ~ License along with this library; if not, write to the Free Software
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
   -->
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:riverock-db-stuct="http://dbrevision.riverock.org/xsd/dbrevision-structure.xsd" targetNamespace="http://generic.riverock.org/xsd/riverock-database-structure.xsd">
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:dbrevision-structure="http://dbrevision.sourceforge.net/xsd/dbrevision-structure.xsd" targetNamespace="http://dbrevision.sourceforge.net/xsd/dbrevision-structure.xsd">
 	<xs:annotation>
 		<xs:documentation>Copyright 2002-2007 riverock.org, http://www.riverock.org</xs:documentation>
 	</xs:annotation>
 	<xs:annotation>
-		<xs:documentation>DbRevision engine, http://dbrevision.sourceforge.net</xs:documentation>
+		<xs:documentation>DbRevision framework, http://dbrevision.sourceforge.net</xs:documentation>
 	</xs:annotation>
 	<xs:complexType name="DbDatabase">
 		<xs:sequence>
-			<xs:element name="Schema" type="riverock-db-stuct:DbSchema"/>
+			<xs:element name="Schema" type="dbrevision-structure:DbSchema"/>
 		</xs:sequence>
 	</xs:complexType>
-	<xs:element name="SchemaElement" type="riverock-db-stuct:DbSchema"/>
+	<xs:element name="SchemaElement" type="dbrevision-structure:DbSchema"/>
 	<xs:complexType name="DbSchema">
 		<xs:sequence>
-			<xs:element name="Tables" type="riverock-db-stuct:DbTable" minOccurs="0" maxOccurs="unbounded"/>
-			<xs:element name="Views" type="riverock-db-stuct:DbView" minOccurs="0" maxOccurs="unbounded"/>
-			<xs:element name="Sequences" type="riverock-db-stuct:DbSequence" minOccurs="0" maxOccurs="unbounded"/>
-			<xs:element name="BigTextTable" type="riverock-db-stuct:DbBigTextTable" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="Tables" type="dbrevision-structure:DbTable" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="Views" type="dbrevision-structure:DbView" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="Sequences" type="dbrevision-structure:DbSequence" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="BigTextTable" type="dbrevision-structure:DbBigTextTable" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
 	</xs:complexType>
 	<xs:complexType name="DbAbstractTable" abstract="true">
@@ -54,7 +53,7 @@
 	</xs:complexType>
 	<xs:complexType name="DbView">
 		<xs:complexContent>
-			<xs:extension base="riverock-db-stuct:DbAbstractTable">
+			<xs:extension base="dbrevision-structure:DbAbstractTable">
 				<xs:sequence>
 					<xs:element name="Text" type="xs:string" minOccurs="0"/>
 				</xs:sequence>
@@ -63,17 +62,17 @@
 	</xs:complexType>
 	<xs:complexType name="DbViewList">
 		<xs:sequence>
-			<xs:element name="View" type="riverock-db-stuct:DbView" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="View" type="dbrevision-structure:DbView" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
 	</xs:complexType>
 	<xs:complexType name="DbTable">
 		<xs:complexContent>
-			<xs:extension base="riverock-db-stuct:DbAbstractTable">
+			<xs:extension base="dbrevision-structure:DbAbstractTable">
 				<xs:sequence>
-					<xs:element name="PrimaryKey" type="riverock-db-stuct:DbPrimaryKey" minOccurs="0"/>
-					<xs:element name="Fields" type="riverock-db-stuct:DbField" minOccurs="0" maxOccurs="unbounded"/>
-					<xs:element name="ImportedKeys" type="riverock-db-stuct:DbImportedPKColumn" minOccurs="0" maxOccurs="unbounded"/>
-					<xs:element name="Data" type="riverock-db-stuct:DbDataTable" minOccurs="0"/>
+					<xs:element name="PrimaryKey" type="dbrevision-structure:DbPrimaryKey" minOccurs="0"/>
+					<xs:element name="Fields" type="dbrevision-structure:DbField" minOccurs="0" maxOccurs="unbounded"/>
+					<xs:element name="ImportedKeys" type="dbrevision-structure:DbImportedPKColumn" minOccurs="0" maxOccurs="unbounded"/>
+					<xs:element name="Data" type="dbrevision-structure:DbDataTable" minOccurs="0"/>
 				</xs:sequence>
 			</xs:extension>
 		</xs:complexContent>
@@ -96,7 +95,7 @@
 	</xs:complexType>
 	<xs:complexType name="DbSequenceList">
 		<xs:sequence>
-			<xs:element name="Sequences" type="riverock-db-stuct:DbSequence" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="Sequences" type="dbrevision-structure:DbSequence" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
 	</xs:complexType>
 	<xs:complexType name="DbBigTextTable">
@@ -128,7 +127,7 @@
 	</xs:complexType>
 	<xs:complexType name="DbPrimaryKey">
 		<xs:sequence>
-			<xs:element name="columns" type="riverock-db-stuct:DbPrimaryKeyColumn" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="columns" type="dbrevision-structure:DbPrimaryKeyColumn" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
 	</xs:complexType>
 	<xs:complexType name="DbPrimaryKeyColumn">
@@ -141,9 +140,9 @@
 	</xs:complexType>
 	<xs:complexType name="DbImportedPKColumn">
 		<xs:sequence>
-			<xs:element name="UpdateRule" type="riverock-db-stuct:DbKeyActionRule" minOccurs="0"/>
-			<xs:element name="DeleteRule" type="riverock-db-stuct:DbKeyActionRule" minOccurs="0"/>
-			<xs:element name="Deferrability" type="riverock-db-stuct:DbKeyActionRule" minOccurs="0"/>
+			<xs:element name="UpdateRule" type="dbrevision-structure:DbKeyActionRule" minOccurs="0"/>
+			<xs:element name="DeleteRule" type="dbrevision-structure:DbKeyActionRule" minOccurs="0"/>
+			<xs:element name="Deferrability" type="dbrevision-structure:DbKeyActionRule" minOccurs="0"/>
 		</xs:sequence>
 		<xs:attribute name="pkSchemaName" type="xs:string"/>
 		<xs:attribute name="pkTableName" type="xs:string"/>
@@ -157,7 +156,7 @@
 	</xs:complexType>
 	<xs:complexType name="DbImportedKeyList">
 		<xs:sequence>
-			<xs:element name="Keys" type="riverock-db-stuct:DbImportedPKColumn" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="Keys" type="dbrevision-structure:DbImportedPKColumn" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
 	</xs:complexType>
 	<xs:complexType name="DbKeyActionRule">
@@ -166,17 +165,17 @@
 	</xs:complexType>
 	<xs:complexType name="DbDataSchema">
 		<xs:sequence>
-			<xs:element name="Tables" type="riverock-db-stuct:DbDataTable" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="Tables" type="dbrevision-structure:DbDataTable" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
 	</xs:complexType>
 	<xs:complexType name="DbDataTable">
 		<xs:sequence>
-			<xs:element name="Records" type="riverock-db-stuct:DbDataRecord" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="Records" type="dbrevision-structure:DbDataRecord" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
 	</xs:complexType>
 	<xs:complexType name="DbDataRecord">
 		<xs:sequence>
-			<xs:element name="FieldsData" type="riverock-db-stuct:DbDataFieldData" maxOccurs="unbounded"/>
+			<xs:element name="FieldsData" type="dbrevision-structure:DbDataFieldData" maxOccurs="unbounded"/>
 		</xs:sequence>
 	</xs:complexType>
 	<xs:complexType name="DbDataFieldData">
