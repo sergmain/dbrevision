@@ -27,39 +27,35 @@ package org.riverock.dbrevision.db.factory;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.hsqldb.Trace;
-
 import org.riverock.dbrevision.annotation.schema.db.*;
 import org.riverock.dbrevision.db.DatabaseAdapter;
 import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.exception.DbRevisionException;
 
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
- * Microsoft database connect from sourceforge.net
+ * InterBase database connect 
  * $Author: serg_main $
- * <p/>
- * $Id: MSSQL_JTDS_connect.java 1141 2006-12-14 14:43:29Z serg_main $
+ *
+ * $Id: InterbaseAdapter.java 1141 2006-12-14 14:43:29Z serg_main $
+ *
  */
 @SuppressWarnings({"UnusedAssignment"})
-public class MSSQL_JTDS_connect extends DatabaseAdapter {
-    private static Logger log = Logger.getLogger(MSSQL_JTDS_connect.class);
+public class InterbaseAdapter extends DatabaseAdapter {
+    private static Logger log = Logger.getLogger( InterbaseAdapter.class );
 
     /**
      * get family for this adapter
      * @return family
      */
     public Family getFamily() {
-        return Family.MSSQL_FAMALY;
+        return Family.INTERBASE;
     }
 
-    public MSSQL_JTDS_connect(Connection conn) {
+    public InterbaseAdapter(Connection conn) {
         super(conn);
     }
 
@@ -85,18 +81,7 @@ public class MSSQL_JTDS_connect extends DatabaseAdapter {
     }
 
     public byte[] getBlobField(ResultSet rs, String nameField, int maxLength) throws Exception {
-        Blob blob = rs.getBlob(nameField);
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        int count;
-        byte buffer[] = new byte[1024];
-
-        InputStream inputStream = blob.getBinaryStream();
-        while ((count = inputStream.read(buffer)) >= 0) {
-            outputStream.write(buffer, 0, count);
-            outputStream.flush();
-        }
-        outputStream.close();
-        return outputStream.toByteArray();
+        return null;
     }
 
     public void createTable(DbTable table) {
@@ -104,7 +89,7 @@ public class MSSQL_JTDS_connect extends DatabaseAdapter {
             return;
         }
 
-        String sql = "create table \"" + table.getName() + "\"\n" +
+        String sql = "create table " + table.getName() + "\n" +
             "(";
 
         boolean isFirst = true;
@@ -115,27 +100,20 @@ public class MSSQL_JTDS_connect extends DatabaseAdapter {
             else
                 isFirst = !isFirst;
 
-            sql += "\n\"" + field.getName() + "\"";
-            int javaType = field.getJavaType();
-            switch (javaType) {
-
-                case Types.BIT:
-                    sql += " DECIMAL(1,0)";
-                    break;
-
-                case Types.TINYINT:
-                    sql += " DECIMAL(4,0)";
-                    break;
-
-                case Types.BIGINT:
-                    sql += " DECIMAL(38,0)";
-                    break;
+            sql += "\n" + field.getName();
+            switch (field.getJavaType()) {
 
                 case Types.NUMERIC:
                 case Types.DECIMAL:
-                    Integer digit = field.getDecimalDigit();
-                    if (digit==null) digit=0;
-                    sql += " DECIMAL(" + (field.getSize()==null || field.getSize() > 38 ? 38 : field.getSize()) + ',' + digit + ")";
+                    if (field.getDecimalDigit()!=0) {
+                        sql += " DECIMAL(" + (field.getSize()==null || field.getSize() > 38 ? 38 : field.getSize()) + ',' + field.getDecimalDigit() + ")";
+                    }
+                    else {
+                        if (field.getSize() == 1)
+                            sql += " SMALLINT";
+                        else
+                            sql += " DOUBLE PRECISION";
+                    }
                     break;
 
                 case Types.INTEGER:
@@ -159,45 +137,33 @@ public class MSSQL_JTDS_connect extends DatabaseAdapter {
                     sql += " DATETIME";
                     break;
 
-                case Types.BLOB:
-                    sql += " IMAGE"; // Image type not compatible with hibernated blob
+                case Types.LONGVARCHAR:
+                    // Oracle 'long' fields type
+                    sql += " VARCHAR(10)";
+                    break;
 
-                        break;
-//                case Types.LONGVARCHAR:
-//                    sql += " VARCHAR(10)";
-//                    break;
-
-//                case Types.LONGVARBINARY:
-//                    sql += " LONGVARBINARY";
-//                    break;
+                case Types.LONGVARBINARY:
+                    // Oracle 'long raw' fields type
+                    sql += " LONGVARBINARY";
+                    break;
 
                 default:
-                    field.setJavaStringType("unknown field type field - " + field.getName() + " javaType - " + javaType);
-                    System.out.println("unknown field type field - " + field.getName() + " javaType - " + javaType);
+                    field.setJavaStringType("unknown field type field - " + field.getName() + " javaType - " + field.getJavaType());
+                    System.out.println("unknown field type field - " + field.getName() + " javaType - " + field.getJavaType());
             }
 
             if (field.getDefaultValue() != null) {
                 String val = field.getDefaultValue().trim();
 
-                if (StringUtils.isNotBlank(val)) {
-                    switch (javaType) {
-                        case Types.CHAR:
-                        case Types.VARCHAR:
-                            val = "'" + val + "'";
-                            break;
-                        case Types.TIMESTAMP:
-                        case Types.DATE:
-                            if (DatabaseManager.checkDefaultTimestamp(val))
-                                val = "CURRENT_TIMESTAMP";
-
-                            break;
-                        default:
-                    }
-                    sql += (" DEFAULT " + val);
+                // TODO rewrite. check only if type is 'date' 
+                if (DatabaseManager.checkDefaultTimestamp(val)) {
+                    val = "current_timestamp";
                 }
+
+                sql += (" DEFAULT " + val);
             }
 
-            if (field.getNullable() == DatabaseMetaData.columnNoNulls) {
+            if (field.getNullable()==DatabaseMetaData.columnNoNulls) {
                 sql += " NOT NULL ";
             }
         }
@@ -213,18 +179,31 @@ public class MSSQL_JTDS_connect extends DatabaseAdapter {
 
             sql += ",\nCONSTRAINT " + namePk + " PRIMARY KEY (\n";
 
-            List<DbPrimaryKeyColumn> list = pk.getColumns();
-            Collections.sort(list, DatabaseManager.pkComparator);
-
+            int seq = Integer.MIN_VALUE;
             isFirst = true;
-            for (DbPrimaryKeyColumn column : list) {
+
+            if (true) throw new RuntimeException("Need implement PK comparator");
+/*
+            for (int i = 0; i < pk.getColumnsCount(); i++) {
+                DbPrimaryKeyColumn column = null;
+                int seqTemp = Integer.MAX_VALUE;
+                for (int k = 0; k < pk.getColumnsCount(); k++) {
+                    DbPrimaryKeyColumn columnTemp = pk.getColumns(k);
+                    if (seq < columnTemp.getKeySeq().intValue() && columnTemp.getKeySeq().intValue() < seqTemp) {
+                        seqTemp = columnTemp.getKeySeq().intValue();
+                        column = columnTemp;
+                    }
+                }
+                seq = column.getKeySeq().intValue();
+
                 if (!isFirst)
-                    sql += ',';
+                    sql += ",";
                 else
                     isFirst = !isFirst;
 
                 sql += column.getColumnName();
             }
+*/
             sql += "\n)";
         }
         sql += "\n)";
@@ -234,9 +213,8 @@ public class MSSQL_JTDS_connect extends DatabaseAdapter {
             st = this.getConnection().createStatement();
             st.execute(sql);
             int count = st.getUpdateCount();
-            if (log.isDebugEnabled()) {
+            if (log.isDebugEnabled())
                 log.debug("count of processed records " + count);
-            }
         }
         catch (SQLException e) {
             throw new DbRevisionException(e);
@@ -256,8 +234,9 @@ public class MSSQL_JTDS_connect extends DatabaseAdapter {
     }
 
     public void dropTable(String nameTable) {
-        if (nameTable == null)
+        if (nameTable == null) {
             return;
+        }
 
         String sql = "drop table " + nameTable;
 
@@ -266,9 +245,8 @@ public class MSSQL_JTDS_connect extends DatabaseAdapter {
             st = this.getConnection().createStatement();
             st.execute(sql);
             int count = st.getUpdateCount();
-            if (log.isDebugEnabled()) {
+            if (log.isDebugEnabled())
                 log.debug("count of deleted object " + count);
-            }
         }
         catch (SQLException e) {
             log.error("Error drop table " + nameTable, e);
@@ -305,28 +283,13 @@ public class MSSQL_JTDS_connect extends DatabaseAdapter {
     }
 
     public void addColumn(DbTable table, DbField field) {
-        String sql = "alter table \"" + table.getName() + "\" add " + field.getName() + " ";
+        String sql = "alter table " + table.getName() + " add " + field.getName() + " ";
 
-        int fieldType = field.getJavaType();
-        switch (fieldType) {
+        switch (field.getJavaType()) {
 
-            case Types.BIT:
-                sql += " BIT";
-                break;
-
-            case Types.TINYINT:
-                sql += " TINYINT";
-                break;
-
-            case Types.BIGINT:
-                sql += " BIGINT";
-                break;
-
-                // Todo if number before point ==1 and number after point ==0
-                // set type to bit
             case Types.NUMERIC:
             case Types.DECIMAL:
-                sql += " DECIMAL";
+                sql += " DOUBLE PRECISION";
                 break;
 
             case Types.INTEGER:
@@ -342,7 +305,7 @@ public class MSSQL_JTDS_connect extends DatabaseAdapter {
                 break;
 
             case Types.VARCHAR:
-                sql += " VARCHAR(" + field.getSize() + ")";
+                sql += (" VARCHAR(" + field.getSize() + ") ");
                 break;
 
             case Types.TIMESTAMP:
@@ -351,10 +314,12 @@ public class MSSQL_JTDS_connect extends DatabaseAdapter {
                 break;
 
             case Types.LONGVARCHAR:
+                // Oracle 'long' fields type
                 sql += " VARCHAR(10)";
                 break;
 
             case Types.LONGVARBINARY:
+                // Oracle 'long raw' fields type
                 sql += " LONGVARBINARY";
                 break;
 
@@ -366,20 +331,12 @@ public class MSSQL_JTDS_connect extends DatabaseAdapter {
         if (field.getDefaultValue() != null) {
             String val = field.getDefaultValue().trim();
 
-            switch (fieldType) {
-                case Types.CHAR:
-                case Types.VARCHAR:
-                    if (!val.equalsIgnoreCase("null")) {
-                        val = "'" + val + "'";
-                    }
-                    break;
-                case Types.DATE:
-                case Types.TIMESTAMP:
-                    if (DatabaseManager.checkDefaultTimestamp(val)) {
-                        val = getDefaultTimestampValue();
-                    }
-                    break;
-            }
+            //TODO rewrite init of def as in createTable
+//                if (!val.equalsIgnoreCase("null"))
+//                    val = "'"+val+"'";
+            if (DatabaseManager.checkDefaultTimestamp(val))
+                val = "current_timestamp";
+
             sql += (" DEFAULT " + val);
         }
 
@@ -387,9 +344,8 @@ public class MSSQL_JTDS_connect extends DatabaseAdapter {
             sql += " NOT NULL ";
         }
 
-        if (log.isDebugEnabled()) {
-            log.debug("MSSQL addColumn sql - \n" + sql);
-        }
+        if (log.isDebugEnabled())
+            log.debug("Interbase addColumn sql - \n" + sql);
 
         Statement ps = null;
         try {
@@ -582,18 +538,23 @@ ALTER TABLE table
     }
 
     public boolean testExceptionTableNotFound(Exception e) {
-        if (e instanceof SQLException) {
-//        return ((SQLException) e).getErrorCode() == 208;
-            return ((SQLException) e).getErrorCode() == -(Trace.TABLE_NOT_FOUND);
-        }
+        if (((SQLException) e).getErrorCode() == 208)
+            return true;
         return false;
     }
 
     public boolean testExceptionIndexUniqueKey(Exception e, String index) {
         if (e instanceof SQLException) {
-            if (((SQLException) e).getErrorCode() == -(Trace.VIOLATION_OF_UNIQUE_INDEX))
+            if (((SQLException) e).getErrorCode() == -(org.hsqldb.Trace.VIOLATION_OF_UNIQUE_INDEX))
                 return true;
         }
+/*
+        if ((e instanceof SQLException) &&
+                ((e.toString().indexOf("ORA-00001") != -1) &&
+                (e.toString().indexOf(index) != -1)))
+
+            return true;
+*/
         return false;
     }
 
@@ -603,7 +564,7 @@ ALTER TABLE table
 
     public boolean testExceptionTableExists(Exception e) {
         if (e instanceof SQLException) {
-            if (((SQLException) e).getErrorCode() == 2714)
+            if (((SQLException) e).getErrorCode() == 335544351)
                 return true;
         }
         return false;

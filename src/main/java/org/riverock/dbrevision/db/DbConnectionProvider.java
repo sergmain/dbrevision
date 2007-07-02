@@ -32,13 +32,13 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
-import org.riverock.dbrevision.db.factory.HSQLDBconnect;
-import org.riverock.dbrevision.db.factory.IBMDB2connect;
-import org.riverock.dbrevision.db.factory.MSSQL_JTDS_connect;
-import org.riverock.dbrevision.db.factory.MYSQLconnect;
-import org.riverock.dbrevision.db.factory.ORAconnect;
-import org.riverock.dbrevision.db.factory.PostgreeSQLconnect;
-import org.riverock.dbrevision.db.factory.SAPconnect;
+import org.riverock.dbrevision.db.factory.HyperSonicAdapter;
+import org.riverock.dbrevision.db.factory.DB2Adapter;
+import org.riverock.dbrevision.db.factory.SqlServerAdapter;
+import org.riverock.dbrevision.db.factory.MySqlAdapter;
+import org.riverock.dbrevision.db.factory.OracleAdapter;
+import org.riverock.dbrevision.db.factory.PostgreeSqlAdapter;
+import org.riverock.dbrevision.db.factory.MaxDBAdapter;
 
 /**
  * @author Sergei Maslyukov
@@ -58,13 +58,13 @@ public class DbConnectionProvider {
     public static final String MAXDB_FAMILY = "maxdb";
 
     static {
-        familyClassMap.put(ORACLE_FAMILY, ORAconnect.class);
-        familyClassMap.put(MYSQL_FAMILY, MYSQLconnect.class);
-        familyClassMap.put(HSQLDB_FAMILY, HSQLDBconnect.class);
-        familyClassMap.put(MSSQL_FAMILY, MSSQL_JTDS_connect.class);
-        familyClassMap.put(POSTGREES_FAMILY, PostgreeSQLconnect.class);
-        familyClassMap.put(DB2_FAMILY, IBMDB2connect.class);
-        familyClassMap.put(MAXDB_FAMILY, SAPconnect.class);
+        familyClassMap.put(ORACLE_FAMILY, OracleAdapter.class);
+        familyClassMap.put(MYSQL_FAMILY, MySqlAdapter.class);
+        familyClassMap.put(HSQLDB_FAMILY, HyperSonicAdapter.class);
+        familyClassMap.put(MSSQL_FAMILY, SqlServerAdapter.class);
+        familyClassMap.put(POSTGREES_FAMILY, PostgreeSqlAdapter.class);
+        familyClassMap.put(DB2_FAMILY, DB2Adapter.class);
+        familyClassMap.put(MAXDB_FAMILY, MaxDBAdapter.class);
     }
 
     public static DatabaseAdapter openConnect(final Connection connection, String family)

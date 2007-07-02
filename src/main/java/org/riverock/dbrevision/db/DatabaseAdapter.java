@@ -50,7 +50,9 @@ public abstract class DatabaseAdapter {
     /**
      * DatabaseAdapter family
      */
-    public enum Family { ORACLE_FAMALY, MYSQL_FAMALY, DB2_FAMALY, MSSQL_FAMALY, HSQLDB_FAMALY, SAPDB_FAMALY, INTERBASE_FAMALY }
+    public enum Family {
+        ORACLE, MYSQL, DB2, SQLSERVER, HYPERSONIC, MAXDB, INTERBASE
+    }
 
     /**
      * Constructor

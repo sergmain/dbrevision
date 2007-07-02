@@ -58,10 +58,10 @@ import org.riverock.dbrevision.utils.DbUtils;
 import org.riverock.dbrevision.exception.DbRevisionException;
 
 /**
- * $Id: PostgreeSQLconnect.java 1141 2006-12-14 14:43:29Z serg_main $
+ * $Id: PostgreeSqlAdapter.java 1141 2006-12-14 14:43:29Z serg_main $
  */
-public class PostgreeSQLconnect extends DatabaseAdapter {
-    private static Logger log = Logger.getLogger(PostgreeSQLconnect.class);
+public class PostgreeSqlAdapter extends DatabaseAdapter {
+    private static Logger log = Logger.getLogger(PostgreeSqlAdapter.class);
 
     public int getMaxLengthStringField() {
         return 4000;
@@ -685,10 +685,10 @@ DEFERRABLE INITIALLY DEFERRED
      * @return family
      */
     public Family getFamily() {
-        return Family.ORACLE_FAMALY;
+        return Family.ORACLE;
     }
 
-    public PostgreeSQLconnect(Connection conn) {
+    public PostgreeSqlAdapter(Connection conn) {
         super(conn);
     }
 

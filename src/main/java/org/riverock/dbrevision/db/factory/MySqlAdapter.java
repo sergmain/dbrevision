@@ -27,11 +27,13 @@ package org.riverock.dbrevision.db.factory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.io.ByteArrayInputStream;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
 
 import org.riverock.dbrevision.annotation.schema.db.*;
@@ -39,31 +41,31 @@ import org.riverock.dbrevision.db.DatabaseAdapter;
 import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.exception.DbRevisionException;
 
+
 /**
- *
+ * MySQL database connect
  * $Author: serg_main $
- *
- * $Id: HSQLDBconnect.java 1141 2006-12-14 14:43:29Z serg_main $
- *
+ * <p/>
+ * $Id: MySqlAdapter.java 1141 2006-12-14 14:43:29Z serg_main $
  */
 @SuppressWarnings({"UnusedAssignment"})
-public class HSQLDBconnect extends DatabaseAdapter {
-    private static Logger log = Logger.getLogger( HSQLDBconnect.class );
+public final class MySqlAdapter extends DatabaseAdapter {
+    private final static Logger log = Logger.getLogger(MySqlAdapter.class);
 
     /**
      * get family for this adapter
      * @return family
      */
     public Family getFamily() {
-        return Family.HSQLDB_FAMALY;
+        return Family.MYSQL;
     }
 
-    public HSQLDBconnect(Connection conn) {
+    public MySqlAdapter(Connection conn) {
         super(conn);
     }
 
     public int getMaxLengthStringField() {
-        return 1000000;
+        return 65535;
     }
 
     public boolean isBatchUpdate() {
@@ -78,7 +80,7 @@ public class HSQLDBconnect extends DatabaseAdapter {
         return false;
     }
 
-    public String getClobField(ResultSet rs, String nameField) throws SQLException {
+    public String getClobField(ResultSet rs, String nameField) {
         return getClobField(rs, nameField, 20000);
     }
 
@@ -102,24 +104,41 @@ public class HSQLDBconnect extends DatabaseAdapter {
             return;
         }
 
-        String sql = "create table \"" + table.getName() + "\"\n" +
+        String sql = "create table " + table.getName() + "\n" +
             "(";
 
         boolean isFirst = true;
 
         for (DbField field : table.getFields()) {
-            if (!isFirst)
+            if (!isFirst) {
                 sql += ",";
-            else
+            }
+            else {
                 isFirst = !isFirst;
+            }
 
-            sql += "\n\"" + field.getName() + "\"";
+            sql += "\n" + field.getName() + "";
             int fieldType = field.getJavaType();
             switch (fieldType) {
 
+                case Types.BIT:
+                    sql += " BIT";
+                    break;
+
+                case Types.TINYINT:
+                    sql += " TINYINT";
+                    break;
+
+                case Types.BIGINT:
+                    sql += " BIGINT";
+                    break;
+
                 case Types.NUMERIC:
                 case Types.DECIMAL:
-                    sql += " DECIMAL";
+                    if (field.getDecimalDigit() == null || field.getDecimalDigit() == 0)
+                        sql += " DECIMAL";
+                    else
+                        sql += " DECIMAL(" + (field.getSize()==null || field.getSize()>31?31:field.getSize()) + "," + field.getDecimalDigit() + ")";
                     break;
 
                 case Types.INTEGER:
@@ -127,29 +146,43 @@ public class HSQLDBconnect extends DatabaseAdapter {
                     break;
 
                 case Types.DOUBLE:
-                    sql += " DOUBLE";
+                    if (field.getDecimalDigit() == null || field.getDecimalDigit() == 0)
+                        sql += " DOUBLE";
+                    else
+                        sql += " DOUBLE(" + (field.getSize()==null || field.getSize()>31?31:field.getSize()) + "," + field.getDecimalDigit() + ")";
                     break;
 
                 case Types.CHAR:
-                case Types.VARCHAR:
-                    sql += " VARCHAR";
+                    sql += " VARCHAR(1)";
                     break;
 
-                case Types.DATE:
+                case Types.VARCHAR:
+                    if (field.getSize() < 0x5555)
+                        sql += " VARCHAR(" + field.getSize() + ")";
+                    else
+                        sql += " TEXT";
+                    break;
+
                 case Types.TIMESTAMP:
+                case Types.DATE:
                     sql += " TIMESTAMP";
                     break;
 
                 case Types.LONGVARCHAR:
-                    // Oracle 'long' fields type
-                    sql += " LONGVARCHAR";
+                    sql += " text ";
                     break;
 
                 case Types.LONGVARBINARY:
-                    // Oracle 'long raw' fields type
-                    sql += " LONGVARBINARY";
+                case Types.BLOB:
+                    sql += " LONGBLOB";
                     break;
 
+                case Types.OTHER:
+                    sql += " LONGTEXT";
+                    break;
+
+                // clob not supported by mysql
+                case Types.CLOB:
                 default:
                     field.setJavaStringType("unknown field type field - " + field.getName() + " javaType - " + field.getJavaType());
                     System.out.println("unknown field type field - " + field.getName() + " javaType - " + field.getJavaType());
@@ -166,8 +199,8 @@ public class HSQLDBconnect extends DatabaseAdapter {
                             break;
                         case Types.TIMESTAMP:
                         case Types.DATE:
-//                            if (DatabaseManager.checkDefaultTimestamp(val))
-//                                val = "'CURRENT_TIMESTAMP'";
+                            if (DatabaseManager.checkDefaultTimestamp(val))
+                                val = "CURRENT_TIMESTAMP";
 
                             break;
                         default:
@@ -180,21 +213,18 @@ public class HSQLDBconnect extends DatabaseAdapter {
                 sql += " NOT NULL ";
             }
         }
-        if (table.getPrimaryKey() != null && table.getPrimaryKey().getColumns().size() > 0) {
+        if (table.getPrimaryKey() != null && table.getPrimaryKey().getColumns().size() != 0) {
             DbPrimaryKey pk = table.getPrimaryKey();
 
-            String namePk = pk.getColumns().get(0).getPkName();
+//            String namePk = pk.getColumns(0).getPkName();
 
-//            constraintDefinition:
-//            [ CONSTRAINT name ]
-//            UNIQUE ( column [,column...] ) |
-//            PRIMARY KEY ( column [,column...] ) |
-
-            sql += ",\nCONSTRAINT " + namePk + " PRIMARY KEY (\n";
+            // in MySQL all primary keys named as 'PRIMARY'
+            sql += ",\n PRIMARY KEY (\n";
 
             int seq = Integer.MIN_VALUE;
             isFirst = true;
-            for (DbPrimaryKeyColumn column : pk.getColumns()) {
+            for (DbPrimaryKeyColumn c : pk.getColumns()) {
+                DbPrimaryKeyColumn column = c;
                 int seqTemp = Integer.MAX_VALUE;
                 for (DbPrimaryKeyColumn columnTemp : pk.getColumns()) {
                     if (seq < columnTemp.getKeySeq() && columnTemp.getKeySeq() < seqTemp) {
@@ -215,12 +245,13 @@ public class HSQLDBconnect extends DatabaseAdapter {
         }
         sql += "\n)";
 
-        Statement ps = null;
+        PreparedStatement ps = null;
         try {
-            ps = this.getConnection().createStatement();
-            ps.execute(sql);
+            ps = this.getConnection().prepareStatement(sql);
+            ps.executeUpdate();
         }
         catch (SQLException e) {
+            log.error("Error create table\nSQL:\n"+sql+"\n");
             throw new DbRevisionException(e);
         }
         finally {
@@ -238,14 +269,15 @@ public class HSQLDBconnect extends DatabaseAdapter {
     }
 
     public void dropTable(String nameTable) {
-        if (nameTable == null) {
+        if (nameTable == null)
             return;
-        }
-        String sql = "drop table \"" + nameTable + "\"\n";
-        PreparedStatement ps = null;
+
+        String sql = "drop table " + nameTable;
+
+        Statement ps = null;
         try {
-            ps = this.getConnection().prepareStatement(sql);
-            ps.executeUpdate();
+            ps = this.getConnection().createStatement();
+            ps.executeUpdate(sql);
         }
         catch (SQLException e) {
             throw new DbRevisionException(e);
@@ -260,11 +292,11 @@ public class HSQLDBconnect extends DatabaseAdapter {
     }
 
     public void dropConstraint(DbImportedPKColumn impPk) {
-        if (impPk == null)
+        if (impPk == null) {
             return;
+        }
 
         String sql = "ALTER TABLE " + impPk.getPkTableName() + " DROP CONSTRAINT " + impPk.getPkName();
-
         PreparedStatement ps = null;
         try {
             ps = this.getConnection().prepareStatement(sql);
@@ -280,7 +312,7 @@ public class HSQLDBconnect extends DatabaseAdapter {
     }
 
     public void addColumn(DbTable table, DbField field) {
-        String sql = "alter table \"" + table.getName() + "\" add column " + field.getName() + " ";
+        String sql = "alter table " + table.getName() + " add " + field.getName() + " ";
 
         int fieldType = field.getJavaType();
         switch (fieldType) {
@@ -299,8 +331,14 @@ public class HSQLDBconnect extends DatabaseAdapter {
                 break;
 
             case Types.CHAR:
+                sql += " VARCHAR(1)";
+                break;
+
             case Types.VARCHAR:
-                sql += " VARCHAR";
+                if (field.getSize() < 256)
+                    sql += " VARCHAR(" + field.getSize() + ")";
+                else
+                    sql += " TEXT";
                 break;
 
             case Types.TIMESTAMP:
@@ -310,18 +348,19 @@ public class HSQLDBconnect extends DatabaseAdapter {
 
             case Types.LONGVARCHAR:
                 // Oracle 'long' fields type
-                sql += " LONGVARCHAR";
+                sql += " VARCHAR(10)";
                 break;
 
             case Types.LONGVARBINARY:
-                // Oracle 'long raw' fields type
                 sql += " LONGVARBINARY";
                 break;
 
+            case Types.BLOB:
+                sql += " LONGBLOB";
+            
             default:
-                String errorString = "unknown field type field - " + field.getName() + " javaType - " + field.getJavaType();
-                log.error(errorString);
-                throw new DbRevisionException(errorString);
+                field.setJavaStringType("unknown field type field - " + field.getName() + " javaType - " + field.getJavaType());
+                System.out.println("unknown field type field - " + field.getName() + " javaType - " + field.getJavaType());
         }
 
         if (field.getDefaultValue() != null) {
@@ -335,8 +374,8 @@ public class HSQLDBconnect extends DatabaseAdapter {
                         break;
                     case Types.TIMESTAMP:
                     case Types.DATE:
-//                            if (DatabaseManager.checkDefaultTimestamp(val))
-//                                val = "'CURRENT_TIMESTAMP'";
+                        if (DatabaseManager.checkDefaultTimestamp(val))
+                            val = "CURRENT_TIMESTAMP";
 
                         break;
                     default:
@@ -349,14 +388,13 @@ public class HSQLDBconnect extends DatabaseAdapter {
             sql += " NOT NULL ";
         }
 
-
         if (log.isDebugEnabled())
-            log.debug("addColumn sql - \n" + sql);
+            log.debug("MySql addColumn sql - \n" + sql);
 
-        PreparedStatement ps = null;
+        Statement ps = null;
         try {
-            ps = this.getConnection().prepareStatement(sql);
-            ps.executeUpdate();
+            ps = this.getConnection().createStatement();
+            ps.executeUpdate(sql);
         }
         catch (SQLException e) {
             throw new DbRevisionException(e);
@@ -372,11 +410,12 @@ public class HSQLDBconnect extends DatabaseAdapter {
     }
 
     public String getDefaultTimestampValue() {
-        return "current_timestamp";
+        return "CURRENT_TIMESTAMP";
     }
 
     public List<DbView> getViewList(String schemaPattern, String tablePattern) {
-        return DatabaseManager.getViewList(getConnection(), schemaPattern, tablePattern);
+        // version 3.x and 4.0 of MySQL not support view
+        return new ArrayList<DbView>(0);
     }
 
     public List<DbSequence> getSequnceList(String schemaPattern) {
@@ -388,41 +427,59 @@ public class HSQLDBconnect extends DatabaseAdapter {
     }
 
     public void createView(DbView view) {
+        // current version of MySql not supported view
+/*
         if (view == null ||
             view.getName() == null || view.getName().length() == 0 ||
             view.getText() == null || view.getText().length() == 0
         )
             return;
 
-        String sql_ = "create VIEW " + view.getName() + " as " + view.getText();
-        PreparedStatement ps = null;
+        String sql_ =
+            "CREATE VIEW " + view.getName() +
+            " AS " + StringUtils.replace(view.getText(), "||", "+");
+
+        Statement ps = null;
         try {
-            ps = this.getConnection().prepareStatement(sql_);
-            ps.executeUpdate();
+            ps = this.conn.createStatement();
+            ps.execute(sql_);
         }
         catch (SQLException e) {
-            throw new DbRevisionException(e);
-        } finally {
+            String errorString = "Error create view. Error code " + e.getErrorCode() + "\n" + sql_;
+            log.error(errorString, e);
+            System.out.println(errorString);
+            throw e;
+        }
+        finally {
             DatabaseManager.close(ps);
             ps = null;
         }
+*/
     }
 
     public void createSequence(DbSequence seq) {
     }
 
-    public void setLongVarbinary(PreparedStatement ps, int index, DbDataFieldData fieldData)
-        throws SQLException {
-        ps.setNull(index, Types.LONGVARBINARY);
+    public void setLongVarbinary(PreparedStatement ps, int index, DbDataFieldData fieldData) throws SQLException {
+        byte[] bytes = Base64.decodeBase64(fieldData.getStringData().getBytes());
+
+        byte[] fileBytes = new byte[]{};
+        if (bytes!=null) {
+            fileBytes = bytes;
+        }
+        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(fileBytes);
+        ps.setBinaryStream(index, byteArrayInputStream, fileBytes.length);
+
+        bytes = null;
+        byteArrayInputStream = null;
+        fileBytes = null;
     }
 
-    public void setLongVarchar(PreparedStatement ps, int index, DbDataFieldData fieldData)
-        throws SQLException {
-        ps.setNull(index, Types.LONGVARCHAR);
+    public void setLongVarchar(PreparedStatement ps, int index, DbDataFieldData fieldData) throws SQLException {
+        ps.setString(index, fieldData.getStringData());
     }
 
-    public String getClobField(ResultSet rs, String nameField, int maxLength)
-        throws SQLException {
+    public String getClobField(ResultSet rs, String nameField, int maxLength) {
         return null;
     }
 /*
@@ -443,8 +500,7 @@ public class HSQLDBconnect extends DatabaseAdapter {
      * @return long - следующее значение для ключа из последовательности
      * @throws SQLException
      */
-    public long getSequenceNextValue(CustomSequence sequence)
-        throws SQLException {
+    public long getSequenceNextValue(CustomSequence sequence) throws SQLException {
         PreparedStatement ps = null;
         ResultSet rs = null;
         try {
@@ -465,56 +521,45 @@ public class HSQLDBconnect extends DatabaseAdapter {
     }
 
     public boolean testExceptionTableNotFound(Exception e) {
-        if (e == null)
-            return false;
 
         if (e instanceof SQLException) {
-            if (((SQLException) e).getErrorCode() == -(org.hsqldb.Trace.TABLE_NOT_FOUND))
+            SQLException exception = (SQLException) e;
+            log.error("Error code: " + exception.getErrorCode());
+            log.error("getSQLState : " + exception.getSQLState());
+            if (exception.getErrorCode() == 1146) {
                 return true;
+            }
         }
         return false;
     }
 
     public boolean testExceptionIndexUniqueKey(Exception e, String index) {
-        if (e == null)
-            return false;
-
-        if (e instanceof SQLException) {
-            if (((SQLException) e).getErrorCode() == -(org.hsqldb.Trace.VIOLATION_OF_UNIQUE_INDEX) &&
-                (e.toString().indexOf(index) != -1))
-                return true;
-        }
-        return false;
+        return testExceptionIndexUniqueKey(e);
     }
 
     public boolean testExceptionIndexUniqueKey(Exception e) {
-        if (e == null)
-            return false;
-
         if (e instanceof SQLException) {
-            if (((SQLException) e).getErrorCode() == -(org.hsqldb.Trace.VIOLATION_OF_UNIQUE_INDEX))
+            SQLException exception = (SQLException) e;
+            log.error("Error code: " + exception.getErrorCode());
+            log.error("getSQLState : " + exception.getSQLState());
+            if (exception.getErrorCode() == 1062) {
                 return true;
+            }
         }
         return false;
     }
 
     public boolean testExceptionTableExists(Exception e) {
-        if (e == null)
-            return false;
-
         if (e instanceof SQLException) {
-            if (((SQLException) e).getErrorCode() == -(org.hsqldb.Trace.TABLE_ALREADY_EXISTS))
+            if (((SQLException) e).getErrorCode() == 1050)
                 return true;
         }
         return false;
     }
 
     public boolean testExceptionViewExists(Exception e) {
-        if (e == null)
-            return false;
-
         if (e instanceof SQLException) {
-            if (((SQLException) e).getErrorCode() == -(org.hsqldb.Trace.VIEW_ALREADY_EXISTS))
+            if (((SQLException) e).getErrorCode() == 2714)
                 return true;
         }
         return false;
@@ -525,13 +570,6 @@ public class HSQLDBconnect extends DatabaseAdapter {
     }
 
     public boolean testExceptionConstraintExists(Exception e) {
-        if (e == null)
-            return false;
-
-        if (e instanceof SQLException) {
-            if (((SQLException) e).getErrorCode() == -(org.hsqldb.Trace.CONSTRAINT_ALREADY_EXISTS))
-                return true;
-        }
         return false;
     }
 }

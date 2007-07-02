@@ -408,7 +408,7 @@ public class DatabaseStructureManager {
                                     break;
 
                                 case Types.BLOB:
-                                    if (adapter.getFamily()== DatabaseAdapter.Family.MYSQL_FAMALY) {
+                                    if (adapter.getFamily()== DatabaseAdapter.Family.MYSQL) {
                                         byte[] bytes = Base64.decodeBase64(fieldData.getStringData().getBytes());
 
                                         byte[] fileBytes = new byte[]{};
@@ -711,7 +711,7 @@ public class DatabaseStructureManager {
                             
                             case Types.LONGVARBINARY:
                                 switch(adapter.getFamily()) {
-                                    case MYSQL_FAMALY:
+                                    case MYSQL:
                                         bytes = adapter.getBlobField(rs, field.getName(), MAX_LENGTH_BLOB);
                                         if (bytes!=null) {
                                             byte[] encodedBytes = Base64.encodeBase64(bytes);
@@ -725,22 +725,22 @@ public class DatabaseStructureManager {
                                 break;
                             case Types.BLOB:
                                 switch (adapter.getFamily()) {
-                                    case ORACLE_FAMALY:
+                                    case ORACLE:
                                         bytes = adapter.getBlobField(rs, field.getName(), MAX_LENGTH_BLOB);
                                         break;
-                                    case MYSQL_FAMALY:
+                                    case MYSQL:
                                         bytes = adapter.getBlobField(rs, field.getName(), MAX_LENGTH_BLOB);
                                         break;
 
-                                    case DB2_FAMALY:
+                                    case DB2:
                                         break;
-                                    case HSQLDB_FAMALY:
+                                    case HYPERSONIC:
                                         break;
-                                    case INTERBASE_FAMALY:
+                                    case INTERBASE:
                                         break;
-                                    case MSSQL_FAMALY:
+                                    case SQLSERVER:
                                         break;
-                                    case SAPDB_FAMALY:
+                                    case MAXDB:
                                         break;
                                 }
                                 if (bytes!=null) {
@@ -841,7 +841,7 @@ public class DatabaseStructureManager {
 
                 if (field.getDefaultValue()!=null) {
                     // fix issue with null value for concrete of BD
-                    if (adapter.getFamily() == DatabaseAdapter.Family.MYSQL_FAMALY) {
+                    if (adapter.getFamily() == DatabaseAdapter.Family.MYSQL) {
                         if (field.getJavaType()==Types.TIMESTAMP && field.getDefaultValue().equals("0000-00-00 00:00:00")) {
                             field.setDefaultValue(null);
                         }
@@ -902,7 +902,7 @@ public class DatabaseStructureManager {
                         case Types.BIT:
                             // Work around with MySql JDBC driver bug: TINYINT(1)==BIT
                             // always process as TINYINT
-                            if (adapter.getFamily()== DatabaseAdapter.Family.MYSQL_FAMALY) {
+                            if (adapter.getFamily()== DatabaseAdapter.Family.MYSQL) {
                                 field.setDataType("tinyint");
                                 field.setJavaType(Types.TINYINT);
                                 field.setJavaStringType("java.sql.Types.TINYINT");
