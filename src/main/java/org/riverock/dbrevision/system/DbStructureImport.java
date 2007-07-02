@@ -37,7 +37,7 @@ import org.riverock.dbrevision.db.DatabaseAdapter;
 import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.db.DatabaseStructureManager;
 import org.riverock.dbrevision.utils.Utils;
-import org.riverock.dbrevision.offline.StartupApplication;
+import org.riverock.dbrevision.exception.DbRevisionException;
 
 /**
  * import data from XML file to DB
@@ -53,19 +53,6 @@ import org.riverock.dbrevision.offline.StartupApplication;
 public class DbStructureImport {
     private static Logger log = Logger.getLogger(DbStructureImport.class);
 
-    public static void importStructure(String fileName, boolean isData, String dbAlias) throws Exception {
-        DatabaseAdapter db_ = null;
-        try {
-//            db_ = DatabaseAdapter.getInstance(dbAlias);
-            importStructure(fileName, isData, db_);
-        }
-        finally {
-            if (db_ != null) {
-                db_.getConnection().commit();
-            }
-        }
-    }
-
     public static void importStructure(String fileName, boolean isData, DatabaseAdapter db_) throws Exception {
         log.debug("Unmarshal data from file " + fileName);
         FileInputStream stream = new FileInputStream(fileName);
@@ -74,7 +61,7 @@ public class DbStructureImport {
         importStructure(millSchema, db_, isData);
     }
 
-    public static void importStructure(DbSchema millSchema, DatabaseAdapter db_, boolean isData) throws Exception {
+    public static void importStructure(DbSchema millSchema, DatabaseAdapter db_, boolean isData) {
         for (DbTable table : millSchema.getTables()) {
             if (table.getName().toLowerCase().startsWith("tb_"))
                 continue;
@@ -85,15 +72,17 @@ public class DbStructureImport {
                     db_.createTable(table);
                 }
                 catch (Exception e) {
-                    log.debug("Error create table " + table.getName(), e);
-                    throw e;
+                    String es = "Error create table ";
+                    log.debug(es + table.getName(), e);
+                    throw new DbRevisionException(es, e);
                 }
                 if (isData) {
                     DatabaseStructureManager.setDataTable(db_, table);
                 }
             }
-            else
+            else {
                 log.debug("skip table " + table.getName());
+            }
 
         }
 
@@ -113,13 +102,15 @@ public class DbStructureImport {
                         db_.createView(view);
                     }
                     catch (Exception e1) {
-                        log.error("Error create view - " + e1.toString());
-                        throw e;
+                        String es = "Error create view - ";
+                        log.error(es, e1);
+                        throw new DbRevisionException(es, e1);
                     }
                 }
                 else {
-                    log.debug("Error create view",e);
-                    throw e;
+                    String es = "Error create view";
+                    log.debug(es,e);
+                    throw new DbRevisionException(es, e);
                 }
             }
         }
@@ -131,21 +122,10 @@ public class DbStructureImport {
                 db_.createSequence(seq);
             }
             catch (Exception e) {
-                log.debug("Error create sequence " + seq.getName(), e);
-                throw e;
+                String es = "Error create sequence ";
+                log.debug(es + seq.getName(), e);
+                throw new DbRevisionException(es, e);
             }
         }
     }
-
-    public static void main(String args[]) throws Exception {
-        if (args.length < 3) {
-            System.out.println("Command line format: <DB_ALIAS> <IMPORT_FILE> <REPORT_FILE>");
-            return;
-        }
-        StartupApplication.init();
-        final String dbAlias = args[0];
-        final String fileName = args[1];
-        DbStructureImport.importStructure(fileName, true, dbAlias);
-    }
-
 }

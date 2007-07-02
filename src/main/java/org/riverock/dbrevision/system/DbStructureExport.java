@@ -25,19 +25,14 @@
  */
 package org.riverock.dbrevision.system;
 
-import java.io.FileOutputStream;
 import java.io.OutputStream;
-import java.sql.Connection;
 
 import org.riverock.dbrevision.annotation.schema.db.DbSchema;
 import org.riverock.dbrevision.annotation.schema.db.DbTable;
 import org.riverock.dbrevision.db.DatabaseAdapter;
 import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.db.DatabaseStructureManager;
-import org.riverock.dbrevision.db.factory.ORAconnect;
 import org.riverock.dbrevision.exception.DbRevisionException;
-import org.riverock.dbrevision.offline.DbRevisionConfig;
-import org.riverock.dbrevision.offline.StartupApplication;
 import org.riverock.dbrevision.utils.Utils;
 
 /**
@@ -50,16 +45,6 @@ import org.riverock.dbrevision.utils.Utils;
  * $Id: DbStructureExport.java 1141 2006-12-14 14:43:29Z serg_main $
  */
 public class DbStructureExport {
-
-    public static void main(String args[]) throws Exception {
-        StartupApplication.init();
-        System.out.println("DebugDir: " + DbRevisionConfig.getGenericDebugDir());
-        Connection conn = null;
-        DatabaseAdapter db = new ORAconnect(conn);
-        FileOutputStream fileOutputStream = new FileOutputStream(DbRevisionConfig.getGenericDebugDir() + "webmill-schema.xml");
-
-        export(db, fileOutputStream, true);
-    }
 
     public static void export(DatabaseAdapter db, OutputStream outputStream, boolean isData) {
         try {

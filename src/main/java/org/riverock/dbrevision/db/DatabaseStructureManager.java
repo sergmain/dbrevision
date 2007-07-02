@@ -48,7 +48,6 @@ import javax.xml.datatype.DatatypeFactory;
 import org.apache.log4j.Logger;
 import org.apache.commons.codec.binary.Base64;
 
-import org.riverock.dbrevision.offline.config.DatabaseConnectionType;
 import org.riverock.dbrevision.annotation.schema.db.*;
 import org.riverock.dbrevision.utils.Utils;
 import org.riverock.dbrevision.utils.DbUtils;
@@ -765,6 +764,8 @@ public class DatabaseStructureManager {
 
     /**
      * Return filtered list of tables
+     * usually schemaPattern is a db username
+     * if tablePattern equals "%", this mean what selected all tables
      *
      * @param conn1 db connection
      * @param schemaPattern schema name filter 
@@ -1152,19 +1153,6 @@ public class DatabaseStructureManager {
         return pk;
     }
 
-    /**
-     * return list of tables filtered by concrete fileter
-     * usually schemaPattern is a username
-     * tablePattern == "%" - mean select all tables
-     *
-     * @param conn db connection
-     * @param dc db connection descriptor
-     * @return List of DbTable
-     */
-    public static List<DbTable> getTableList(Connection conn, DatabaseConnectionType dc) {
-        return getTableList(conn, dc.getUsername().toUpperCase(), "%");
-    }
-
     public static void setDefaultValueTimestamp(DatabaseAdapter adapter, DbTable originTable, DbField originField)
         throws Exception {
         DbField tempField = DatabaseManager.cloneDescriptionField(originField);
@@ -1176,36 +1164,4 @@ public class DatabaseStructureManager {
         DatabaseManager.copyFieldData(adapter, originTable, tempField, originField);
         dropColumn(adapter, originTable, tempField);
     }
-
-/*
-    private final static Object syncObj = new Object();
-    public static void checkDatabaseStructure(DatabaseAdapter adapater, DatabaseConnectionType dc) throws DatabaseException {
-        if (log.isDebugEnabled()) {
-            log.debug( "dc.getIsCheckStructure(): " + dc.getIsCheckStructure());
-        }
-
-        if (adapater!=null && Boolean.TRUE.equals(dc.getIsCheckStructure()))
-        {
-            synchronized( syncObj )  {
-                if (!Boolean.TRUE.equals(dc.getIsCheckStructure())) {
-                    return;
-                }
-
-                try {
-                    DefinitionService.validateDatabaseStructure( adapater );
-                    dc.setIsCheckStructure( Boolean.FALSE );
-                }
-                catch (FileNotFoundException exception) {
-                    log.error("Exception ", exception);
-                }
-                catch (Exception exception) {
-                    final String es = "Exception applay definition to DB";
-                    log.error( es, exception);
-                    throw new DatabaseException( es, exception );
-                }
-            }
-        }
-    }
-*/
-
 }

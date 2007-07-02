@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2005 rel. 3 U (http://www.altova.com) by Serg (Ru-Board) -->
 <!--
   ~ org.riverock.dbrevision - Database revision engine
   ~ For more information about DbRevision, please visit project site
@@ -32,19 +33,6 @@
 		<xs:documentation>DbRevision engine, http://dbrevision.sourceforge.net</xs:documentation>
 	</xs:annotation>
 	<xs:import namespace="http://generic.riverock.org/xsd/riverock-database-structure.xsd" schemaLocation="riverock-database-structure.xsd"/>
-	<xs:complexType name="CustomSequence">
-		<xs:attribute name="sequenceName" type="xs:string"/>
-		<xs:attribute name="tableName" type="xs:string"/>
-		<xs:attribute name="columnName" type="xs:string"/>
-	</xs:complexType>
-	<xs:element name="DbFixPack" type="DbFixPack"/>
-	<xs:complexType name="DbFixPack">
-		<xs:sequence minOccurs="0" maxOccurs="unbounded">
-			<xs:element name="FixPackFileName" type="xs:string"/>
-		</xs:sequence>
-		<xs:attribute name="version" type="xs:string" use="required"/>
-		<xs:attribute name="isPatch" type="xs:boolean" use="required"/>
-	</xs:complexType>
 	<xs:element name="DefinitionList" type="DefinitionList"/>
 	<xs:complexType name="DefinitionList">
 		<xs:sequence>
@@ -59,14 +47,9 @@
 					<xs:documentation>Name of all definition, which must be processed before this definition</xs:documentation>
 				</xs:annotation>
 			</xs:element>
-			<xs:element name="IsAutoProcessTable" type="xs:boolean">
+			<xs:element name="StructureFile" type="xs:string" minOccurs="0">
 				<xs:annotation>
-					<xs:documentation>Is auto update database schema bases on differents between version</xs:documentation>
-				</xs:annotation>
-			</xs:element>
-			<xs:element name="IsSilensAction" type="xs:boolean" default="false" minOccurs="0">
-				<xs:annotation>
-					<xs:documentation>Do not throw any exception</xs:documentation>
+					<xs:documentation>Name of file with definition of DB structure</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:choice minOccurs="0" maxOccurs="unbounded">
@@ -79,7 +62,7 @@
 				<xs:element name="ViewList" type="riverock-db-stuct:DbViewList" minOccurs="0"/>
 			</xs:choice>
 		</xs:sequence>
-		<xs:attribute name="isPatch" type="xs:boolean" use="required"/>
+		<xs:attribute name="isPatch" type="xs:boolean" use="optional" default="true"/>
 	</xs:complexType>
 	<xs:complexType name="DefinitionTableList">
 		<xs:sequence>
@@ -178,5 +161,17 @@
 				</xs:restriction>
 			</xs:simpleType>
 		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="ProjectRelease">
+		<xs:sequence>
+			<xs:element name="ProjectName" type="xs:string"/>
+			<xs:element name="Release" type="Release" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Release">
+		<xs:sequence>
+			<xs:element name="Version" type="xs:string"/>
+			<xs:element name="PreviousVersion" type="xs:string" minOccurs="0"/>
+		</xs:sequence>
 	</xs:complexType>
 </xs:schema>
