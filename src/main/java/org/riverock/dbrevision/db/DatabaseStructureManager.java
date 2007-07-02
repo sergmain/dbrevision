@@ -52,8 +52,6 @@ import org.riverock.dbrevision.annotation.schema.db.*;
 import org.riverock.dbrevision.utils.Utils;
 import org.riverock.dbrevision.utils.DbUtils;
 import org.riverock.dbrevision.exception.DbRevisionException;
-import org.riverock.dbrevision.db.factory.ORAconnect;
-import org.riverock.dbrevision.db.factory.MYSQLconnect;
 
 /**
  * @author SergeMaslyukov
@@ -216,10 +214,11 @@ public class DatabaseStructureManager {
     }
 
     /**
-     * 
-     * @param adapter
-     * @param table
-     * @param field
+     * drop field from specified table
+     *
+     * @param adapter db adapter
+     * @param table table definition
+     * @param field field to drop
      */
     public static void dropColumn(DatabaseAdapter adapter, DbTable table, DbField field) {
         if (table == null ||
@@ -409,7 +408,7 @@ public class DatabaseStructureManager {
                                     break;
 
                                 case Types.BLOB:
-                                    if (adapter.getFamily()== DatabaseManager.MYSQL_FAMALY) {
+                                    if (adapter.getFamily()== DatabaseAdapter.Family.MYSQL_FAMALY) {
                                         byte[] bytes = Base64.decodeBase64(fieldData.getStringData().getBytes());
 
                                         byte[] fileBytes = new byte[]{};
@@ -636,12 +635,11 @@ public class DatabaseStructureManager {
     }
 
     /**
-     * @param connection
-     * @param table
-     * @param dbFamily
+     * @param adapter db adapter
+     * @param table table for get data
      * @return DbDataTable
      */
-    public static DbDataTable getDataTable(Connection connection, DbTable table, int dbFamily) throws DbRevisionException {
+    public static DbDataTable getDataTable(DatabaseAdapter adapter, DbTable table) {
         DbDataTable tableData = new DbDataTable();
 
         PreparedStatement ps = null;
@@ -649,7 +647,7 @@ public class DatabaseStructureManager {
         try {
             String sql_ = "select * from " + table.getName();
 
-            ps = connection.prepareStatement(sql_);
+            ps = adapter.getConnection().prepareStatement(sql_);
 
             rs = ps.executeQuery();
             ResultSetMetaData meta = rs.getMetaData();
@@ -666,16 +664,6 @@ public class DatabaseStructureManager {
             }
 
             byte[] bytes=null;
-            DatabaseAdapter db=null;
-            switch(dbFamily) {
-                case DatabaseManager.ORACLE_FAMALY:
-                    db = new ORAconnect(connection);
-                    break;
-                case DatabaseManager.MYSQL_FAMALY:
-                    db = new MYSQLconnect(connection);
-                    break;
-
-            }
 
             while (rs.next()) {
                 DbDataRecord record = new DbDataRecord();
@@ -722,9 +710,9 @@ public class DatabaseStructureManager {
                                 break;
                             
                             case Types.LONGVARBINARY:
-                                switch(dbFamily) {
-                                    case DatabaseManager.MYSQL_FAMALY:
-                                        bytes = db.getBlobField(rs, field.getName(), MAX_LENGTH_BLOB);
+                                switch(adapter.getFamily()) {
+                                    case MYSQL_FAMALY:
+                                        bytes = adapter.getBlobField(rs, field.getName(), MAX_LENGTH_BLOB);
                                         if (bytes!=null) {
                                             byte[] encodedBytes = Base64.encodeBase64(bytes);
                                             fieldData.setStringData( new String(encodedBytes) );
@@ -736,14 +724,24 @@ public class DatabaseStructureManager {
                                 }
                                 break;
                             case Types.BLOB:
-                                switch(dbFamily) {
-                                    case DatabaseManager.ORACLE_FAMALY:
-                                        bytes = db.getBlobField(rs, field.getName(), MAX_LENGTH_BLOB);
+                                switch (adapter.getFamily()) {
+                                    case ORACLE_FAMALY:
+                                        bytes = adapter.getBlobField(rs, field.getName(), MAX_LENGTH_BLOB);
                                         break;
-                                    case DatabaseManager.MYSQL_FAMALY:
-                                        bytes = db.getBlobField(rs, field.getName(), MAX_LENGTH_BLOB);
+                                    case MYSQL_FAMALY:
+                                        bytes = adapter.getBlobField(rs, field.getName(), MAX_LENGTH_BLOB);
                                         break;
 
+                                    case DB2_FAMALY:
+                                        break;
+                                    case HSQLDB_FAMALY:
+                                        break;
+                                    case INTERBASE_FAMALY:
+                                        break;
+                                    case MSSQL_FAMALY:
+                                        break;
+                                    case SAPDB_FAMALY:
+                                        break;
                                 }
                                 if (bytes!=null) {
                                     byte[] encodedBytes = Base64.encodeBase64(bytes);
@@ -816,18 +814,17 @@ public class DatabaseStructureManager {
     }
 
     /**
-     * @param conn1 Connection
+     * @param adapter db adapter
      * @param schemaPattern String
      * @param tablePattern String
-     * @param dbFamily db family
      * @return ArrayList
      */
-    public static List<DbField> getFieldsList(Connection conn1, String schemaPattern, String tablePattern, int dbFamily) {
+    public static List<DbField> getFieldsList(DatabaseAdapter adapter, String schemaPattern, String tablePattern) {
         List<DbField> v = new ArrayList<DbField>();
         DatabaseMetaData db = null;
         ResultSet metaField = null;
         try {
-            db = conn1.getMetaData();
+            db = adapter.getConnection().getMetaData();
             metaField = db.getColumns(null, schemaPattern, tablePattern, null);
             while (metaField.next()) {
                 DbField field = new DbField();
@@ -844,7 +841,7 @@ public class DatabaseStructureManager {
 
                 if (field.getDefaultValue()!=null) {
                     // fix issue with null value for concrete of BD
-                    if (dbFamily==DatabaseManager.MYSQL_FAMALY) {
+                    if (adapter.getFamily() == DatabaseAdapter.Family.MYSQL_FAMALY) {
                         if (field.getJavaType()==Types.TIMESTAMP && field.getDefaultValue().equals("0000-00-00 00:00:00")) {
                             field.setDefaultValue(null);
                         }
@@ -905,7 +902,7 @@ public class DatabaseStructureManager {
                         case Types.BIT:
                             // Work around with MySql JDBC driver bug: TINYINT(1)==BIT
                             // always process as TINYINT
-                            if (dbFamily==DatabaseManager.MYSQL_FAMALY) {
+                            if (adapter.getFamily()== DatabaseAdapter.Family.MYSQL_FAMALY) {
                                 field.setDataType("tinyint");
                                 field.setJavaType(Types.TINYINT);
                                 field.setJavaStringType("java.sql.Types.TINYINT");
@@ -970,10 +967,10 @@ public class DatabaseStructureManager {
      * @param schemaName name of schema
      * @return List<DbImportedPKColumn>
      */
-    public static List<DbImportedPKColumn> getImportedKeys(Connection connection, String schemaName, String tableName) {
+    public static List<DbImportedPKColumn> getImportedKeys(DatabaseAdapter adapter, String schemaName, String tableName) {
         List<DbImportedPKColumn> v = new ArrayList<DbImportedPKColumn>();
         try {
-            DatabaseMetaData db = connection.getMetaData();
+            DatabaseMetaData db = adapter.getConnection().getMetaData();
             ResultSet columnNames = null;
 
             if (log.isDebugEnabled())
@@ -1091,7 +1088,7 @@ public class DatabaseStructureManager {
         return v;
     }
 
-    public static DbPrimaryKey getPrimaryKey(Connection connection, String schemaPattern, String tablePattern) {
+    public static DbPrimaryKey getPrimaryKey(DatabaseAdapter adapter, String schemaPattern, String tablePattern) {
 
         DbPrimaryKey pk = new DbPrimaryKey();
         ArrayList<DbPrimaryKeyColumn> v = new ArrayList<DbPrimaryKeyColumn>();
@@ -1101,7 +1098,7 @@ public class DatabaseStructureManager {
         }
 
         try {
-            DatabaseMetaData db = connection.getMetaData();
+            DatabaseMetaData db = adapter.getConnection().getMetaData();
             ResultSet metaData = null;
             metaData = db.getPrimaryKeys(null, schemaPattern, tablePattern);
             while (metaData.next()) {

@@ -47,16 +47,12 @@ import java.util.List;
 public class IBconnect extends DatabaseAdapter {
     private static Logger log = Logger.getLogger( IBconnect.class );
 
-    public int getFamily() {
-        return DatabaseManager.INTERBASE_FAMALY;
-    }
-
-    public int getVersion() {
-        return 6;
-    }
-
-    public int getSubVersion() {
-        return 0;
+    /**
+     * get family for this adapter
+     * @return family
+     */
+    public Family getFamily() {
+        return Family.INTERBASE_FAMALY;
     }
 
     public IBconnect(Connection conn) {
@@ -67,15 +63,15 @@ public class IBconnect extends DatabaseAdapter {
         return 4000;
     }
 
-    public boolean getIsBatchUpdate() {
+    public boolean isBatchUpdate() {
         return false;
     }
 
-    public boolean getIsNeedUpdateBracket() {
+    public boolean isNeedUpdateBracket() {
         return false;
     }
 
-    public boolean getIsByteArrayInUtf8() {
+    public boolean isByteArrayInUtf8() {
         return false;
     }
 

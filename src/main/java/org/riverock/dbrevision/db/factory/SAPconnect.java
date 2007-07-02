@@ -56,16 +56,16 @@ public class SAPconnect extends DatabaseAdapter {
         return 2000;
     }
 
-    public boolean getIsBatchUpdate() {
+    public boolean isBatchUpdate() {
         throw new Error("not tested");
 //        return true;
     }
 
-    public boolean getIsNeedUpdateBracket() {
+    public boolean isNeedUpdateBracket() {
         return true;
     }
 
-    public boolean getIsByteArrayInUtf8() {
+    public boolean isByteArrayInUtf8() {
         return false;
     }
 
@@ -230,16 +230,12 @@ public class SAPconnect extends DatabaseAdapter {
         return false;
     }
 
-    public int getFamily() {
-        return DatabaseManager.SAPDB_FAMALY;
-    }
-
-    public int getVersion() {
-        return 7;
-    }
-
-    public int getSubVersion() {
-        return 3;
+    /**
+     * get family for this adapter
+     * @return family
+     */
+    public Family getFamily() {
+        return Family.SAPDB_FAMALY;
     }
 
     public SAPconnect(Connection conn) {

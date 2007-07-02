@@ -67,15 +67,15 @@ public class PostgreeSQLconnect extends DatabaseAdapter {
         return 4000;
     }
 
-    public boolean getIsBatchUpdate() {
+    public boolean isBatchUpdate() {
         return true;
     }
 
-    public boolean getIsNeedUpdateBracket() {
+    public boolean isNeedUpdateBracket() {
         return true;
     }
 
-    public boolean getIsByteArrayInUtf8() {
+    public boolean isByteArrayInUtf8() {
         return true;
     }
 
@@ -680,16 +680,12 @@ DEFERRABLE INITIALLY DEFERRED
         return false;
     }
 
-    public int getFamily() {
-        return DatabaseManager.ORACLE_FAMALY;
-    }
-
-    public int getVersion() {
-        return 8;
-    }
-
-    public int getSubVersion() {
-        return 1;
+    /**
+     * get family for this adapter
+     * @return family
+     */
+    public Family getFamily() {
+        return Family.ORACLE_FAMALY;
     }
 
     public PostgreeSQLconnect(Connection conn) {

@@ -52,16 +52,12 @@ import org.riverock.dbrevision.exception.DbRevisionException;
 public final class MYSQLconnect extends DatabaseAdapter {
     private final static Logger log = Logger.getLogger(MYSQLconnect.class);
 
-    public int getFamily() {
-        return DatabaseManager.MYSQL_FAMALY;
-    }
-
-    public int getVersion() {
-        return 4;
-    }
-
-    public int getSubVersion() {
-        return 0;
+    /**
+     * get family for this adapter
+     * @return family
+     */
+    public Family getFamily() {
+        return Family.MYSQL_FAMALY;
     }
 
     public MYSQLconnect(Connection conn) {
@@ -72,15 +68,15 @@ public final class MYSQLconnect extends DatabaseAdapter {
         return 65535;
     }
 
-    public boolean getIsBatchUpdate() {
+    public boolean isBatchUpdate() {
         return false;
     }
 
-    public boolean getIsNeedUpdateBracket() {
+    public boolean isNeedUpdateBracket() {
         return true;
     }
 
-    public boolean getIsByteArrayInUtf8() {
+    public boolean isByteArrayInUtf8() {
         return false;
     }
 

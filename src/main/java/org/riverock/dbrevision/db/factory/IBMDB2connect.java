@@ -50,16 +50,12 @@ import org.riverock.dbrevision.exception.DbRevisionException;
 public class IBMDB2connect extends DatabaseAdapter {
     private static Logger log = Logger.getLogger(IBMDB2connect.class);
 
-    public int getFamily() {
-        return DatabaseManager.DB2_FAMALY;
-    }
-
-    public int getVersion() {
-        return 8;
-    }
-
-    public int getSubVersion() {
-        return 0;
+    /**
+     * get family for this adapter
+     * @return family
+     */
+    public Family getFamily() {
+        return Family.DB2_FAMALY;
     }
 
     public IBMDB2connect(Connection conn) {
@@ -70,15 +66,15 @@ public class IBMDB2connect extends DatabaseAdapter {
         return 2000;
     }
 
-    public boolean getIsBatchUpdate() {
+    public boolean isBatchUpdate() {
         return true;
     }
 
-    public boolean getIsNeedUpdateBracket() {
+    public boolean isNeedUpdateBracket() {
         return false;
     }
 
-    public boolean getIsByteArrayInUtf8() {
+    public boolean isByteArrayInUtf8() {
         return false;
     }
 
