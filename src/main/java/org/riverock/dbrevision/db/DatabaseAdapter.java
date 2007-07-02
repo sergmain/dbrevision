@@ -108,11 +108,11 @@ public abstract class DatabaseAdapter {
         throws SQLException;
 
     /**
-     * @param rs
-     * @param nameFeld
-     * @param maxLength
-     * @return
-     * @throws SQLException
+     * @param rs result set
+     * @param nameFeld name of field
+     * @param maxLength max length of CLOB field
+     * @return value of specific table columns
+     * @throws SQLException on SQL error
      */
     public abstract String getClobField(ResultSet rs, String nameFeld, int maxLength) throws SQLException;
 
