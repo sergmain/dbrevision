@@ -25,7 +25,7 @@
  */
 package org.riverock.dbrevision.system;
 
-import java.io.FileInputStream;
+import java.io.InputStream;
 
 import org.apache.log4j.Logger;
 
@@ -40,7 +40,7 @@ import org.riverock.dbrevision.utils.Utils;
 import org.riverock.dbrevision.exception.DbRevisionException;
 
 /**
- * import data from XML file to DB
+ * import data from input stream to DB
  * 
  * Author: mill
  * Date: Nov 28, 2002
@@ -53,12 +53,18 @@ import org.riverock.dbrevision.exception.DbRevisionException;
 public class DbStructureImport {
     private static Logger log = Logger.getLogger(DbStructureImport.class);
 
-    public static void importStructure(String fileName, boolean isData, DatabaseAdapter db_) throws Exception {
-        log.debug("Unmarshal data from file " + fileName);
-        FileInputStream stream = new FileInputStream(fileName);
-        DbSchema millSchema = Utils.getObjectFromXml(DbSchema.class, stream);
-
-        importStructure(millSchema, db_, isData);
+    public static void importStructure(DatabaseAdapter adapter, InputStream stream, boolean isData ) {
+        log.debug("Unmarshal data from inputstream");
+        DbSchema millSchema;
+        try {
+            millSchema = Utils.getObjectFromXml(DbSchema.class, stream);
+        }
+        catch (Exception e) {
+            String es = "Error unmarshal DB structure from input stream";
+            log.error(es, e);
+            throw new DbRevisionException(es, e);
+        }
+        importStructure(millSchema, adapter, isData);
     }
 
     public static void importStructure(DbSchema millSchema, DatabaseAdapter db_, boolean isData) {

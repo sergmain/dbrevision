@@ -29,6 +29,8 @@ import java.lang.reflect.Constructor;
 import java.sql.Connection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
 
 import org.apache.log4j.Logger;
 
@@ -39,45 +41,69 @@ import org.riverock.dbrevision.db.factory.MySqlAdapter;
 import org.riverock.dbrevision.db.factory.OracleAdapter;
 import org.riverock.dbrevision.db.factory.PostgreeSqlAdapter;
 import org.riverock.dbrevision.db.factory.MaxDBAdapter;
+import org.riverock.dbrevision.exception.DbRevisionException;
 
 /**
  * @author Sergei Maslyukov
  *         Date: 04.07.2006
  *         Time: 12:03:41
  */
-public class DbConnectionProvider {
-    private final static Logger log = Logger.getLogger(DbConnectionProvider.class);
+public class DatabaseAdapterProvider {
+    private final static Logger log = Logger.getLogger(DatabaseAdapterProvider.class);
 
-    private static Map<String, Class> familyClassMap = new HashMap<String, Class>();
+    private static Map<DatabaseAdapter.Family, Class> familyClassMap = new HashMap<DatabaseAdapter.Family, Class>();
+    private static Map<String, DatabaseAdapter.Family> familyCodeMap = new HashMap<String, DatabaseAdapter.Family>();
+
     public static final String ORACLE_FAMILY = "oracle";
     public static final String MYSQL_FAMILY = "mysql";
-    public static final String HSQLDB_FAMILY = "hsqldb";
-    public static final String MSSQL_FAMILY = "sqlserver";
+    public static final String HYPERSONIC_FAMILY = "hypersonic";
+    public static final String SQLSERVER_FAMILY = "sqlserver";
     public static final String POSTGREES_FAMILY = "postgrees";
     public static final String DB2_FAMILY = "db2";
     public static final String MAXDB_FAMILY = "maxdb";
 
     static {
-        familyClassMap.put(ORACLE_FAMILY, OracleAdapter.class);
-        familyClassMap.put(MYSQL_FAMILY, MySqlAdapter.class);
-        familyClassMap.put(HSQLDB_FAMILY, HyperSonicAdapter.class);
-        familyClassMap.put(MSSQL_FAMILY, SqlServerAdapter.class);
-        familyClassMap.put(POSTGREES_FAMILY, PostgreeSqlAdapter.class);
-        familyClassMap.put(DB2_FAMILY, DB2Adapter.class);
-        familyClassMap.put(MAXDB_FAMILY, MaxDBAdapter.class);
+        familyClassMap.put(DatabaseAdapter.Family.ORACLE, OracleAdapter.class);
+        familyClassMap.put(DatabaseAdapter.Family.MYSQL, MySqlAdapter.class);
+        familyClassMap.put(DatabaseAdapter.Family.HYPERSONIC, HyperSonicAdapter.class);
+        familyClassMap.put(DatabaseAdapter.Family.SQLSERVER, SqlServerAdapter.class);
+        familyClassMap.put(DatabaseAdapter.Family.POSTGREES, PostgreeSqlAdapter.class);
+        familyClassMap.put(DatabaseAdapter.Family.DB2, DB2Adapter.class);
+        familyClassMap.put(DatabaseAdapter.Family.MAXDB, MaxDBAdapter.class);
     }
 
-    public static DatabaseAdapter openConnect(final Connection connection, String family)
-        throws DatabaseException {
+    static {
+        familyCodeMap.put(ORACLE_FAMILY, DatabaseAdapter.Family.ORACLE);
+        familyCodeMap.put(MYSQL_FAMILY, DatabaseAdapter.Family.MYSQL);
+        familyCodeMap.put(HYPERSONIC_FAMILY, DatabaseAdapter.Family.HYPERSONIC);
+        familyCodeMap.put(SQLSERVER_FAMILY, DatabaseAdapter.Family.SQLSERVER);
+        familyCodeMap.put(POSTGREES_FAMILY, DatabaseAdapter.Family.POSTGREES);
+        familyCodeMap.put(DB2_FAMILY, DatabaseAdapter.Family.DB2);
+        familyCodeMap.put(MAXDB_FAMILY, DatabaseAdapter.Family.MAXDB);
+    }
+
+    public static List<String> getSupportedFamilyCode() {
+        return new ArrayList<String>(familyCodeMap.keySet());
+    }
+
+    public static DatabaseAdapter.Family decodeFamily(String familyCode) {
+        return familyCodeMap.get(familyCode);
+    }
+
+    public static DatabaseAdapter getInstance(final Connection connection, String familyCode) {
+        return getInstance(connection, decodeFamily(familyCode));
+    }
+
+    public static DatabaseAdapter getInstance(final Connection connection, DatabaseAdapter.Family family) {
         if (connection == null) {
             String es = "Connection is null.";
             log.fatal(es);
-            throw new DatabaseException(es);
+            throw new DbRevisionException(es);
         }
         if (family == null) {
             String es = "dbFamily not defined.";
             log.fatal(es);
-            throw new DatabaseException(es);
+            throw new DbRevisionException(es);
         }
 
         if (log.isDebugEnabled()) {
@@ -105,9 +131,9 @@ public class DbConnectionProvider {
             log.fatal("Error create instance for family " + family);
             log.fatal("Error:", e);
 
-            final String es = "Error create DatabaseAdapter instance. See log for details";
+            final String es = "Error create DatabaseAdapter instance.";
             System.out.println(es);
-            throw new DatabaseException(es, e);
+            throw new DbRevisionException(es, e);
         }
     }
 }

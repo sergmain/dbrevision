@@ -8,7 +8,6 @@ import org.apache.commons.codec.DecoderException;
  * User: SergeMaslyukov
  * Date: 22.02.2007
  * Time: 0:21:36
- * To change this template use File | Settings | File Templates.
  */
 public class TestBase64 {
     public static void main(String[] args) throws DecoderException {

@@ -26,6 +26,7 @@
 package org.riverock.dbrevision.db;
 
 /**
+ *
  * @author Sergei Maslyukov
  *         Date: 14.12.2006
  *         Time: 18:36:13
