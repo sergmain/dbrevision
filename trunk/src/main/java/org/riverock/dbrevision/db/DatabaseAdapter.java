@@ -51,7 +51,7 @@ public abstract class DatabaseAdapter {
      * DatabaseAdapter family
      */
     public enum Family {
-        ORACLE, MYSQL, DB2, SQLSERVER, HYPERSONIC, MAXDB, INTERBASE
+        ORACLE, MYSQL, DB2, SQLSERVER, HYPERSONIC, MAXDB, INTERBASE, POSTGREES
     }
 
     /**
@@ -78,6 +78,11 @@ public abstract class DatabaseAdapter {
      */
     public abstract Family getFamily();
 
+    /**
+     * Is this db support batch update?
+     *
+     * @return true if support
+     */
     public abstract boolean isBatchUpdate();
 
     public abstract boolean isNeedUpdateBracket();

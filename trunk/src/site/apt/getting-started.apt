@@ -2,5 +2,86 @@
             Getting started
             ------
 
-
 Getting started
+
+
+[Supported DB family]
+
+ Get list of supported DB families:
+
++------------------------------------------------------------------------+
+import org.riverock.dbrevision.db.DatabaseAdapterProvider;
+
+    List<String> list = DatabaseAdapterProvider.getSupportedFamilyCode();
++------------------------------------------------------------------------+
+
+[Create DatabaseAdapter]
+ Create DatabaseAdapter for specific DB:
+
++------------------------------------------------------------------------+
+import java.sql.Connection;
+import org.riverock.dbrevision.db.DatabaseAdapter;
+import org.riverock.dbrevision.db.DatabaseAdapterProvider;
+
+    Connection conn=null;
+    ... init connection;
+
+    DatabaseAdapter db = DatabaseAdapterProvider.getInstance(conn, DatabaseAdapter.Family.MYSQL);
+    
++------------------------------------------------------------------------+
+
+[Get DB structure]
+
+ Get DB structure - tables, indexes, view without data. Result will be writed to output stream.
+
++------------------------------------------------------------------------+
+import java.io.FileOutputStream;
+import java.sql.Connection;
+
+import org.riverock.dbrevision.db.DatabaseAdapter;
+import org.riverock.dbrevision.db.DatabaseAdapterProvider;
+
+    Connection conn=null;
+    ... init connection;
+
+    DatabaseAdapter db = DatabaseAdapterProvider.getInstance(conn, DatabaseAdapter.Family.MYSQL);
+    FileOutputStream fileOutputStream = new FileOutputStream("forum-portlet-schema.xml");
+
+    DbStructureExport.export(db, fileOutputStream, true);
+
++------------------------------------------------------------------------+
+
+[Create DB structure from input stream]
+
+ Get DB structure - tables, indexes, view without data. Result will be writed to output stream.
+
++------------------------------------------------------------------------+
+import java.io.FileOutputStream;
+import java.sql.Connection;
+
+import org.riverock.dbrevision.db.DatabaseAdapter;
+import org.riverock.dbrevision.db.DatabaseAdapterProvider;
+import org.riverock.dbrevision.db.DatabaseAdapter;
+import org.riverock.dbrevision.db.DatabaseAdapterProvider;
+import org.riverock.dbrevision.system.DbStructureImport;
+import org.riverock.dbrevision.annotation.schema.db.DbSchema;
+import org.riverock.dbrevision.utils.Utils;
+
+    Connection conn;
+    ... init connection;
+
+    String fileName;
+    ... init name of file with DB structure
+
+    FileInputStream stream = new FileInputStream(fileName);
+
+    boolean isData;
+    ... init isData. true - import with data, otherwise - w/o data
+
+    DatabaseAdapter db = DatabaseAdapterProvider.getInstance(conn, DatabaseAdapter.Family.MYSQL);
+    DbStructureImport.importStructure(db, stream, isData);
+
++------------------------------------------------------------------------+
+
+
+
