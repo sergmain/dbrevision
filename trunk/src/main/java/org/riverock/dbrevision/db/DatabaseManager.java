@@ -417,33 +417,48 @@ public final class DatabaseManager {
         return false;
     }
 
-    public static DbSchema getDbStructure(DatabaseAdapter db_) throws SQLException {
+    public static DbSchema getDbStructure(DatabaseAdapter adapter) {
+        return getDbStructure(adapter, true);
+    }
+
+    public static DbSchema getDbStructure(DatabaseAdapter adapter, boolean isOnlyCurrent) {
         DbSchema schema = new DbSchema();
 
-        DatabaseMetaData db = db_.getConnection().getMetaData();
-        String dbSchema = db.getUserName();
+        String dbSchema;
+        if (isOnlyCurrent) {
+            try {
+                DatabaseMetaData metaData = adapter.getConnection().getMetaData();
+                dbSchema = metaData.getUserName();
+            }
+            catch (SQLException e) {
+                throw new DbRevisionException("Error get metadata", e);
+            }
+        }
+        else {
+            dbSchema = "%";
+        }
 
-        List<DbTable> list = DatabaseStructureManager.getTableList(db_.getConnection(), dbSchema, "%");
+        List<DbTable> list = DatabaseStructureManager.getTableList(adapter.getConnection(), dbSchema, "%");
         for (DbTable table : list) {
             schema.getTables().add(table);
         }
-        schema.getViews().addAll(db_.getViewList(dbSchema, "%"));
-        schema.getSequences().addAll(db_.getSequnceList(dbSchema));
+        schema.getViews().addAll(adapter.getViewList(dbSchema, "%"));
+        schema.getSequences().addAll(adapter.getSequnceList(dbSchema));
 
         for (DbTable table : schema.getTables()) {
-            table.getFields().addAll(DatabaseStructureManager.getFieldsList(db_, table.getSchema(), table.getName()));
-            table.setPrimaryKey(DatabaseStructureManager.getPrimaryKey(db_, table.getSchema(), table.getName()));
-            table.getImportedKeys().addAll(DatabaseStructureManager.getImportedKeys(db_, table.getSchema(), table.getName()));
+            table.getFields().addAll(DatabaseStructureManager.getFieldsList(adapter, table.getSchema(), table.getName()));
+            table.setPrimaryKey(DatabaseStructureManager.getPrimaryKey(adapter, table.getSchema(), table.getName()));
+            table.getImportedKeys().addAll(DatabaseStructureManager.getImportedKeys(adapter, table.getSchema(), table.getName()));
         }
 
         for (DbView view : schema.getViews()) {
-            view.setText(db_.getViewText(view));
+            view.setText(adapter.getViewText(view));
         }
 
         return schema;
     }
 
-    public static void createWithReplaceAllView(final DatabaseAdapter db_, final DbSchema millSchema) {
+    public static void createWithReplaceAllView(final DatabaseAdapter adapter, final DbSchema millSchema) {
         boolean[] idx = new boolean[millSchema.getViews().size()];
         for (int i = 0; i < idx.length; i++) {
             idx[i] = false;
@@ -459,13 +474,13 @@ public final class DatabaseManager {
 
                 DbView view = millSchema.getViews().get(i);
                 try {
-                    db_.createView(view);
+                    adapter.createView(view);
                     idx[i] = true;
                 }
                 catch (Exception e) {
-                    if (db_.testExceptionViewExists(e)) {
+                    if (adapter.testExceptionViewExists(e)) {
                         try {
-                            DatabaseStructureManager.dropView(db_, view);
+                            DatabaseStructureManager.dropView(adapter, view);
                         }
                         catch (Exception e1) {
                             String es = "Error drop view";
@@ -474,7 +489,7 @@ public final class DatabaseManager {
                         }
 
                         try {
-                            db_.createView(view);
+                            adapter.createView(view);
                             idx[i] = true;
                         }
                         catch (Exception e1) {
@@ -750,13 +765,13 @@ public final class DatabaseManager {
         }
     }
 
-    public static String getBigTextField(final DatabaseAdapter db_, final Long id_,
-                                         final String field_,
-                                         final String table_,
-                                         final String idx_field_,
-                                         final String order_field_
-    )
-        throws SQLException {
+    public static String getBigTextField(
+        final DatabaseAdapter db_, final Long id_,
+        final String field_,
+        final String table_,
+        final String idx_field_,
+        final String order_field_ ) {
+
         if (id_ == null)
             return "";
 
@@ -785,7 +800,11 @@ public final class DatabaseManager {
                 }
                 text.append(DbUtils.getString(rset, field_));
             }
-        } finally {
+        }
+        catch (SQLException e) {
+            throw new DbRevisionException("Error get big text field", e);
+        }
+        finally {
             DatabaseManager.close(rset, ps);
             rset = null;
             ps = null;
@@ -900,14 +919,21 @@ public final class DatabaseManager {
         return null;
     }
 
-    public static DbKeyActionRule decodeUpdateRule(final ResultSet rs) throws SQLException {
-        Object obj = rs.getObject("UPDATE_RULE");
-        if (obj == null) {
-            return null;
-        }
+    public static DbKeyActionRule decodeUpdateRule(final ResultSet rs) {
+        Object obj;
+        DbKeyActionRule rule = null;
+        try {
+            obj = rs.getObject("UPDATE_RULE");
+            if (obj == null) {
+                return null;
+            }
 
-        DbKeyActionRule rule = new DbKeyActionRule();
-        rule.setRuleType(DbUtils.getInteger(rs, "UPDATE_RULE"));
+            rule = new DbKeyActionRule();
+            rule.setRuleType(DbUtils.getInteger(rs, "UPDATE_RULE"));
+        }
+        catch (SQLException e) {
+            throw new DbRevisionException(e);
+        }
 
         switch (rule.getRuleType()) {
             case DatabaseMetaData.importedKeyNoAction:
@@ -1014,7 +1040,7 @@ public final class DatabaseManager {
     }
 
     public static int runSQL(final DatabaseAdapter db, final String query, final Object[] params, final int[] types)
-        throws SQLException {
+        {
         int n = 0;
         Statement stmt = null;
         PreparedStatement pstm = null;
@@ -1044,7 +1070,7 @@ public final class DatabaseManager {
                     log.error("parameter #" + (ii + 1) + ": " + (params[ii] != null ? params[ii].toString() : null));
             }
             log.error("SQLException", e);
-            throw e;
+            throw new DbRevisionException(e);
         }
         finally {
             close(stmt);
@@ -1055,7 +1081,7 @@ public final class DatabaseManager {
     }
 
     public static Long getLongValue(final DatabaseAdapter db, final String sql, final Object[] params, final int[] types)
-        throws SQLException {
+        {
         Statement stmt = null;
         PreparedStatement pstm;
         ResultSet rs = null;
@@ -1064,7 +1090,8 @@ public final class DatabaseManager {
             if (params == null) {
                 stmt = db.getConnection().createStatement();
                 rs = stmt.executeQuery(sql);
-            } else {
+            }
+            else {
                 pstm = db.getConnection().prepareStatement(sql);
                 for (int i = 0; i < params.length; i++) {
                     if (types == null) {
@@ -1089,7 +1116,7 @@ public final class DatabaseManager {
         }
         catch (SQLException e) {
             log.error("error getting long value fron sql '" + sql + "'", e);
-            throw e;
+            throw new DbRevisionException(e);
         }
         finally {
             close(rs, stmt);
@@ -1100,7 +1127,7 @@ public final class DatabaseManager {
     }
 
     public static List<Long> getLongValueList(final DatabaseAdapter db, final String sql, final Object[] params, final int[] types)
-        throws SQLException {
+         {
 
         Statement stmt = null;
         PreparedStatement pstm;
@@ -1134,7 +1161,7 @@ public final class DatabaseManager {
         }
         catch (SQLException e) {
             log.error("error getting long value fron sql '" + sql + "'", e);
-            throw e;
+            throw new DbRevisionException(e);
         }
         finally {
             close(rs, stmt);
