@@ -142,8 +142,16 @@ public class SqlServerAdapter extends DatabaseAdapter {
                     sql += " INTEGER";
                     break;
 
+                case Types.SMALLINT:
+                    sql += " SMALLINT";
+                    break;
+
                 case Types.DOUBLE:
                     sql += " DOUBLE";
+                    break;
+
+                case Types.FLOAT:
+                    sql += " FLOAT";
                     break;
 
                 case Types.CHAR:
