@@ -670,88 +670,93 @@ public class DatabaseStructureManager {
                 for (DbField field : table.getFields()) {
                     DbDataFieldData fieldData = new DbDataFieldData();
 
-                    Object obj = rs.getObject(field.getName());
+                    switch (field.getJavaType()) {
 
-                    if (obj == null) {
-                        fieldData.setIsNull(Boolean.TRUE);
-                    }
-                    else {
-                        fieldData.setIsNull(Boolean.FALSE);
+                        case Types.BIT:
+                        case Types.TINYINT:
+                        case Types.BIGINT:
+                        case Types.SMALLINT:
 
-                        switch (field.getJavaType()) {
+                        case Types.DECIMAL:
+                        case Types.INTEGER:
+                        case Types.DOUBLE:
+                        case Types.FLOAT:
+                        case Types.NUMERIC:
+                            fieldData.setNumberData(rs.getBigDecimal(field.getName()));
+                            fieldData.setIsNull(rs.wasNull());
+                            break;
 
-                            case Types.BIT:
-                            case Types.TINYINT:
-                            case Types.BIGINT:
+                        case Types.CHAR:
+                        case Types.VARCHAR:
+                            fieldData.setStringData(rs.getString(field.getName()));
+                            fieldData.setIsNull(rs.wasNull());
+                            break;
 
-                            case Types.DECIMAL:
-                            case Types.INTEGER:
-                            case Types.DOUBLE:
-                            case Types.NUMERIC:
-                                fieldData.setNumberData(rs.getBigDecimal(field.getName()));
-                                break;
-
-                            case Types.CHAR:
-                            case Types.VARCHAR:
-                                fieldData.setStringData(
-                                    rs.getString(field.getName())
-                                );
-                                break;
-
-                            case Types.DATE:
-                            case Types.TIMESTAMP:
+                        case Types.DATE:
+                        case Types.TIMESTAMP:
+                            Timestamp timestamp = rs.getTimestamp(field.getName());
+                            if (rs.wasNull()) {
+                                fieldData.setIsNull(true);
+                            }
+                            else {
                                 GregorianCalendar calendar = new GregorianCalendar();
-                                calendar.setTimeInMillis(rs.getTimestamp(field.getName()).getTime());
+                                calendar.setTimeInMillis(timestamp.getTime());
                                 fieldData.setDateData(DatatypeFactory.newInstance().newXMLGregorianCalendar(calendar));
-                                break;
+                                fieldData.setIsNull(false);
+                            }
+                            break;
 
-                            case Types.LONGVARCHAR:
-                                fieldData.setStringData(rs.getString(field.getName()));
-                                break;
+                        case Types.LONGVARCHAR:
+                            fieldData.setStringData(rs.getString(field.getName()));
+                            fieldData.setIsNull(rs.wasNull());
+                            break;
                             
-                            case Types.LONGVARBINARY:
-                                switch(adapter.getFamily()) {
-                                    case MYSQL:
-                                        bytes = adapter.getBlobField(rs, field.getName(), MAX_LENGTH_BLOB);
-                                        if (bytes!=null) {
-                                            byte[] encodedBytes = Base64.encodeBase64(bytes);
-                                            fieldData.setStringData( new String(encodedBytes) );
-                                        }
-                                        bytes = null;
-                                        break;
-                                    default:
-                                        fieldData.setStringData(rs.getString(field.getName()));
-                                }
-                                break;
-                            case Types.BLOB:
-                                switch (adapter.getFamily()) {
-                                    case ORACLE:
-                                        bytes = adapter.getBlobField(rs, field.getName(), MAX_LENGTH_BLOB);
-                                        break;
-                                    case MYSQL:
-                                        bytes = adapter.getBlobField(rs, field.getName(), MAX_LENGTH_BLOB);
-                                        break;
+                        case Types.LONGVARBINARY:
+                            switch(adapter.getFamily()) {
+                                case MYSQL:
+                                    bytes = adapter.getBlobField(rs, field.getName(), MAX_LENGTH_BLOB);
+                                    if (bytes!=null) {
+                                        byte[] encodedBytes = Base64.encodeBase64(bytes);
+                                        fieldData.setStringData( new String(encodedBytes) );
+                                    }
+                                    fieldData.setIsNull(rs.wasNull());
+                                    bytes = null;
+                                    break;
+                                default:
+                                    fieldData.setStringData(rs.getString(field.getName()));
+                                    fieldData.setIsNull(rs.wasNull());
+                            }
+                            break;
+                        case Types.BLOB:
+                            switch (adapter.getFamily()) {
+                                case ORACLE:
+                                    bytes = adapter.getBlobField(rs, field.getName(), MAX_LENGTH_BLOB);
+                                    fieldData.setIsNull(rs.wasNull());
+                                    break;
+                                case MYSQL:
+                                    bytes = adapter.getBlobField(rs, field.getName(), MAX_LENGTH_BLOB);
+                                    fieldData.setIsNull(rs.wasNull());
+                                    break;
 
-                                    case DB2:
-                                        break;
-                                    case HYPERSONIC:
-                                        break;
-                                    case INTERBASE:
-                                        break;
-                                    case SQLSERVER:
-                                        break;
-                                    case MAXDB:
-                                        break;
-                                }
-                                if (bytes!=null) {
-                                    byte[] encodedBytes = Base64.encodeBase64(bytes);
-                                    fieldData.setStringData( new String(encodedBytes) );
-                                }
-                                bytes = null;
-                                break;
-                            default:
-                                System.out.println("Unknown field type. Field '" + field.getName() + "' type '" + field.getJavaStringType() + "'");
-                        }
+                                case DB2:
+                                    break;
+                                case HYPERSONIC:
+                                    break;
+                                case INTERBASE:
+                                    break;
+                                case SQLSERVER:
+                                    break;
+                                case MAXDB:
+                                    break;
+                            }
+                            if (bytes!=null) {
+                                byte[] encodedBytes = Base64.encodeBase64(bytes);
+                                fieldData.setStringData( new String(encodedBytes) );
+                            }
+                            bytes = null;
+                            break;
+                        default:
+                            System.out.println("Unknown field type. Field '" + field.getName() + "' type '" + field.getJavaStringType() + "'");
                     }
                     record.getFieldsData().add(fieldData);
                 }
@@ -841,10 +846,29 @@ public class DatabaseStructureManager {
 
                 if (field.getDefaultValue()!=null) {
                     // fix issue with null value for concrete of BD
-                    if (adapter.getFamily() == DatabaseAdapter.Family.MYSQL) {
-                        if (field.getJavaType()==Types.TIMESTAMP && field.getDefaultValue().equals("0000-00-00 00:00:00")) {
-                            field.setDefaultValue(null);
-                        }
+                    switch (adapter.getFamily()) {
+                        case MYSQL:
+                            if (field.getJavaType()==Types.TIMESTAMP && field.getDefaultValue().equals("0000-00-00 00:00:00")) {
+                                field.setDefaultValue(null);
+                            }
+                            break;
+                        case DB2:
+                            break;
+                        case HYPERSONIC:
+                            break;
+                        case INTERBASE:
+                            break;
+                        case MAXDB:
+                            break;
+                        case ORACLE:
+                            break;
+                        case POSTGREES:
+                            break;
+                        case SQLSERVER:
+                            if (field.getDefaultValue().startsWith("(") && field.getDefaultValue().endsWith(")")) {
+                                field.setDefaultValue( field.getDefaultValue().substring(1, field.getDefaultValue().length()-1));
+                            }
+                            break;
                     }
                 }
 
@@ -919,9 +943,17 @@ public class DatabaseStructureManager {
                             field.setJavaStringType("java.sql.Types.BIGINT");
                             break;
 
+                        case Types.SMALLINT:
+                            field.setJavaStringType("java.sql.Types.SMALLINT");
+                            break;
+
+                        case Types.FLOAT:
+                            field.setJavaStringType("java.sql.Types.FLOAT");
+                            break;
+
                         default:
-                            field.setJavaStringType("unknown. schema - " + schemaPattern + " table - " + tablePattern + " field - " + field.getName() + " javaType - " + field.getJavaType());
-                            System.out.println("unknown. schema - " + schemaPattern + " table - " + tablePattern + " field - " + field.getName() + " javaType - " + field.getJavaType());
+                            field.setJavaStringType("unknown. schema: " + schemaPattern + ", table: " + tablePattern + ", field: " + field.getName() + ", javaType: " + field.getJavaType());
+                            System.out.println("unknown. schema: " + schemaPattern + ", table: " + tablePattern + ", field " + field.getName() + ", javaType: " + field.getJavaType());
                     }
                 }
 
@@ -962,7 +994,7 @@ public class DatabaseStructureManager {
     /**
      * Return info about all PK for tables, which referenced from current table(tableName)
      *
-     * @param connection jdbc connection
+     * @param adapter db adapter
      * @param tableName  name of table
      * @param schemaName name of schema
      * @return List<DbImportedPKColumn>
