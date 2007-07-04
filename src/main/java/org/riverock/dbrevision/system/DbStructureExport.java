@@ -46,12 +46,16 @@ import org.riverock.dbrevision.utils.Utils;
  */
 public class DbStructureExport {
 
-    public static void export(DatabaseAdapter db, OutputStream outputStream, boolean isData) {
+    public static void export(DatabaseAdapter adapter, OutputStream outputStream, boolean isData) {
+        export(adapter, outputStream, isData, true);
+    }
+
+    public static void export(DatabaseAdapter adapter, OutputStream outputStream, boolean isData, boolean isOnlyCurrent) {
         try {
-            DbSchema schema = DatabaseManager.getDbStructure(db);
+            DbSchema schema = DatabaseManager.getDbStructure(adapter, isOnlyCurrent);
             for (DbTable table : schema.getTables()) {
                 if (isData) {
-                    table.setData(DatabaseStructureManager.getDataTable(db, table));
+                    table.setData(DatabaseStructureManager.getDataTable(adapter, table));
                 }
             }
             Utils.writeObjectAsXml(schema, outputStream, "utf-8");
