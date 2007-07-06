@@ -5,8 +5,6 @@
 Getting started
 
 
-[Supported DB family]
-
  Get list of supported DB families:
 
 +------------------------------------------------------------------------+
@@ -15,7 +13,6 @@ import org.riverock.dbrevision.db.DatabaseAdapterProvider;
     List<String> list = DatabaseAdapterProvider.getSupportedFamilyCode();
 +------------------------------------------------------------------------+
 
-[Create DatabaseAdapter]
  Create DatabaseAdapter for specific DB:
 
 +------------------------------------------------------------------------+
@@ -29,8 +26,6 @@ import org.riverock.dbrevision.db.DatabaseAdapterProvider;
     DatabaseAdapter db = DatabaseAdapterProvider.getInstance(conn, DatabaseAdapter.Family.MYSQL);
     
 +------------------------------------------------------------------------+
-
-[Get DB structure]
 
  Get DB structure - tables, indexes, view without data. Result will be writed to output stream.
 
@@ -51,7 +46,6 @@ import org.riverock.dbrevision.db.DatabaseAdapterProvider;
 
 +------------------------------------------------------------------------+
 
-[Create DB structure from input stream]
 
  Get DB structure - tables, indexes, view without data. Result will be writed to output stream.
 
