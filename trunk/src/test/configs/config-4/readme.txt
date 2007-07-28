@@ -1,0 +1,1 @@
+this is wrong config directory - directory with first version must not contain patches ('patch' directory)
