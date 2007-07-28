@@ -1,0 +1,1 @@
+this is wrong config directory - missing directory with module

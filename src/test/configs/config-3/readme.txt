@@ -1,0 +1,1 @@
+this is wrong config directory - in version directory missing webmill/5.7.0/init-structure.xml file
