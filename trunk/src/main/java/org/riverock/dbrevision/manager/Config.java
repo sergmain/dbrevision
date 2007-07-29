@@ -18,4 +18,8 @@ public class Config {
     public void setModuleConfigs(List<ModuleConfig> moduleConfigs) {
         this.moduleConfigs = moduleConfigs;
     }
+
+    public void addModule(ModuleConfig moduleConfig) {
+        moduleConfigs.add( moduleConfig );
+    }
 }

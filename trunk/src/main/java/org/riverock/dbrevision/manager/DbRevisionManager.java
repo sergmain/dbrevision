@@ -124,20 +124,4 @@ public class DbRevisionManager {
             v = v.getPreviousVersion();
         }
     }
-
-/*
-    private Config parseConfigFiles() {
-        Config config = new Config();
-
-        ModuleConfig moduleConfig = new ModuleConfig();
-        moduleConfig.setDescription("Webmill portal");
-        moduleConfig.setName("webmill");
-        moduleConfig.getVersions().add("5.7.0");
-        moduleConfig.getVersions().add("5.7.1");
-
-        config.getModuleConfigs().add(moduleConfig);
-        return config;
-    }
-*/
-
 }
