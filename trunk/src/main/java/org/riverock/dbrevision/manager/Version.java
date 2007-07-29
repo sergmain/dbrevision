@@ -1,16 +1,18 @@
 package org.riverock.dbrevision.manager;
 
+import org.riverock.dbrevision.Constants;
 import org.riverock.dbrevision.db.DatabaseAdapter;
+import org.riverock.dbrevision.exception.InitStructureFileNotFoundException;
+import org.riverock.dbrevision.exception.VersionPathNotFoundException;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by IntelliJ IDEA.
  * User: SergeMaslyukov
  * Date: 28.07.2007
  * Time: 20:04:13
- * To change this template use File | Settings | File Templates.
  */
 public class Version {
 
@@ -21,12 +23,40 @@ public class Version {
 
     private DatabaseAdapter databaseAdapter=null;
 
-    public Version(DatabaseAdapter databaseAdapter) {
+    private boolean isOld = true;
+
+    private String versionName;
+
+    private File versionPath=null;
+
+    private File initStructureFile=null;
+
+    private File patchPath=null;
+
+    public Version(DatabaseAdapter databaseAdapter, File modulePath, String versionName) {
         this.databaseAdapter = databaseAdapter;
+        this.versionName = versionName;
+        this.versionPath = new File(modulePath, this.versionName);
+        if (!versionPath.exists()) {
+            throw new VersionPathNotFoundException("Version path not found: " + versionPath.getAbsolutePath() );
+        }
+        this.initStructureFile = new File(versionPath, Constants.INIT_STRUCTURE_FILE_NAME);
+        if (!initStructureFile.exists()) {
+            throw new InitStructureFileNotFoundException("Init structure file not found: " + initStructureFile.getAbsolutePath() );
+        }
+        this.patchPath = new File(versionPath, Constants.PATCH_DIR_NAME);
     }
 
     public void applay() {
         
+    }
+
+    public File getPatchPath() {
+        return patchPath;
+    }
+
+    public void setPatchPath(File patchPath) {
+        this.patchPath = patchPath;
     }
 
     public Patch getLastPatch() {
@@ -39,6 +69,14 @@ public class Version {
     private boolean isPreviousVersionCorrect() {
 
         return false;
+    }
+
+    public boolean isOld() {
+        return isOld;
+    }
+
+    void setOld(boolean old) {
+        isOld = old;
     }
 
     public List<Patch> getPatches() {

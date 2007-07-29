@@ -2,8 +2,10 @@ package org.riverock.dbrevision.manager;
 
 import junit.framework.TestCase;
 import org.riverock.dbrevision.db.factory.LocalDatabaseAdapter;
-import org.riverock.dbrevision.exception.DbRevisionPathNotFoundException;
+import org.riverock.dbrevision.exception.*;
+import org.riverock.dbrevision.manager.dao.InitManagerDaoFactory;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -14,13 +16,16 @@ import java.util.List;
 public class TestDbRevisionManager extends TestCase {
     private static final String NOT_EXISTED_PATH = "not-existed-path";
 
-    public static final String DBREVISION_CONFIG = "src\\test\\configs\\config-1";
+    public static final String DBREVISION_CONFIGS = "src"+ File.separatorChar+"test" + File.separatorChar+ "configs";
+
+    public void setUp() {
+        InitManagerDaoFactory.init();
+    }
 
     public void testContructor() throws Exception {
-        DbRevisionManager manager;
         boolean isCorrect = false;
         try {
-            manager = new DbRevisionManager(null, null);
+            new DbRevisionManager(null, null);
         }
         catch (IllegalArgumentException e) {
             isCorrect = true;
@@ -29,7 +34,7 @@ public class TestDbRevisionManager extends TestCase {
         isCorrect=false;
         LocalDatabaseAdapter localDatabaseAdapter = new LocalDatabaseAdapter(null);
         try {
-            manager = new DbRevisionManager(localDatabaseAdapter, null);
+            new DbRevisionManager(localDatabaseAdapter, null);
         }
         catch (IllegalArgumentException e) {
             isCorrect = true;
@@ -37,7 +42,7 @@ public class TestDbRevisionManager extends TestCase {
         assertTrue(isCorrect);
         isCorrect=false;
         try {
-            manager = new DbRevisionManager(null, NOT_EXISTED_PATH);
+            new DbRevisionManager(null, NOT_EXISTED_PATH);
         }
         catch (IllegalArgumentException e) {
             isCorrect = true;
@@ -45,20 +50,113 @@ public class TestDbRevisionManager extends TestCase {
         assertTrue(isCorrect);
         isCorrect=false;
         try {
-            manager = new DbRevisionManager(localDatabaseAdapter, NOT_EXISTED_PATH);
+            new DbRevisionManager(localDatabaseAdapter, NOT_EXISTED_PATH);
         }
         catch (DbRevisionPathNotFoundException e) {
             isCorrect = true;
         }
         assertTrue(isCorrect);
-        isCorrect=false;
-
-
     }
 
-    public void testConfig_1() throws Exception {
+    /**
+     * test missing config.xml file
+     * 
+     * @throws Exception on error
+     */
+    public void testConfig_0() throws Exception {
+        String path = DBREVISION_CONFIGS+File.separatorChar+"config-0";
         LocalDatabaseAdapter localDatabaseAdapter = new LocalDatabaseAdapter(null);
-        DbRevisionManager manager = new DbRevisionManager(localDatabaseAdapter, NOT_EXISTED_PATH);
+        boolean isCorrect=false;
+        try {
+           new DbRevisionManager(localDatabaseAdapter, path);
+        }
+        catch (ConfigFileNotFoundException e) {
+            isCorrect=true;
+        }
+        assertTrue(isCorrect);
+    }
+
+    /**
+     * test missing directory with module
+     *
+     * @throws Exception on error
+     */
+    public void testConfig_1() throws Exception {
+        String path = DBREVISION_CONFIGS+File.separatorChar+"config-1";
+        LocalDatabaseAdapter localDatabaseAdapter = new LocalDatabaseAdapter(null);
+        boolean isCorrect=false;
+        try {
+           new DbRevisionManager(localDatabaseAdapter, path);
+        }
+        catch (ModulePathNotFoundException e) {
+            isCorrect=true;
+        }
+        assertTrue(isCorrect);
+    }
+
+    /**
+     * test missing directories with version
+     *
+     * @throws Exception on error
+     */
+    public void testConfig_2() throws Exception {
+        String path = DBREVISION_CONFIGS+File.separatorChar+"config-2";
+        LocalDatabaseAdapter localDatabaseAdapter = new LocalDatabaseAdapter(null);
+        boolean isCorrect=false;
+        try {
+           new DbRevisionManager(localDatabaseAdapter, path);
+        }
+        catch (VersionPathNotFoundException e) {
+            isCorrect=true;
+        }
+        assertTrue(isCorrect);
+    }
+
+    /**
+     * test in version directory missing webmill/5.7.0/init-structure.xml file
+     * 
+     * @throws Exception on error
+     */
+    public void testConfig_3() throws Exception {
+        String path = DBREVISION_CONFIGS+File.separatorChar+"config-3";
+        LocalDatabaseAdapter localDatabaseAdapter = new LocalDatabaseAdapter(null);
+        boolean isCorrect=false;
+        try {
+           new DbRevisionManager(localDatabaseAdapter, path);
+        }
+        catch (InitStructureFileNotFoundException e) {
+            isCorrect=true;
+        }
+        assertTrue(isCorrect);
+    }
+
+    /**
+     * test directory with first version must not contain patches ('patch' directory)
+     * 
+     * @throws Exception on error
+     */
+    public void testConfig_4() throws Exception {
+        String path = DBREVISION_CONFIGS+File.separatorChar+"config-4";
+        LocalDatabaseAdapter localDatabaseAdapter = new LocalDatabaseAdapter(null);
+        boolean isCorrect=false;
+        try {
+           new DbRevisionManager(localDatabaseAdapter, path);
+        }
+        catch (FirstVersionWithPatchdException e) {
+            isCorrect=true;
+        }
+        assertTrue(isCorrect);
+    }
+
+    /**
+     * test directory with first version must not contain patches ('patch' directory)
+     *
+     * @throws Exception on error
+     */
+    public void testConfig_5() throws Exception {
+        String path = DBREVISION_CONFIGS+File.separatorChar+"config-5";
+        LocalDatabaseAdapter localDatabaseAdapter = new LocalDatabaseAdapter(null);
+        DbRevisionManager manager = new DbRevisionManager(localDatabaseAdapter, path);
         List<Module> modules = manager.getModules();
         assertNotNull(modules);
         assertEquals(1, modules.size());
@@ -69,7 +167,5 @@ public class TestDbRevisionManager extends TestCase {
         List<Version> versions = module.getVersions();
         assertNotNull(versions);
         assertEquals(2, versions.size());
-
-        
     }
 }
