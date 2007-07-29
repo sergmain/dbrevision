@@ -2,15 +2,15 @@ package org.riverock.dbrevision.exception;
 
 /**
  * User: SergeMaslyukov
- * Date: 28.07.2007
- * Time: 20:46:50
+ * Date: 29.07.2007
+ * Time: 0:41:59
  */
-public class DbRevisionPathNotFoundException extends DbRevisionException {
+public class ConfigFileNotFoundException extends DbRevisionException {
 
     /**
      * Empty constructor
      */
-    public DbRevisionPathNotFoundException(){
+    public ConfigFileNotFoundException(){
         super();
     }
 
@@ -18,7 +18,7 @@ public class DbRevisionPathNotFoundException extends DbRevisionException {
      * Constructor
      * @param s describing exception
      */
-    public DbRevisionPathNotFoundException(String s){
+    public ConfigFileNotFoundException(String s){
         super(s);
     }
 
@@ -27,7 +27,7 @@ public class DbRevisionPathNotFoundException extends DbRevisionException {
      *
      * @param cause cause exception
      */
-    public DbRevisionPathNotFoundException(Throwable cause){
+    public ConfigFileNotFoundException(Throwable cause){
         super(cause);
     }
 
@@ -37,7 +37,7 @@ public class DbRevisionPathNotFoundException extends DbRevisionException {
      * @param s describing exception
      * @param cause cause exception
      */
-    public DbRevisionPathNotFoundException(String s, Throwable cause){
+    public ConfigFileNotFoundException(String s, Throwable cause){
         super(s, cause);
     }
 }

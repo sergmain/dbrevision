@@ -1,7 +1,11 @@
 package org.riverock.dbrevision.manager;
 
 import org.riverock.dbrevision.db.DatabaseAdapter;
+import org.riverock.dbrevision.exception.FirstVersionWithPatchdException;
+import org.riverock.dbrevision.exception.ModulePathNotFoundException;
 
+import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -11,22 +15,41 @@ import java.util.List;
  */
 public class Module {
 
-    private List<Version> versions=null;
+    private List<Version> versions=new ArrayList<Version>();
 
     private DatabaseAdapter databaseAdapter=null;
 
     private String name=null;
 
-    private String path=null; 
+    private String pathName=null;
 
-    public Module(DatabaseAdapter databaseAdapter, String name, String path) {
+    private File modulePath=null;
+
+    public Module(DatabaseAdapter databaseAdapter, File dbRevisionPath, ModuleConfig moduleConfig) {
         this.databaseAdapter = databaseAdapter;
-        this.name = name;
-        this.path = path;
+        this.name = moduleConfig.getName();
+        this.pathName = moduleConfig.getPath();
 
-        
+        this.modulePath = new File(dbRevisionPath, pathName);
+        if (!modulePath.exists()) {
+            throw new ModulePathNotFoundException("Module path not found: " + modulePath.getAbsolutePath() );
+        }
+        for (String versionName : moduleConfig.getVersions()) {
+            Version version = new Version(databaseAdapter, modulePath, versionName);
+            versions.add(version);
+        }
+        if (versions.size()>0) {
+            File patchPath = versions.get(0).getPatchPath();
+            if (patchPath.exists()) {
+                throw new FirstVersionWithPatchdException("First version contains patch directory: " + patchPath.getAbsolutePath());
+            }
+        }
     }
 
+
+    public String getName() {
+        return name;
+    }
 
     public List<Version> getVersions() {
         return versions;

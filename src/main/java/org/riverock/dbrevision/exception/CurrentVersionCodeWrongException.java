@@ -5,12 +5,12 @@ package org.riverock.dbrevision.exception;
  * Date: 28.07.2007
  * Time: 20:46:50
  */
-public class DbRevisionPathNotFoundException extends DbRevisionException {
+public class CurrentVersionCodeWrongException extends DbRevisionException {
 
     /**
      * Empty constructor
      */
-    public DbRevisionPathNotFoundException(){
+    public CurrentVersionCodeWrongException(){
         super();
     }
 
@@ -18,7 +18,7 @@ public class DbRevisionPathNotFoundException extends DbRevisionException {
      * Constructor
      * @param s describing exception
      */
-    public DbRevisionPathNotFoundException(String s){
+    public CurrentVersionCodeWrongException(String s){
         super(s);
     }
 
@@ -27,7 +27,7 @@ public class DbRevisionPathNotFoundException extends DbRevisionException {
      *
      * @param cause cause exception
      */
-    public DbRevisionPathNotFoundException(Throwable cause){
+    public CurrentVersionCodeWrongException(Throwable cause){
         super(cause);
     }
 
@@ -37,7 +37,7 @@ public class DbRevisionPathNotFoundException extends DbRevisionException {
      * @param s describing exception
      * @param cause cause exception
      */
-    public DbRevisionPathNotFoundException(String s, Throwable cause){
+    public CurrentVersionCodeWrongException(String s, Throwable cause){
         super(s, cause);
     }
 }
