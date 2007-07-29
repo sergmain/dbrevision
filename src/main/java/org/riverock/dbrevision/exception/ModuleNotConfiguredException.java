@@ -1,0 +1,43 @@
+package org.riverock.dbrevision.exception;
+
+/**
+ * User: SergeMaslyukov
+ * Date: 28.07.2007
+ * Time: 20:46:50
+ */
+public class ModuleNotConfiguredException extends DbRevisionException {
+
+    /**
+     * Empty constructor
+     */
+    public ModuleNotConfiguredException(){
+        super();
+    }
+
+    /**
+     * Constructor
+     * @param s describing exception
+     */
+    public ModuleNotConfiguredException(String s){
+        super(s);
+    }
+
+    /**
+     * Constructor
+     *
+     * @param cause cause exception
+     */
+    public ModuleNotConfiguredException(Throwable cause){
+        super(cause);
+    }
+
+    /**
+     * Constructor
+     *
+     * @param s describing exception
+     * @param cause cause exception
+     */
+    public ModuleNotConfiguredException(String s, Throwable cause){
+        super(s, cause);
+    }
+}

@@ -19,18 +19,18 @@ public class Module {
 
     private DatabaseAdapter databaseAdapter=null;
 
-    private String name=null;
+    private String description=null;
 
-    private String pathName=null;
+    private String name =null;
 
     private File modulePath=null;
 
     public Module(DatabaseAdapter databaseAdapter, File dbRevisionPath, ModuleConfig moduleConfig) {
         this.databaseAdapter = databaseAdapter;
+        this.description = moduleConfig.getDescription();
         this.name = moduleConfig.getName();
-        this.pathName = moduleConfig.getPath();
 
-        this.modulePath = new File(dbRevisionPath, pathName);
+        this.modulePath = new File(dbRevisionPath, name);
         if (!modulePath.exists()) {
             throw new ModulePathNotFoundException("Module path not found: " + modulePath.getAbsolutePath() );
         }
@@ -46,9 +46,12 @@ public class Module {
         }
     }
 
-
     public String getName() {
         return name;
+    }
+
+    public String getDescription() {
+        return description;
     }
 
     public List<Version> getVersions() {

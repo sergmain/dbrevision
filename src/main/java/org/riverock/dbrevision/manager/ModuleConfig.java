@@ -9,9 +9,17 @@ import java.util.List;
  * Time: 1:07:47
  */
 public class ModuleConfig {
+    private String description;
     private String name;
-    private String path;
     private List<String> versions=new ArrayList<String>();
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
     public String getName() {
         return name;
@@ -19,14 +27,6 @@ public class ModuleConfig {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
     }
 
     public List<String> getVersions() {

@@ -19,7 +19,7 @@ public class TestDbRevisionManager extends TestCase {
     public static final String DBREVISION_CONFIGS = "src"+ File.separatorChar+"test" + File.separatorChar+ "configs";
 
     public void setUp() {
-        InitManagerDaoFactory.init();
+        InitManagerDaoFactory.initCompleteV570();
     }
 
     public void testContructor() throws Exception {
@@ -149,14 +149,102 @@ public class TestDbRevisionManager extends TestCase {
     }
 
     /**
-     * test directory with first version must not contain patches ('patch' directory)
+     * test not correted data in DB
      *
      * @throws Exception on error
      */
-    public void testConfig_5() throws Exception {
+    public void testConfig_5_moduleNotConfigured() throws Exception {
+
+        InitManagerDaoFactory.initNotExistedModule();
+
         String path = DBREVISION_CONFIGS+File.separatorChar+"config-5";
         LocalDatabaseAdapter localDatabaseAdapter = new LocalDatabaseAdapter(null);
+        boolean isCorrect=false;
+        try {
+            new DbRevisionManager(localDatabaseAdapter, path);
+        }
+        catch (ModuleNotConfiguredException e) {
+            isCorrect=true;
+        }
+        assertTrue(isCorrect);
+    }
+
+    /**
+     * test not correted data in DB
+     *
+     * @throws Exception on error
+     */
+    public void testConfig_5_moduleVersionNotConfigured() throws Exception {
+        
+        InitManagerDaoFactory.initNotExistedVersionModule();
+
+        String path = DBREVISION_CONFIGS+File.separatorChar+"config-5";
+        LocalDatabaseAdapter localDatabaseAdapter = new LocalDatabaseAdapter(null);
+        boolean isCorrect=false;
+        try {
+            new DbRevisionManager(localDatabaseAdapter, path);
+        }
+        catch (CurrentVersionCodeNotFoundException e) {
+            isCorrect=true;
+        }
+        assertTrue(isCorrect);
+    }
+
+    /**
+     * test not correted data in DB
+     *
+     * @throws Exception on error
+     */
+    public void testConfigValid_5_currentVersionInMiddleOfList() throws Exception {
+
+        InitManagerDaoFactory.initCurrentVersionInMiddleOfList();
+
+        String path = DBREVISION_CONFIGS+File.separatorChar+"config-valid";
+        LocalDatabaseAdapter localDatabaseAdapter = new LocalDatabaseAdapter(null);
         DbRevisionManager manager = new DbRevisionManager(localDatabaseAdapter, path);
+
+        List<Module> modules = manager.getModules();
+        assertNotNull(modules);
+        assertEquals(1, modules.size());
+
+        Module module = modules.get(0);
+        assertNotNull(module);
+
+        List<Version> versions = module.getVersions();
+        assertNotNull(versions);
+        assertEquals(2, versions.size());
+
+        Version currentVersion = module.getCurrentVersion();
+        assertNotNull(currentVersion);
+        assertEquals("5.7.2", currentVersion.getVersionName());
+        Version v;
+        v = currentVersion;
+        while (v!=null) {
+            assertTrue(v.isComplete());
+            v = v.getPreviousVersion();
+        }
+        assertEquals("5.7.0", v.getVersionName());
+
+        v = currentVersion.getNextVersion();
+        while (v!=null) {
+            assertFalse(v.isComplete());
+            v = v.getPreviousVersion();
+        }
+        assertEquals("5.8.0", v.getVersionName());
+
+    }
+
+    /**
+     * test not correted data in DB
+     *
+     * @throws Exception on error
+     */
+    public void testConfigValid_5() throws Exception {
+
+        String path = DBREVISION_CONFIGS+File.separatorChar+"config-valid-1";
+        LocalDatabaseAdapter localDatabaseAdapter = new LocalDatabaseAdapter(null);
+        DbRevisionManager manager = new DbRevisionManager(localDatabaseAdapter, path);
+
         List<Module> modules = manager.getModules();
         assertNotNull(modules);
         assertEquals(1, modules.size());
