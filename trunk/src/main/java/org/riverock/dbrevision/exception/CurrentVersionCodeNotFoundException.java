@@ -5,12 +5,12 @@ package org.riverock.dbrevision.exception;
  * Date: 28.07.2007
  * Time: 20:46:50
  */
-public class CurrentVersionCodeWrongException extends DbRevisionException {
+public class CurrentVersionCodeNotFoundException extends DbRevisionException {
 
     /**
      * Empty constructor
      */
-    public CurrentVersionCodeWrongException(){
+    public CurrentVersionCodeNotFoundException(){
         super();
     }
 
@@ -18,7 +18,7 @@ public class CurrentVersionCodeWrongException extends DbRevisionException {
      * Constructor
      * @param s describing exception
      */
-    public CurrentVersionCodeWrongException(String s){
+    public CurrentVersionCodeNotFoundException(String s){
         super(s);
     }
 
@@ -27,7 +27,7 @@ public class CurrentVersionCodeWrongException extends DbRevisionException {
      *
      * @param cause cause exception
      */
-    public CurrentVersionCodeWrongException(Throwable cause){
+    public CurrentVersionCodeNotFoundException(Throwable cause){
         super(cause);
     }
 
@@ -37,7 +37,7 @@ public class CurrentVersionCodeWrongException extends DbRevisionException {
      * @param s describing exception
      * @param cause cause exception
      */
-    public CurrentVersionCodeWrongException(String s, Throwable cause){
+    public CurrentVersionCodeNotFoundException(String s, Throwable cause){
         super(s, cause);
     }
 }

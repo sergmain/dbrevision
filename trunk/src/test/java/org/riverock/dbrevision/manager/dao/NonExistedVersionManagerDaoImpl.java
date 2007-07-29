@@ -10,12 +10,12 @@ import java.util.List;
  * Date: 29.07.2007
  * Time: 14:10:12
  */
-public class TestManagerDaoImpl implements ManagerDao {
+public class NonExistedVersionManagerDaoImpl implements ManagerDao {
     public List<RevisionBean> getRevisionBean() {
         List<RevisionBean> list = new ArrayList<RevisionBean>();
         RevisionBean bean = new RevisionBean();
         bean.setModuleName("webmill");
-        bean.setCurrentVerson("5.7.0");
+        bean.setCurrentVerson("5.x.x");
         bean.setComplete(true);
         bean.setLastProcessedStep(null);
         bean.setLastPatch(null);

@@ -23,7 +23,7 @@ public class Version {
 
     private DatabaseAdapter databaseAdapter=null;
 
-    private boolean isOld = true;
+    private boolean isComplete = true;
 
     private String versionName;
 
@@ -48,7 +48,18 @@ public class Version {
     }
 
     public void applay() {
-        
+    }
+
+    public Version getPreviousVersion() {
+        return previousVersion;
+    }
+
+    void setPreviousVersion(Version previousVersion) {
+        this.previousVersion = previousVersion;
+    }
+
+    public String getVersionName() {
+        return versionName;
     }
 
     public File getPatchPath() {
@@ -71,12 +82,12 @@ public class Version {
         return false;
     }
 
-    public boolean isOld() {
-        return isOld;
+    public boolean isComplete() {
+        return isComplete;
     }
 
-    void setOld(boolean old) {
-        isOld = old;
+    void setComplete(boolean complete) {
+        isComplete = complete;
     }
 
     public List<Patch> getPatches() {

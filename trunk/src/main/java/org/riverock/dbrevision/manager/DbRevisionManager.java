@@ -3,10 +3,15 @@ package org.riverock.dbrevision.manager;
 import org.riverock.dbrevision.Constants;
 import org.riverock.dbrevision.db.DatabaseAdapter;
 import org.riverock.dbrevision.exception.ConfigFileNotFoundException;
+import org.riverock.dbrevision.exception.CurrentVersionCodeNotFoundException;
 import org.riverock.dbrevision.exception.DbRevisionPathNotFoundException;
+import org.riverock.dbrevision.exception.ModuleNotConfiguredException;
+import org.riverock.dbrevision.manager.config.ConfigParserFactory;
 import org.riverock.dbrevision.manager.dao.ManagerDaoFactory;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -61,23 +66,15 @@ public class DbRevisionManager {
     }
 
     private void processConfigFile() {
-        Config config = parseConfigFiles();
+        Config config;
+        try {
+            config = ConfigParserFactory.getConfigParser().parse( new FileInputStream(configFile) );
+        } catch (FileNotFoundException e) {
+            throw new ConfigFileNotFoundException(e);
+        }
         for (ModuleConfig moduleConfig : config.getModuleConfigs()) {
             modules.add( new Module(databaseAdapter, path, moduleConfig) );
         }
-    }
-
-    private Config parseConfigFiles() {
-        Config config = new Config();
-
-        ModuleConfig moduleConfig = new ModuleConfig();
-        moduleConfig.setName("Webmill portal");
-        moduleConfig.setPath("webmill");
-        moduleConfig.getVersions().add("5.7.0");
-        moduleConfig.getVersions().add("5.7.1");
-
-        config.getModuleConfigs().add(moduleConfig);
-        return config;
     }
 
     List<Module> getModules() {
@@ -86,8 +83,61 @@ public class DbRevisionManager {
 
     private void prepareCurrentVersions() {
         List<RevisionBean> revisionBeans = ManagerDaoFactory.getManagerDao().getRevisionBean();
-        for (Module module : modules) {
-            
+        for (RevisionBean revisionBean : revisionBeans) {
+            Module module = getModule(revisionBean.getModuleName());
+            if (module!=null) {
+                markCurrentVersion(module, revisionBean);
+            }
+            else {
+                throw new ModuleNotConfiguredException("Module '"+ revisionBean.getModuleName()+"' not configured.");
+            }
         }
     }
+
+    private void markCurrentVersion(Module module, RevisionBean revisionBean) {
+        boolean isFound = false;
+        for (Version version : module.getVersions()) {
+            if (version.getVersionName().equals(revisionBean.getCurrentVerson())) {
+                markAllCompleteProccesedVesion(version, revisionBean);
+                isFound = true;
+                break;
+            }
+        }
+        if (!isFound) {
+            throw new CurrentVersionCodeNotFoundException(
+                    "Current version '"+revisionBean.getCurrentVerson()+"' not exist in configuration for module '"+revisionBean.getModuleName()+"'. " +
+                            "Check '<db-revision-path>/config.xml' file."
+            );
+        }
+    }
+
+    private void markAllCompleteProccesedVesion(Version version, RevisionBean revisionBean) {
+        Version v;
+        if (revisionBean.isComplete()) {
+            v = version;
+        }
+        else {
+            v = version.getPreviousVersion();
+        }
+        while (v!=null) {
+            v.setComplete(true);
+            v = v.getPreviousVersion();
+        }
+    }
+
+/*
+    private Config parseConfigFiles() {
+        Config config = new Config();
+
+        ModuleConfig moduleConfig = new ModuleConfig();
+        moduleConfig.setDescription("Webmill portal");
+        moduleConfig.setName("webmill");
+        moduleConfig.getVersions().add("5.7.0");
+        moduleConfig.getVersions().add("5.7.1");
+
+        config.getModuleConfigs().add(moduleConfig);
+        return config;
+    }
+*/
+
 }
