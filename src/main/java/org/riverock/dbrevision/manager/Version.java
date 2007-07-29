@@ -23,7 +23,7 @@ public class Version {
 
     private DatabaseAdapter databaseAdapter=null;
 
-    private boolean isComplete = true;
+    private boolean isComplete = false;
 
     private String versionName;
 

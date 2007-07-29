@@ -212,25 +212,26 @@ public class TestDbRevisionManager extends TestCase {
 
         List<Version> versions = module.getVersions();
         assertNotNull(versions);
-        assertEquals(2, versions.size());
+        assertEquals(4, versions.size());
 
         Version currentVersion = module.getCurrentVersion();
         assertNotNull(currentVersion);
         assertEquals("5.7.2", currentVersion.getVersionName());
-        Version v;
-        v = currentVersion;
+        assertEquals("5.8.0", module.getLastVersion().getVersionName());
+        assertEquals("5.7.0", module.getFirstVersion().getVersionName());
+
+
+        Version v = currentVersion;
         while (v!=null) {
             assertTrue(v.isComplete());
             v = v.getPreviousVersion();
         }
-        assertEquals("5.7.0", v.getVersionName());
 
         v = currentVersion.getNextVersion();
         while (v!=null) {
             assertFalse(v.isComplete());
             v = v.getPreviousVersion();
         }
-        assertEquals("5.8.0", v.getVersionName());
 
     }
 

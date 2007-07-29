@@ -13,6 +13,10 @@ public class ModuleConfig {
     private String name;
     private List<String> versions=new ArrayList<String>();
 
+    public void addVersion(String version) {
+        versions.add(version);
+    }
+
     public String getDescription() {
         return description;
     }

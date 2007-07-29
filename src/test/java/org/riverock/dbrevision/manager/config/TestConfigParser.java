@@ -18,8 +18,9 @@ public class TestConfigParser extends TestCase {
         Config config = ConfigParserFactory.getConfigParser().parse(inputStream );
         assertNotNull(config);
         assertNotNull(config.getModuleConfigs());
-        assertEquals(1, config.getModuleConfigs().size());
-        ModuleConfig moduleConfig = config.getModuleConfigs().get(0);
+        assertEquals(2, config.getModuleConfigs().size());
+        ModuleConfig moduleConfig;
+        moduleConfig = config.getModuleConfigs().get(0);
         assertNotNull(moduleConfig);
         assertEquals("Webmill portal", moduleConfig.getDescription());
         assertEquals("webmill", moduleConfig.getName());
@@ -29,5 +30,16 @@ public class TestConfigParser extends TestCase {
         assertEquals("5.7.1", moduleConfig.getVersions().get(1));
         assertEquals("5.7.2", moduleConfig.getVersions().get(2));
         assertEquals("5.8.0", moduleConfig.getVersions().get(3));
+
+        moduleConfig = config.getModuleConfigs().get(1);
+        assertNotNull(moduleConfig);
+        assertEquals("Second module", moduleConfig.getDescription());
+        assertEquals("second-module", moduleConfig.getName());
+        assertNotNull(moduleConfig.getVersions());
+        assertEquals(2, moduleConfig.getVersions().size());
+        assertEquals("1.0.0", moduleConfig.getVersions().get(0));
+        assertEquals("1.1.0", moduleConfig.getVersions().get(1));
+
+
     }
 }

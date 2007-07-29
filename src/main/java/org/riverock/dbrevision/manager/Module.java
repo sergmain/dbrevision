@@ -3,6 +3,7 @@ package org.riverock.dbrevision.manager;
 import org.riverock.dbrevision.db.DatabaseAdapter;
 import org.riverock.dbrevision.exception.FirstVersionWithPatchdException;
 import org.riverock.dbrevision.exception.ModulePathNotFoundException;
+import org.riverock.dbrevision.exception.CurrentVersionNotDefinedException;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -59,13 +60,30 @@ public class Module {
     }
 
     public Version getCurrentVersion() {
+        Version v=null;
+        for (Version version : versions) {
+            if (version.isComplete()) {
+                v = version;
+            }
+        }
+        if (v==null) {
+            throw new CurrentVersionNotDefinedException();
+        }
+        return v;
+    }
 
-        return null;
+    public Version getFirstVersion() {
+        if (versions.isEmpty()) {
+            return null;
+        }
+        return versions.get(0);
     }
 
     public Version getLastVersion() {
-
-        return null;
+        if (versions.isEmpty()) {
+            return null;
+        }
+        return versions.get(versions.size()-1);
     }
 
     public void applay() {
