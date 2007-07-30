@@ -25,9 +25,10 @@
  */
 package org.riverock.dbrevision.utils;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.PreparedStatement;
+import java.sql.Statement;
 import java.sql.Types;
 
 import org.apache.log4j.Logger;
@@ -145,6 +146,36 @@ public class DbUtils {
         catch (SQLException exc) {
             log.error("Error get String field '" + f + "' from ResultSet, sql error code ", exc);
             throw exc;
+        }
+    }
+
+    public static void close(final ResultSet rs, final Statement st) {
+        if (rs != null) {
+            try {
+                rs.close();
+            }
+            catch (Exception e01) {
+                // catch SQLException
+            }
+        }
+        if (st != null) {
+            try {
+                st.close();
+            }
+            catch (Exception e02) {
+                // catch SQLException
+            }
+        }
+    }
+
+    public static void close(final Statement st) {
+        if (st != null) {
+            try {
+                st.close();
+            }
+            catch (SQLException e201) {
+                // catch SQLException
+            }
         }
     }
 }

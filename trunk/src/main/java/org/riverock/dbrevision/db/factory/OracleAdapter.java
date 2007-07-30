@@ -26,36 +26,36 @@
 package org.riverock.dbrevision.db.factory;
 
 import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Blob;
+import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
-import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 
-import oracle.jdbc.OracleResultSet;
-import oracle.sql.CLOB;
 import org.apache.log4j.Logger;
 
-import org.riverock.dbrevision.db.DatabaseAdapter;
-import org.riverock.dbrevision.db.DatabaseManager;
-import org.riverock.dbrevision.annotation.schema.db.DbView;
-import org.riverock.dbrevision.annotation.schema.db.DbTable;
-import org.riverock.dbrevision.annotation.schema.db.DbField;
-import org.riverock.dbrevision.annotation.schema.db.DbSequence;
-import org.riverock.dbrevision.annotation.schema.db.DbImportedPKColumn;
+import oracle.jdbc.OracleResultSet;
+import oracle.sql.CLOB;
+
 import org.riverock.dbrevision.annotation.schema.db.DbDataFieldData;
-import org.riverock.dbrevision.annotation.schema.db.CustomSequence;
+import org.riverock.dbrevision.annotation.schema.db.DbField;
+import org.riverock.dbrevision.annotation.schema.db.DbImportedPKColumn;
 import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKey;
 import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKeyColumn;
-import org.riverock.dbrevision.utils.DbUtils;
+import org.riverock.dbrevision.annotation.schema.db.DbSequence;
+import org.riverock.dbrevision.annotation.schema.db.DbTable;
+import org.riverock.dbrevision.annotation.schema.db.DbView;
+import org.riverock.dbrevision.db.DatabaseAdapter;
+import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.exception.DbRevisionException;
+import org.riverock.dbrevision.utils.DbUtils;
 
 /**
  * Класс OracleAdapter прденазначен для коннекта к оракловской базе данных.
@@ -239,7 +239,7 @@ public class OracleAdapter extends DatabaseAdapter {
             throw new DbRevisionException(e);
         }
         finally {
-            DatabaseManager.close(ps);
+            DbUtils.close(ps);
             ps = null;
         }
 
@@ -279,7 +279,7 @@ public class OracleAdapter extends DatabaseAdapter {
             throw new DbRevisionException(e);
         }
         finally {
-            DatabaseManager.close(ps);
+            DbUtils.close(ps);
             ps = null;
         }
     }
@@ -298,7 +298,7 @@ public class OracleAdapter extends DatabaseAdapter {
             throw new DbRevisionException(e);
         }
         finally {
-            DatabaseManager.close(ps);
+            DbUtils.close(ps);
             ps = null;
         }
     }
@@ -396,7 +396,7 @@ public class OracleAdapter extends DatabaseAdapter {
             throw new DbRevisionException(e);
         }
         finally {
-            DatabaseManager.close(ps);
+            DbUtils.close(ps);
             ps = null;
         }
     }
@@ -445,7 +445,7 @@ public class OracleAdapter extends DatabaseAdapter {
         catch (SQLException e) {
             throw new DbRevisionException(e);
         } finally {
-            DatabaseManager.close(rs, ps);
+            DbUtils.close(rs, ps);
             rs = null;
             ps = null;
         }
@@ -480,7 +480,7 @@ public class OracleAdapter extends DatabaseAdapter {
         } catch (IOException e) {
             throw new DbRevisionException(e);
         } finally {
-            DatabaseManager.close(rs, ps);
+            DbUtils.close(rs, ps);
             rs = null;
             ps = null;
         }
@@ -502,7 +502,7 @@ public class OracleAdapter extends DatabaseAdapter {
         catch (SQLException e) {
             throw new DbRevisionException(e);
         } finally {
-            DatabaseManager.close(ps);
+            DbUtils.close(ps);
             ps = null;
         }
     }
@@ -548,7 +548,7 @@ public class OracleAdapter extends DatabaseAdapter {
             throw new DbRevisionException(e);
         }
         finally {
-            DatabaseManager.close(ps);
+            DbUtils.close(ps);
             ps = null;
         }
     }
@@ -623,34 +623,6 @@ public class OracleAdapter extends DatabaseAdapter {
             return ret;
         else
             return null;
-    }
-
-    public long getSequenceNextValue(CustomSequence seq)
-        throws SQLException {
-        if (seq == null)
-            return -1;
-
-        long id_ = -1;
-
-        String sql_ = "select " + seq.getSequenceName() + ".nextval from dual";
-        PreparedStatement ps = null;
-        ResultSet rs = null;
-        try {
-            ps = this.getConnection().prepareStatement(sql_);
-
-            rs = ps.executeQuery();
-
-            if (rs.next())
-                id_ = rs.getLong(1);
-
-        }
-        finally {
-            DatabaseManager.close(rs, ps);
-            rs = null;
-            ps = null;
-        }
-
-        return id_;
     }
 
     public boolean testExceptionTableNotFound(Exception e) {

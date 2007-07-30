@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<riverock-db-stuct:SchemaElement xmlns:riverock-db-stuct="http://generic.riverock.org/xsd/riverock-database-structure.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://generic.riverock.org/xsd/riverock-database-structure.xsd
+riverock-database-structure.xsd">
+
+	<Tables schema="TEST" name="WM_PORTAL_IDS" type="TABLE">
+		<Fields name="sequence_name" dataType="VARCHAR2" javaType="12" javaStringType="java.sql.Types.VARCHAR" size="50" nullable="1"/>
+		<Fields name="sequence_next_value" dataType="NUMBER" javaType="3" javaStringType="java.sql.Types.DECIMAL" size="10" decimalDigit="0" nullable="1"/>
+	</Tables>
+	<Tables schema="TEST" name="WM_AUTH_ACCESS_GROUP" type="TABLE">
+		<PrimaryKey>
+			<columns schemaName="TEST" tableName="WM_AUTH_ACCESS_GROUP" columnName="ID_ACCESS_GROUP" keySeq="1" pkName="ID_AG_AAG_PK"/>
+		</PrimaryKey>
+		<Fields name="ID_ACCESS_GROUP" dataType="NUMBER" javaType="3" javaStringType="java.sql.Types.DECIMAL" size="10" decimalDigit="0" nullable="0"/>
+		<Fields name="NAME_ACCESS_GROUP" dataType="VARCHAR2" javaType="12" javaStringType="java.sql.Types.VARCHAR" size="100" nullable="1"/>
+	</Tables>
+
+	<Sequences name="SEQ_WM_PRICE_QUERY_TABLE" minValue="1" maxValue="999999999999999999999999" incrementBy="1" isCycle="false" isOrder="false" cacheSize="0" lastNumber="29"/>
+</riverock-db-stuct:SchemaElement>

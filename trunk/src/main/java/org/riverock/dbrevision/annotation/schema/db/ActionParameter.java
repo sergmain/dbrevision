@@ -11,20 +11,24 @@ package org.riverock.dbrevision.annotation.schema.db;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for DbKeyActionRule complex type.
+ * <p>Java class for anonymous complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="DbKeyActionRule">
+ * &lt;complexType>
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;attribute name="ruleName" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="ruleType" type="{http://www.w3.org/2001/XMLSchema}int" />
+ *       &lt;sequence>
+ *         &lt;element name="Data" type="{http://www.w3.org/2001/XMLSchema}string"/>
+ *       &lt;/sequence>
+ *       &lt;attribute name="name" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
  *     &lt;/restriction>
  *   &lt;/complexContent>
  * &lt;/complexType>
@@ -33,60 +37,63 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "DbKeyActionRule")
-public class DbKeyActionRule {
+@XmlType(name = "", propOrder = {
+    "data"
+})
+@XmlRootElement(name = "ActionParameter", namespace = "")
+public class ActionParameter {
 
-    @XmlAttribute
-    protected String ruleName;
-    @XmlAttribute
-    protected Integer ruleType;
+    @XmlElement(name = "Data", required = true)
+    protected String data;
+    @XmlAttribute(required = true)
+    protected String name;
 
     /**
-     * Gets the value of the ruleName property.
+     * Gets the value of the data property.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getRuleName() {
-        return ruleName;
+    public String getData() {
+        return data;
     }
 
     /**
-     * Sets the value of the ruleName property.
+     * Sets the value of the data property.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setRuleName(String value) {
-        this.ruleName = value;
+    public void setData(String value) {
+        this.data = value;
     }
 
     /**
-     * Gets the value of the ruleType property.
+     * Gets the value of the name property.
      * 
      * @return
      *     possible object is
-     *     {@link Integer }
+     *     {@link String }
      *     
      */
-    public Integer getRuleType() {
-        return ruleType;
+    public String getName() {
+        return name;
     }
 
     /**
-     * Sets the value of the ruleType property.
+     * Sets the value of the name property.
      * 
      * @param value
      *     allowed object is
-     *     {@link Integer }
+     *     {@link String }
      *     
      */
-    public void setRuleType(Integer value) {
-        this.ruleType = value;
+    public void setName(String value) {
+        this.name = value;
     }
 
 }

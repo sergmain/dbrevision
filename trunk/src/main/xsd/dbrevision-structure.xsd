@@ -39,10 +39,9 @@
 	<xs:element name="SchemaElement" type="dbrevision-structure:DbSchema"/>
 	<xs:complexType name="DbSchema">
 		<xs:sequence>
-			<xs:element name="Tables" type="dbrevision-structure:DbTable" minOccurs="0" maxOccurs="unbounded"/>
-			<xs:element name="Views" type="dbrevision-structure:DbView" minOccurs="0" maxOccurs="unbounded"/>
-			<xs:element name="Sequences" type="dbrevision-structure:DbSequence" minOccurs="0" maxOccurs="unbounded"/>
-			<xs:element name="BigTextTable" type="dbrevision-structure:DbBigTextTable" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="Table" type="dbrevision-structure:DbTable" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="View" type="dbrevision-structure:DbView" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="Sequence" type="dbrevision-structure:DbSequence" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
 	</xs:complexType>
 	<xs:complexType name="DbAbstractTable" abstract="true">
@@ -70,8 +69,8 @@
 			<xs:extension base="dbrevision-structure:DbAbstractTable">
 				<xs:sequence>
 					<xs:element name="PrimaryKey" type="dbrevision-structure:DbPrimaryKey" minOccurs="0"/>
-					<xs:element name="Fields" type="dbrevision-structure:DbField" minOccurs="0" maxOccurs="unbounded"/>
-					<xs:element name="ImportedKeys" type="dbrevision-structure:DbImportedPKColumn" minOccurs="0" maxOccurs="unbounded"/>
+					<xs:element name="Field" type="dbrevision-structure:DbField" minOccurs="0" maxOccurs="unbounded"/>
+					<xs:element name="ImportedKey" type="dbrevision-structure:DbImportedPKColumn" minOccurs="0" maxOccurs="unbounded"/>
 					<xs:element name="Data" type="dbrevision-structure:DbDataTable" minOccurs="0"/>
 				</xs:sequence>
 			</xs:extension>
@@ -92,22 +91,6 @@
 		<xs:attribute name="isOrder" type="xs:boolean"/>
 		<xs:attribute name="cacheSize" type="xs:int"/>
 		<xs:attribute name="lastNumber" type="xs:long" use="required"/>
-	</xs:complexType>
-	<xs:complexType name="DbSequenceList">
-		<xs:sequence>
-			<xs:element name="Sequences" type="dbrevision-structure:DbSequence" minOccurs="0" maxOccurs="unbounded"/>
-		</xs:sequence>
-	</xs:complexType>
-	<xs:complexType name="DbBigTextTable">
-		<xs:sequence>
-			<xs:element name="MasterTable" type="xs:string"/>
-			<xs:element name="SlaveTable" type="xs:string"/>
-			<xs:element name="MasterPkField" type="xs:string"/>
-			<xs:element name="SlavePkField" type="xs:string"/>
-			<xs:element name="SlaveFkField" type="xs:string"/>
-			<xs:element name="StorageField" type="xs:string"/>
-			<xs:element name="SequenceName" type="xs:string"/>
-		</xs:sequence>
 	</xs:complexType>
 	<xs:complexType name="DbField">
 		<xs:attribute name="name" type="xs:string" use="required"/>
@@ -170,12 +153,12 @@
 	</xs:complexType>
 	<xs:complexType name="DbDataTable">
 		<xs:sequence>
-			<xs:element name="Records" type="dbrevision-structure:DbDataRecord" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="Record" type="dbrevision-structure:DbDataRecord" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
 	</xs:complexType>
 	<xs:complexType name="DbDataRecord">
 		<xs:sequence>
-			<xs:element name="FieldsData" type="dbrevision-structure:DbDataFieldData" maxOccurs="unbounded"/>
+			<xs:element name="FieldData" type="dbrevision-structure:DbDataFieldData" maxOccurs="unbounded"/>
 		</xs:sequence>
 	</xs:complexType>
 	<xs:complexType name="DbDataFieldData">

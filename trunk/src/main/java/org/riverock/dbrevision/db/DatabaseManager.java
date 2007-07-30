@@ -25,7 +25,13 @@
  */
 package org.riverock.dbrevision.db;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -33,10 +39,16 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
-import org.riverock.dbrevision.annotation.schema.db.*;
-import org.riverock.dbrevision.utils.DbUtils;
-import org.riverock.dbrevision.utils.Utils;
+import org.riverock.dbrevision.annotation.schema.db.DbField;
+import org.riverock.dbrevision.annotation.schema.db.DbImportedPKColumn;
+import org.riverock.dbrevision.annotation.schema.db.DbKeyActionRule;
+import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKey;
+import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKeyColumn;
+import org.riverock.dbrevision.annotation.schema.db.DbSchema;
+import org.riverock.dbrevision.annotation.schema.db.DbTable;
+import org.riverock.dbrevision.annotation.schema.db.DbView;
 import org.riverock.dbrevision.exception.DbRevisionException;
+import org.riverock.dbrevision.utils.DbUtils;
 
 /**
  * User: Admin
@@ -51,61 +63,15 @@ public final class DatabaseManager {
 
     private static final String DEFAULT_DATE_VALUES[] = {"sysdate", "current_timestamp", "current_time", "current_date"};
 
-    public static final String NUMBER_TYPE = "number";
-    public static final String STRING_TYPE = "string";
-    public static final String DATE_TYPE = "date";
-
-    private static final int UNKNOWN_TYPE_VALUE = 0;
-    private static final int NUMBER_TYPE_VALUE = 1;
-    private static final int STRING_TYPE_VALUE = 2;
-    private static final int DATE_TYPE_VALUE = 3;
-
-    private static Map<String, Integer> dataType = new HashMap<String, Integer>();
     public static final DbPkComparator pkComparator = new DbPkComparator();
 
-    static {
-        dataType.put(NUMBER_TYPE, NUMBER_TYPE_VALUE);
-        dataType.put(STRING_TYPE, STRING_TYPE_VALUE);
-        dataType.put(DATE_TYPE, DATE_TYPE_VALUE);
-    }
-
-    public static void close(final ResultSet rs, final Statement st) {
-        if (rs != null) {
-            try {
-                rs.close();
-            }
-            catch (Exception e01) {
-                // catch SQLException
-            }
-        }
-        if (st != null) {
-            try {
-                st.close();
-            }
-            catch (Exception e02) {
-                // catch SQLException
-            }
-        }
-    }
-
-    public static void close(final Statement st) {
-        if (st != null) {
-            try {
-                st.close();
-            }
-            catch (SQLException e201) {
-                // catch SQLException
-            }
-        }
-    }
-
-    public static void addPrimaryKey(final DatabaseAdapter db_, final DbTable table, final DbPrimaryKey pk)
-        throws Exception {
+    public static void addPrimaryKey(final DatabaseAdapter db_, final DbTable table, final DbPrimaryKey pk) {
         if (table == null) {
             String s = "Add primary key failed - table object is null";
             System.out.println(s);
-            if (log.isInfoEnabled())
+            if (log.isInfoEnabled()) {
                 log.info(s);
+            }
 
             return;
         }
@@ -115,8 +81,9 @@ public final class DatabaseManager {
         if (checkPk != null && checkPk.getColumns().size() != 0) {
             String s = "primary key already exists";
             System.out.println(s);
-            if (log.isInfoEnabled())
+            if (log.isInfoEnabled()) {
                 log.info(s);
+            }
 
             return;
         }
@@ -132,11 +99,11 @@ public final class DatabaseManager {
 
     public static void copyData(
         final DatabaseAdapter db_, final DbTable fieldsList, final String sourceTable, final String targetTableName
-    )
-        throws Exception {
+    ) {
         if (fieldsList == null || sourceTable == null || targetTableName == null) {
-            if (log.isInfoEnabled())
+            if (log.isInfoEnabled()) {
                 log.info("copy data failed, some objects is null");
+            }
 
             return;
         }
@@ -146,7 +113,8 @@ public final class DatabaseManager {
         for (DbField DbField : fieldsList.getFields()) {
             if (isNotFirst) {
                 fields += ", ";
-            } else {
+            }
+            else {
                 isNotFirst = true;
             }
             fields += DbField.getName();
@@ -170,21 +138,21 @@ public final class DatabaseManager {
 
             log.error(errorString, e);
             System.out.println(errorString);
-            throw e;
+            throw new DbRevisionException(e);
         }
         finally {
-            close(ps);
+            DbUtils.close(ps);
             ps = null;
         }
     }
 
     public static void copyFieldData(
         final DatabaseAdapter db_, final DbTable table, final DbField sourceField, final DbField targetField
-    )
-        throws Exception {
+    ) {
         if (table == null || sourceField == null || targetField == null) {
-            if (log.isInfoEnabled())
+            if (log.isInfoEnabled()) {
                 log.info("copy field data failed, some objects is null");
+            }
 
             return;
         }
@@ -204,16 +172,15 @@ public final class DatabaseManager {
 
             log.error(errorString, e);
             System.out.println(errorString);
-            throw e;
+            throw new DbRevisionException(e);
         }
         finally {
-            close(ps);
+            DbUtils.close(ps);
             ps = null;
         }
     }
 
-    public static void duplicateTable(final DatabaseAdapter db_, final DbTable srcTable, final String targetTableName)
-        throws Exception {
+    public static void duplicateTable(final DatabaseAdapter db_, final DbTable srcTable, final String targetTableName) {
         if (srcTable == null) {
             log.error("duplicate table failed, source table object is null");
             return;
@@ -241,8 +208,9 @@ public final class DatabaseManager {
     }
 
     public static DbImportedPKColumn cloneDescriptionFK(final DbImportedPKColumn srcFk) {
-        if (srcFk == null)
+        if (srcFk == null) {
             return null;
+        }
 
         DbImportedPKColumn f = new DbImportedPKColumn();
         f.setDeferrability(srcFk.getDeferrability());
@@ -262,8 +230,9 @@ public final class DatabaseManager {
     }
 
     public static DbPrimaryKey cloneDescriptionPK(final DbPrimaryKey srcPk) {
-        if (srcPk == null)
+        if (srcPk == null) {
             return null;
+        }
 
         DbPrimaryKey pk = new DbPrimaryKey();
         for (DbPrimaryKeyColumn column : srcPk.getColumns()) {
@@ -274,8 +243,9 @@ public final class DatabaseManager {
     }
 
     public static DbField cloneDescriptionField(final DbField srcField) {
-        if (srcField == null)
+        if (srcField == null) {
             return null;
+        }
 
         DbField f = new DbField();
         f.setApplType(srcField.getApplType());
@@ -299,8 +269,9 @@ public final class DatabaseManager {
      * @return DbTable cloned table
      */
     public static DbTable cloneDescriptionTable(final DbTable srcTable) {
-        if (srcTable == null)
+        if (srcTable == null) {
             return null;
+        }
 
         DbTable r = new DbTable();
 
@@ -325,14 +296,16 @@ public final class DatabaseManager {
     }
 
     public static DbField getFieldFromStructure(final DbSchema schema, final String tableName, final String fieldName) {
-        if (schema == null || tableName == null || fieldName == null)
+        if (schema == null || tableName == null || fieldName == null) {
             return null;
+        }
 
         for (DbTable DbTable : schema.getTables()) {
             if (tableName.equalsIgnoreCase(DbTable.getName())) {
                 for (DbField DbField : DbTable.getFields()) {
-                    if (fieldName.equalsIgnoreCase(DbField.getName()))
+                    if (fieldName.equalsIgnoreCase(DbField.getName())) {
                         return DbField;
+                    }
                 }
             }
 
@@ -368,38 +341,44 @@ public final class DatabaseManager {
     }
 
     public static boolean isFieldForeignKey(final DbTable table, final DbField field) {
-        if (table == null || field == null)
+        if (table == null || field == null) {
             return false;
+        }
 
         for (DbImportedPKColumn DbImportedPKColumn : table.getImportedKeys()) {
             if (table.getName().equalsIgnoreCase(DbImportedPKColumn.getFkTableName()) &&
-                field.getName().equalsIgnoreCase(DbImportedPKColumn.getFkColumnName()))
+                field.getName().equalsIgnoreCase(DbImportedPKColumn.getFkColumnName())) {
                 return true;
+            }
         }
         return false;
     }
 
     public static boolean isFieldPrimaryKey(final DbTable table, final DbField field) {
-        if (table == null || field == null)
+        if (table == null || field == null) {
             return false;
+        }
 
         DbPrimaryKey pk = table.getPrimaryKey();
         for (DbPrimaryKeyColumn DbPrimaryKeyColumn : pk.getColumns()) {
-            if (field.getName().equalsIgnoreCase(DbPrimaryKeyColumn.getColumnName()))
+            if (field.getName().equalsIgnoreCase(DbPrimaryKeyColumn.getColumnName())) {
                 return true;
+            }
         }
         return false;
     }
 
     public static boolean isFieldExists(final DbSchema schema, final DbTable table, final DbField field) {
-        if (schema == null || table == null || field == null)
+        if (schema == null || table == null || field == null) {
             return false;
+        }
 
         for (DbTable DbTable : schema.getTables()) {
             if (table.getName().equalsIgnoreCase(DbTable.getName())) {
                 for (DbField DbField : DbTable.getFields()) {
-                    if (field.getName().equalsIgnoreCase(DbField.getName()))
+                    if (field.getName().equalsIgnoreCase(DbField.getName())) {
                         return true;
+                    }
                 }
             }
         }
@@ -407,12 +386,14 @@ public final class DatabaseManager {
     }
 
     public static boolean isTableExists(final DbSchema schema, final DbTable table) {
-        if (schema == null || table == null)
+        if (schema == null || table == null) {
             return false;
+        }
 
         for (DbTable DbTable : schema.getTables()) {
-            if (table.getName().equalsIgnoreCase(DbTable.getName()))
+            if (table.getName().equalsIgnoreCase(DbTable.getName())) {
                 return true;
+            }
         }
         return false;
     }
@@ -465,12 +446,14 @@ public final class DatabaseManager {
         }
 
         for (boolean anIdx : idx) {
-            if (anIdx)
+            if (anIdx) {
                 continue;
+            }
 
             for (int i = 0; i < idx.length; i++) {
-                if (idx[i])
+                if (idx[i]) {
                     continue;
+                }
 
                 DbView view = millSchema.getViews().get(i);
                 try {
@@ -527,8 +510,9 @@ public final class DatabaseManager {
                 table.setType(meta.getString("TABLE_TYPE"));
                 table.setRemark(meta.getString("REMARKS"));
 
-                if (log.isDebugEnabled())
+                if (log.isDebugEnabled()) {
                     log.debug("View - " + table.getName() + "  remak - " + table.getRemark());
+                }
 
                 v.add(table);
             }
@@ -541,21 +525,24 @@ public final class DatabaseManager {
     }
 
     public static boolean isSkipTable(final String table) {
-        if (table == null)
+        if (table == null) {
             return false;
+        }
 
         String s = table.trim();
 
         String fullCheck[] = {"SQLN_EXPLAIN_PLAN", "DBG", "CHAINED_ROWS"};
         for (String aFullCheck : fullCheck) {
-            if (aFullCheck.equalsIgnoreCase(s))
+            if (aFullCheck.equalsIgnoreCase(s)) {
                 return true;
+            }
         }
 
         String startCheck[] = {"F_D_", "FOR_DEL_", "F_DEL_", "FOR_D_"};
         for (String aStartCheck : startCheck) {
-            if (s.toLowerCase().startsWith(aStartCheck.toLowerCase()))
+            if (s.toLowerCase().startsWith(aStartCheck.toLowerCase())) {
                 return true;
+            }
         }
 
         return false;
@@ -565,8 +552,9 @@ public final class DatabaseManager {
         for (DbImportedPKColumn checkKey : table.getImportedKeys()) {
             if (checkKey.getFkColumnName().equals(key.getFkColumnName()) &&
                 checkKey.getKeySeq() != key.getKeySeq()
-                )
+                ) {
                 return true;
+            }
         }
         return false;
     }
@@ -579,8 +567,9 @@ public final class DatabaseManager {
      * @return true, if value is date, otherwise false
      */
     public static boolean checkDefaultTimestamp(final String val) {
-        if (val == null)
+        if (val == null) {
             return false;
+        }
 
         String s = val.trim().toLowerCase();
         for (String aCheck : DEFAULT_DATE_VALUES) {
@@ -589,227 +578,6 @@ public final class DatabaseManager {
             }
         }
         return false;
-    }
-
-    /**
-     * @param adapter db adapter
-     * @param idRec             - value of PK in main table
-     * @param pkName            - name PK in main table
-     * @param pkType            - type of PK in main table
-     * @param nameTargetTable   - name of slave table
-     * @param namePkTargetTable - name of PK in slave table
-     * @param nameTargetField   - name of filed with BigText data in slave table
-     * @param insertString      - insert string
-     * @param isDelete          - delete data from slave table before insert true/false
-     */
-    public static void insertBigText(
-        final DatabaseAdapter adapter, final Object idRec, final String pkName,
-        final PrimaryKey pkType,
-        final String nameTargetTable,
-        final String namePkTargetTable,
-        final String nameTargetField,
-        final String insertString,
-        final boolean isDelete
-    ) {
-        if (pkType.getType() == null) {
-            throw new IllegalStateException("type of PK is null");
-        }
-        String sql_ = null;
-        try {
-
-            if (log.isDebugEnabled()) log.debug("First delete data flag - " + isDelete);
-
-            if (isDelete)
-                deleteFromBigTable(adapter, nameTargetTable, pkName, pkType, idRec);
-
-            PreparedStatement ps1 = null;
-            try {
-
-                log.debug("Start insert dta in bigtext field ");
-
-                int pos = 0;
-                int prevPos = 0;
-                int maxByte = adapter.getMaxLengthStringField();
-
-                sql_ =
-                    "insert into " + nameTargetTable +
-                        "(" + namePkTargetTable + "," + pkName + "," + nameTargetField + ")" +
-                        "values" +
-                        "(?,?,?)";
-
-                if (log.isDebugEnabled()) log.debug("insert bigtext. sql 2 - " + sql_);
-
-                byte b[] = Utils.getBytesUTF(insertString);
-
-                ps1 = adapter.getConnection().prepareStatement(sql_);
-                while ((pos = Utils.getStartUTF(b, maxByte, pos)) != -1) {
-                    if (log.isDebugEnabled()) log.debug("Name sequence - " + "seq_" + nameTargetTable);
-
-                    CustomSequence seq = new CustomSequence();
-                    seq.setSequenceName("seq_" + nameTargetTable);
-                    seq.setTableName(nameTargetTable);
-                    seq.setColumnName(namePkTargetTable);
-                    long idSeq = adapter.getSequenceNextValue(seq);
-
-                    if (log.isDebugEnabled()) log.debug("Bind param #1" + idSeq);
-
-                    ps1.setLong(1, idSeq);
-
-                    Integer type = dataType.get(pkType.getType().toLowerCase());
-                    if (type == null) {
-                        log.warn("Integer value of primary not found. PK type: " + pkType.getType().toLowerCase());
-                        type = UNKNOWN_TYPE_VALUE;
-                    }
-
-                    switch (type) {
-                        case NUMBER_TYPE_VALUE:
-
-                            if (log.isDebugEnabled()) log.debug("Bind param #2 " + idRec);
-
-                            ps1.setLong(2, ((Long) idRec));
-                            break;
-
-                        case STRING_TYPE_VALUE:
-                            if (log.isDebugEnabled()) log.debug("Bind param #2 " + idRec);
-
-                            ps1.setString(2, (String) idRec);
-                            break;
-                        case DATE_TYPE_VALUE:
-/*
-                        if (content.getQueryArea().getPrimaryKeyMask()==null ||
-                            content.getQueryArea().getPrimaryKeyMask().trim().length()==0)
-                            throw new Exception("date mask for primary key not specified");
-
-                        primaryKeyValue = DbUtils.getStringDate(rs, content.getQueryArea().getPrimaryKey(),
-                            content.getQueryArea().getPrimaryKeyMask(), "error", Locale.ENGLISH);
-*/
-                            throw new Exception("Type of PK 'date' for big_text not implemented");
-
-                        default:
-                            throw new Exception("Wrong type of primary key");
-                    }
-
-                    String s = new String(b, prevPos, pos - prevPos, "utf-8");
-
-                    if (log.isDebugEnabled()) log.debug("Bind param #3 " + s);
-
-                    ps1.setString(3, s);
-
-                    int count = ps1.executeUpdate();
-
-                    if (log.isDebugEnabled()) log.debug("number of updated records - " + count);
-
-                    ps1.clearParameters();
-                    prevPos = pos;
-
-                }
-            }
-            finally {
-                close(ps1);
-                ps1 = null;
-            }
-        }
-        catch (Exception e) {
-            log.error("Error insert dat in bigText field.\nSql:\n" + sql_, e);
-            throw new DbRevisionException(e);
-        }
-    }
-
-    public static void deleteFromBigTable(final DatabaseAdapter dbDyn, final String nameTargetTable, final String pkName, final PrimaryKey pkType, final Object idRec) throws Exception {
-        if (pkType.getType() == null) {
-            throw new IllegalStateException("type of PK is null");
-        }
-        PreparedStatement ps = null;
-        try {
-            String sql_ = "delete from " + nameTargetTable + " where " + pkName + "=?";
-            if (log.isDebugEnabled()) log.debug("#13.07.01 " + sql_);
-
-            ps = dbDyn.getConnection().prepareStatement(sql_);
-
-            Integer type = dataType.get(pkType.getType().toLowerCase());
-            if (type == null) {
-                log.warn("Integer value of primary not found. PK type: " + pkType.getType().toLowerCase());
-                type = UNKNOWN_TYPE_VALUE;
-            }
-            switch (type) {
-                case NUMBER_TYPE_VALUE:
-                    if (log.isDebugEnabled()) log.debug("#88.01.02 " + idRec.getClass().getName());
-
-                    ps.setLong(1, ((Long) idRec));
-                    break;
-                case STRING_TYPE_VALUE:
-                    ps.setString(1, (String) idRec);
-                    break;
-                case DATE_TYPE_VALUE:
-/*
-                        if (content.getQueryArea().getPrimaryKeyMask()==null ||
-                            content.getQueryArea().getPrimaryKeyMask().trim().length()==0)
-                            throw new Exception("date mask for primary key not specified");
-
-                        primaryKeyValue = DbUtils.getStringDate(rs, content.getQueryArea().getPrimaryKey(),
-                            content.getQueryArea().getPrimaryKeyMask(), "error", Locale.ENGLISH);
-*/
-                    throw new Exception("Type of PK 'date' for big_text not implemented");
-                default:
-                    throw new Exception("Wrong type of primary key");
-            }
-            int count = ps.executeUpdate();
-
-            if (log.isDebugEnabled())
-                log.debug("number of updated records - " + count);
-
-        }
-        finally {
-            close(ps);
-            ps = null;
-        }
-    }
-
-    public static String getBigTextField(
-        final DatabaseAdapter db_, final Long id_,
-        final String field_,
-        final String table_,
-        final String idx_field_,
-        final String order_field_ ) {
-
-        if (id_ == null)
-            return "";
-
-        PreparedStatement ps = null;
-        ResultSet rset = null;
-        String sql_ = "select " + field_ + " from " + table_ + " where " + idx_field_ + "= ? order by " + order_field_ + " ASC";
-
-        if (log.isDebugEnabled()) {
-            log.debug("ID: " + id_);
-            log.debug("SQL: " + sql_);
-        }
-
-        StringBuilder text = new StringBuilder();
-        try {
-            ps = db_.getConnection().prepareStatement(sql_);
-
-            if (log.isDebugEnabled())
-                log.debug("11.03.01");
-
-            DbUtils.setLong(ps, 1, id_);
-            rset = ps.executeQuery();
-
-            while (rset.next()) {
-                if (log.isDebugEnabled()) {
-                    log.debug("11.03.01 " + text);
-                }
-                text.append(DbUtils.getString(rset, field_));
-            }
-        }
-        catch (SQLException e) {
-            throw new DbRevisionException("Error get big text field", e);
-        }
-        finally {
-            DatabaseManager.close(rset, ps);
-            rset = null;
-            ps = null;
-        }
-        return text.toString();
     }
 
     public static String getRelateString(final DbImportedPKColumn column) {
@@ -836,8 +604,9 @@ public final class DatabaseManager {
         for (DbImportedPKColumn column : keys) {
             String search = getRelateString(column);
             Object obj = hash.get(search);
-            if (obj == null)
+            if (obj == null) {
                 hash.put(search, column);
+            }
 
         }
         return hash;
@@ -859,64 +628,98 @@ public final class DatabaseManager {
     }
 
     public static int sqlTypesMapping(final String type) {
-        if (type == null)
+        if (type == null) {
             return Types.OTHER;
-
-        if ("BIT".equals(type)) return Types.BIT;
-        else if ("TINYINT".equals(type)) return Types.TINYINT;
-        else if ("SMALLINT".equals(type)) return Types.SMALLINT;
-        else if ("INTEGER".equals(type)) return Types.INTEGER;
-        else if ("BIGINT".equals(type)) return Types.BIGINT;
-        else if ("FLOAT".equals(type)) return Types.FLOAT;
-        else if ("REAL".equals(type)) return Types.REAL;
-        else if ("DOUBLE".equals(type)) return Types.DOUBLE;
-        else if ("NUMERIC".equals(type)) return Types.NUMERIC;
-        else if ("DECIMAL".equals(type)) return Types.DECIMAL;
-        else if ("CHAR".equals(type)) return Types.CHAR;
-        else if ("VARCHAR".equals(type)) return Types.VARCHAR;
-        else if ("LONGVARCHAR".equals(type)) return Types.LONGVARCHAR;
-        else if ("DATE".equals(type)) return Types.DATE;
-        else if ("TIME".equals(type)) return Types.TIME;
-        else if ("TIMESTAMP".equals(type)) return Types.TIMESTAMP;
-        else if ("BINARY".equals(type)) return Types.BINARY;
-        else if ("VARBINARY".equals(type)) return Types.VARBINARY;
-        else if ("LONGVARBINARY".equals(type)) return Types.LONGVARBINARY;
-        else if ("NULL".equals(type)) return Types.NULL;
-        else if ("OTHER".equals(type)) return Types.OTHER;
-        else if ("JAVA_OBJECT".equals(type)) return Types.JAVA_OBJECT;
-        else if ("DISTINCT".equals(type)) return Types.DISTINCT;
-        else if ("STRUCT".equals(type)) return Types.STRUCT;
-        else if ("ARRAY".equals(type)) return Types.ARRAY;
-        else if ("BLOB".equals(type)) return Types.BLOB;
-        else if ("CLOB".equals(type)) return Types.CLOB;
-        else if ("REF".equals(type)) return Types.REF;
-        else return Types.OTHER;
-
-    }
-
-    public static void fixBigTextTable(final DbTable table, final List<DbBigTextTable> bigTables, final int maxLengthTextField) {
-        if (bigTables == null || table == null)
-            return;
-
-        for (DbBigTextTable big : bigTables) {
-            if (big.getSlaveTable().equals(table.getName())) {
-                for (DbField field : table.getFields()) {
-                    if (big.getStorageField().equals(field.getName()))
-                        field.setSize(maxLengthTextField);
-                }
-            }
         }
-    }
 
-    public static DbBigTextTable getBigTextTableDesc(final DbTable table, final List<DbBigTextTable> bigTables) {
-        if (bigTables == null || table == null)
-            return null;
-
-        for (DbBigTextTable big : bigTables) {
-            if (big.getSlaveTable().equals(table.getName()))
-                return big;
+        if ("BIT".equals(type)) {
+            return Types.BIT;
         }
-        return null;
+        else if ("TINYINT".equals(type)) {
+            return Types.TINYINT;
+        }
+        else if ("SMALLINT".equals(type)) {
+            return Types.SMALLINT;
+        }
+        else if ("INTEGER".equals(type)) {
+            return Types.INTEGER;
+        }
+        else if ("BIGINT".equals(type)) {
+            return Types.BIGINT;
+        }
+        else if ("FLOAT".equals(type)) {
+            return Types.FLOAT;
+        }
+        else if ("REAL".equals(type)) {
+            return Types.REAL;
+        }
+        else if ("DOUBLE".equals(type)) {
+            return Types.DOUBLE;
+        }
+        else if ("NUMERIC".equals(type)) {
+            return Types.NUMERIC;
+        }
+        else if ("DECIMAL".equals(type)) {
+            return Types.DECIMAL;
+        }
+        else if ("CHAR".equals(type)) {
+            return Types.CHAR;
+        }
+        else if ("VARCHAR".equals(type)) {
+            return Types.VARCHAR;
+        }
+        else if ("LONGVARCHAR".equals(type)) {
+            return Types.LONGVARCHAR;
+        }
+        else if ("DATE".equals(type)) {
+            return Types.DATE;
+        }
+        else if ("TIME".equals(type)) {
+            return Types.TIME;
+        }
+        else if ("TIMESTAMP".equals(type)) {
+            return Types.TIMESTAMP;
+        }
+        else if ("BINARY".equals(type)) {
+            return Types.BINARY;
+        }
+        else if ("VARBINARY".equals(type)) {
+            return Types.VARBINARY;
+        }
+        else if ("LONGVARBINARY".equals(type)) {
+            return Types.LONGVARBINARY;
+        }
+        else if ("NULL".equals(type)) {
+            return Types.NULL;
+        }
+        else if ("OTHER".equals(type)) {
+            return Types.OTHER;
+        }
+        else if ("JAVA_OBJECT".equals(type)) {
+            return Types.JAVA_OBJECT;
+        }
+        else if ("DISTINCT".equals(type)) {
+            return Types.DISTINCT;
+        }
+        else if ("STRUCT".equals(type)) {
+            return Types.STRUCT;
+        }
+        else if ("ARRAY".equals(type)) {
+            return Types.ARRAY;
+        }
+        else if ("BLOB".equals(type)) {
+            return Types.BLOB;
+        }
+        else if ("CLOB".equals(type)) {
+            return Types.CLOB;
+        }
+        else if ("REF".equals(type)) {
+            return Types.REF;
+        }
+        else {
+            return Types.OTHER;
+        }
+
     }
 
     public static DbKeyActionRule decodeUpdateRule(final ResultSet rs) {
@@ -968,8 +771,9 @@ public final class DatabaseManager {
         DbKeyActionRule rule = null;
         try {
             Object obj = rs.getObject("DELETE_RULE");
-            if (obj == null)
+            if (obj == null) {
                 return null;
+            }
 
             rule = new DbKeyActionRule();
             rule.setRuleType(DbUtils.getInteger(rs, "DELETE_RULE"));
@@ -1011,8 +815,9 @@ public final class DatabaseManager {
         DbKeyActionRule rule = null;
         try {
             Object obj = rs.getObject("DEFERRABILITY");
-            if (obj == null)
+            if (obj == null) {
                 return null;
+            }
 
             rule = new DbKeyActionRule();
             rule.setRuleType(DbUtils.getInteger(rs, "DEFERRABILITY"));
@@ -1039,8 +844,7 @@ public final class DatabaseManager {
         return rule;
     }
 
-    public static int runSQL(final DatabaseAdapter db, final String query, final Object[] params, final int[] types)
-        {
+    public static int runSQL(final DatabaseAdapter db, final String query, final Object[] params, final int[] types) {
         int n = 0;
         Statement stmt = null;
         PreparedStatement pstm = null;
@@ -1049,13 +853,16 @@ public final class DatabaseManager {
             if (params == null) {
                 stmt = db.getConnection().createStatement();
                 n = stmt.executeUpdate(query);
-            } else {
+            }
+            else {
                 pstm = db.getConnection().prepareStatement(query);
                 for (int i = 0; i < params.length; i++) {
-                    if (params[i] != null)
+                    if (params[i] != null) {
                         pstm.setObject(i + 1, params[i], types[i]);
-                    else
+                    }
+                    else {
                         pstm.setNull(i + 1, types[i]);
+                    }
                 }
 
                 n = pstm.executeUpdate();
@@ -1067,21 +874,22 @@ public final class DatabaseManager {
             if (params != null) {
                 for (int ii = 0; ii < params.length; ii++)
 
+                {
                     log.error("parameter #" + (ii + 1) + ": " + (params[ii] != null ? params[ii].toString() : null));
+                }
             }
             log.error("SQLException", e);
             throw new DbRevisionException(e);
         }
         finally {
-            close(stmt);
+            DbUtils.close(stmt);
             stmt = null;
             pstm = null;
         }
         return n;
     }
 
-    public static Long getLongValue(final DatabaseAdapter db, final String sql, final Object[] params, final int[] types)
-        {
+    public static Long getLongValue(final DatabaseAdapter db, final String sql, final Object[] params, final int[] types) {
         Statement stmt = null;
         PreparedStatement pstm;
         ResultSet rs = null;
@@ -1096,7 +904,8 @@ public final class DatabaseManager {
                 for (int i = 0; i < params.length; i++) {
                     if (types == null) {
                         pstm.setObject(i + 1, params[i]);
-                    } else {
+                    }
+                    else {
                         pstm.setObject(i + 1, params[i], types[i]);
                     }
                 }
@@ -1107,8 +916,9 @@ public final class DatabaseManager {
 
             if (rs.next()) {
                 long tempLong = rs.getLong(1);
-                if (rs.wasNull())
+                if (rs.wasNull()) {
                     return null;
+                }
 
                 return tempLong;
             }
@@ -1119,15 +929,14 @@ public final class DatabaseManager {
             throw new DbRevisionException(e);
         }
         finally {
-            close(rs, stmt);
+            DbUtils.close(rs, stmt);
             rs = null;
             stmt = null;
             pstm = null;
         }
     }
 
-    public static List<Long> getLongValueList(final DatabaseAdapter db, final String sql, final Object[] params, final int[] types)
-         {
+    public static List<Long> getLongValueList(final DatabaseAdapter db, final String sql, final Object[] params, final int[] types) {
 
         Statement stmt = null;
         PreparedStatement pstm;
@@ -1137,12 +946,14 @@ public final class DatabaseManager {
             if (params == null) {
                 stmt = db.getConnection().createStatement();
                 rs = stmt.executeQuery(sql);
-            } else {
+            }
+            else {
                 pstm = db.getConnection().prepareStatement(sql);
                 for (int i = 0; i < params.length; i++) {
                     if (types == null) {
                         pstm.setObject(i + 1, params[i]);
-                    } else {
+                    }
+                    else {
                         pstm.setObject(i + 1, params[i], types[i]);
                     }
                 }
@@ -1152,8 +963,9 @@ public final class DatabaseManager {
 
             while (rs.next()) {
                 long tempLong = rs.getLong(1);
-                if (rs.wasNull())
+                if (rs.wasNull()) {
                     continue;
+                }
 
                 list.add(tempLong);
             }
@@ -1164,7 +976,7 @@ public final class DatabaseManager {
             throw new DbRevisionException(e);
         }
         finally {
-            close(rs, stmt);
+            DbUtils.close(rs, stmt);
             rs = null;
             stmt = null;
             pstm = null;
@@ -1180,10 +992,12 @@ public final class DatabaseManager {
             if (param == null) {
                 stmt = adapter.getConnection().createStatement();
                 rs = stmt.executeQuery(sql);
-            } else {
+            }
+            else {
                 pstm = adapter.getConnection().prepareStatement(sql);
-                for (int i = 0; i < param.length; i++)
+                for (int i = 0; i < param.length; i++) {
                     pstm.setObject(i + 1, param[i]);
+                }
 
                 rs = pstm.executeQuery();
                 stmt = pstm;
@@ -1191,8 +1005,9 @@ public final class DatabaseManager {
 
             while (rs.next()) {
                 long tempLong = rs.getLong(1);
-                if (rs.wasNull())
+                if (rs.wasNull()) {
                     continue;
+                }
 
                 list.add(tempLong);
             }
@@ -1204,7 +1019,7 @@ public final class DatabaseManager {
             throw new RuntimeException(es, e);
         }
         finally {
-            close(rs, stmt);
+            DbUtils.close(rs, stmt);
             rs = null;
             stmt = null;
             pstm = null;

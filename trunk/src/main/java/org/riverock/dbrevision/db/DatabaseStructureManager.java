@@ -25,6 +25,7 @@
  */
 package org.riverock.dbrevision.db;
 
+import java.io.ByteArrayInputStream;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
@@ -34,24 +35,18 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.TreeSet;
-import java.util.Map;
-import java.util.List;
 import java.util.GregorianCalendar;
-import java.io.ByteArrayInputStream;
-import java.io.UnsupportedEncodingException;
+import java.util.List;
+import java.util.Map;
 
 import javax.xml.datatype.DatatypeFactory;
 
-import org.apache.log4j.Logger;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.log4j.Logger;
 
 import org.riverock.dbrevision.annotation.schema.db.*;
-import org.riverock.dbrevision.utils.Utils;
-import org.riverock.dbrevision.utils.DbUtils;
 import org.riverock.dbrevision.exception.DbRevisionException;
+import org.riverock.dbrevision.utils.DbUtils;
 
 /**
  * @author SergeMaslyukov
@@ -193,7 +188,7 @@ public class DatabaseStructureManager {
                 throw new DbRevisionException(exc);
             }
             finally {
-                DatabaseManager.close(ps);
+                DbUtils.close(ps);
                 ps = null;
             }
 
@@ -241,7 +236,7 @@ public class DatabaseStructureManager {
             throw new DbRevisionException(e);
         }
         finally {
-            DatabaseManager.close(ps);
+            DbUtils.close(ps);
             ps = null;
         }
     }
@@ -262,33 +257,23 @@ public class DatabaseStructureManager {
             throw new DbRevisionException(e);
         }
         finally {
-            DatabaseManager.close(ps);
+            DbUtils.close(ps);
             ps = null;
         }
     }
 
     public static void setDataTable(DatabaseAdapter adapter, DbTable table) {
-        setDataTable(adapter, table, null);
-    }
-
-    public static void setDataTable(DatabaseAdapter adapter, DbTable table, List<DbBigTextTable> bigTables) {
-        if (table == null || table.getData() == null || table.getData().getRecords().size() == 0) {
+        if (table == null || table.getData() == null || table.getData().getRecords().isEmpty()) {
             log.debug("Table is empty");
             return;
         }
-
-        DbBigTextTable big = DatabaseManager.getBigTextTableDesc(table, bigTables);
 
         if (table.getFields().isEmpty()) {
             throw new DbRevisionException("Table has zero count of fields");
         }
 
-
         boolean isDebug = false;
-
-        String sql_ =
-            "insert into " + table.getName() +
-                "(";
+        String sql_ = "insert into " + table.getName() + "(";
 
         boolean isFirst = true;
         for (DbField field : table.getFields()) {
@@ -316,320 +301,147 @@ public class DatabaseStructureManager {
 
         DbDataTable tableData = table.getData();
 
-        if (big == null) {
+        for (DbDataRecord record : tableData.getRecords()) {
+            PreparedStatement ps = null;
+            ResultSet rs = null;
+            DbField field=null;
+            try {
+                ps = adapter.getConnection().prepareStatement(sql_);
 
-            for (DbDataRecord record : tableData.getRecords()) {
-                PreparedStatement ps = null;
-                ResultSet rs = null;
-                DbField field=null;
-                try {
-                    ps = adapter.getConnection().prepareStatement(sql_);
+                int fieldPtr = 0;
+                int k=0;
+                for (DbDataFieldData fieldData : record.getFieldData()) {
+                    field = table.getFields().get(fieldPtr++);
 
-                    int fieldPtr = 0;
-                    int k=0;
-                    for (DbDataFieldData fieldData : record.getFieldsData()) {
-                        field = table.getFields().get(fieldPtr++);
-
-                        if (fieldData.isIsNull()) {
-                            int type = table.getFields().get(k).getJavaType();
-                            if (type == Types.TIMESTAMP) {
-                                type = Types.DATE;
-                            }
-
-                            ps.setNull(k + 1, type);
+                    if (fieldData.isIsNull()) {
+                        int type = table.getFields().get(k).getJavaType();
+                        if (type == Types.TIMESTAMP) {
+                            type = Types.DATE;
                         }
-                        else {
-                            if (isDebug) {
-                                System.out.println("param #" + (k + 1) + ", type " + table.getFields().get(k).getJavaType());
-                            }
 
-                            switch (table.getFields().get(k).getJavaType()) {
-                                case Types.BIT:
-                                case Types.TINYINT:
-                                case Types.BIGINT:
+                        ps.setNull(k + 1, type);
+                    }
+                    else {
+                        if (isDebug) {
+                            System.out.println("param #" + (k + 1) + ", type " + table.getFields().get(k).getJavaType());
+                        }
 
-                                case Types.DECIMAL:
-                                case Types.DOUBLE:
-                                case Types.NUMERIC:
-                                    if (field.getDecimalDigit() == null || field.getDecimalDigit() == 0) {
-                                        if (isDebug) {
-                                            System.out.println("Types.NUMERIC as Types.INTEGER param #" + (k + 1) + ", " +
-                                                "value " + fieldData.getNumberData().doubleValue() + ", long value " + ((long) fieldData.getNumberData().doubleValue() +
-                                                    ", extracted value: " + fieldData.getNumberData().longValueExact())
-                                            );
-                                        }
-                                        ps.setLong(k + 1, fieldData.getNumberData().longValueExact());
-                                    }
-                                    else {
-                                        if (isDebug) {
-                                            System.out.println("Types.NUMERIC param #" + (k + 1) + ", value " + fieldData.getNumberData().doubleValue());
-                                        }
-                                        ps.setBigDecimal(k + 1, fieldData.getNumberData());
-                                    }
-                                    break;
+                        switch (table.getFields().get(k).getJavaType()) {
+                            case Types.BIT:
+                            case Types.TINYINT:
+                            case Types.BIGINT:
 
-                                case Types.INTEGER:
+                            case Types.DECIMAL:
+                            case Types.DOUBLE:
+                            case Types.NUMERIC:
+                                if (field.getDecimalDigit() == null || field.getDecimalDigit() == 0) {
                                     if (isDebug) {
-                                        System.out.println("Types.INTEGER param #" + (k + 1) + ", value " + fieldData.getNumberData().doubleValue());
+                                        System.out.println("Types.NUMERIC as Types.INTEGER param #" + (k + 1) + ", " +
+                                            "value " + fieldData.getNumberData().doubleValue() + ", long value " + ((long) fieldData.getNumberData().doubleValue() +
+                                            ", extracted value: " + fieldData.getNumberData().longValueExact())
+                                        );
                                     }
                                     ps.setLong(k + 1, fieldData.getNumberData().longValueExact());
-                                    break;
-
-                                case Types.CHAR:
+                                }
+                                else {
                                     if (isDebug) {
-                                        System.out.println("param #" + (k + 1) + ", value " + fieldData.getStringData().substring(0, 1));
+                                        System.out.println("Types.NUMERIC param #" + (k + 1) + ", value " + fieldData.getNumberData().doubleValue());
                                     }
-                                    ps.setString(k + 1, fieldData.getStringData().substring(0, 1));
-                                    break;
+                                    ps.setBigDecimal(k + 1, fieldData.getNumberData());
+                                }
+                                break;
 
-                                case Types.VARCHAR:
-                                    if (isDebug) {
-                                        System.out.println("param #" + (k + 1) + ", value " + fieldData.getStringData());
+                            case Types.INTEGER:
+                                if (isDebug) {
+                                    System.out.println("Types.INTEGER param #" + (k + 1) + ", value " + fieldData.getNumberData().doubleValue());
+                                }
+                                ps.setLong(k + 1, fieldData.getNumberData().longValueExact());
+                                break;
+
+                            case Types.CHAR:
+                                if (isDebug) {
+                                    System.out.println("param #" + (k + 1) + ", value " + fieldData.getStringData().substring(0, 1));
+                                }
+                                ps.setString(k + 1, fieldData.getStringData().substring(0, 1));
+                                break;
+
+                            case Types.VARCHAR:
+                                if (isDebug) {
+                                    System.out.println("param #" + (k + 1) + ", value " + fieldData.getStringData());
+                                }
+                                ps.setString(k + 1, fieldData.getStringData());
+                                break;
+
+                            case Types.DATE:
+                            case Types.TIMESTAMP:
+                                long timeMillis = fieldData.getDateData().toGregorianCalendar().getTimeInMillis();
+                                Timestamp stamp = new Timestamp(timeMillis);
+                                if (isDebug) {
+                                    System.out.println("param #" + (k + 1) + ", value " + stamp);
+                                }
+                                ps.setTimestamp(k + 1, stamp);
+                                break;
+
+                            case Types.LONGVARCHAR:
+                                adapter.setLongVarchar(ps, k + 1, fieldData);
+                                break;
+
+                            case Types.LONGVARBINARY:
+                                adapter.setLongVarbinary(ps, k + 1, fieldData);
+                                break;
+
+                            case Types.BLOB:
+                                if (adapter.getFamily()== DatabaseAdapter.Family.MYSQL) {
+                                    byte[] bytes = Base64.decodeBase64(fieldData.getStringData().getBytes());
+
+                                    byte[] fileBytes = new byte[]{};
+                                    if (bytes!=null) {
+                                        fileBytes = bytes;
                                     }
-                                    ps.setString(k + 1, fieldData.getStringData());
-                                    break;
-
-                                case Types.DATE:
-                                case Types.TIMESTAMP:
-                                    long timeMillis = fieldData.getDateData().toGregorianCalendar().getTimeInMillis();
-                                    Timestamp stamp = new Timestamp(timeMillis);
-                                    if (isDebug) {
-                                        System.out.println("param #" + (k + 1) + ", value " + stamp);
-                                    }
-                                    ps.setTimestamp(k + 1, stamp);
-                                    break;
-
-                                case Types.LONGVARCHAR:
-                                    adapter.setLongVarchar(ps, k + 1, fieldData);
-                                    break;
-
-                                case Types.LONGVARBINARY:
-                                    adapter.setLongVarbinary(ps, k + 1, fieldData);
-                                    break;
-
-                                case Types.BLOB:
-                                    if (adapter.getFamily()== DatabaseAdapter.Family.MYSQL) {
-                                        byte[] bytes = Base64.decodeBase64(fieldData.getStringData().getBytes());
-
-                                        byte[] fileBytes = new byte[]{};
-                                        if (bytes!=null) {
-                                            fileBytes = bytes;
-                                        }
-                                        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(fileBytes);
-                                        ps.setBinaryStream(k + 1, byteArrayInputStream, fileBytes.length);
+                                    ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(fileBytes);
+                                    ps.setBinaryStream(k + 1, byteArrayInputStream, fileBytes.length);
                                         
-                                        bytes = null;
-                                        byteArrayInputStream = null;
-                                        fileBytes = null;
-                                    }
+                                    bytes = null;
+                                    byteArrayInputStream = null;
+                                    fileBytes = null;
+                                }
 
-                                    break;
+                                break;
 
-                                case 1111:
-                                    if (isDebug) {
-                                        System.out.println("param #" + (k + 1) + ", value " + fieldData.getStringData());
-                                    }
-                                    ps.setString(k + 1, "");
-                                    break;
-                                default:
-                                    System.out.println("Unknown field type.");
-                            }
-                        }
-                        k++;
-                    }
-                    ps.executeUpdate();
-                }
-                catch (Exception e) {
-                    String es = "Error get data for table " + table.getName();
-                    log.error(es, e);
-                    int k=0;
-                    for (DbDataFieldData data : record.getFieldsData()) {
-                        log.error("date: " + data.getDateData());
-                        log.error("decimal digit: " + data.getDecimalDigit());
-                        log.error("is null: " + data.isIsNull());
-                        log.error("java type: " + table.getFields().get(k).getJavaType());
-                        log.error("number: " + data.getNumberData());
-                        log.error("size: " + data.getSize());
-                        log.error("string: " + data.getStringData());
-                        k++;
-                    }
-                    throw new DbRevisionException(es, e);
-                }
-                finally {
-                    DatabaseManager.close(rs, ps);
-                    rs = null;
-                    ps = null;
-                }
-            }
-        }
-        else { // process big text table
-
-            int idx = 0;
-            int idxFk = 0;
-            int idxPk = 0;
-            boolean isNotFound = true;
-            // search indices of fields in list
-            int i=0;
-            for (DbField field : table.getFields()) {
-                if (field.getName().equals(big.getStorageField())) {
-                    idx = i;
-                    isNotFound = false;
-                }
-                if (field.getName().equals(big.getSlaveFkField())) {
-                    idxFk = i;
-                }
-                if (field.getName().equals(big.getSlavePkField())) {
-                    idxPk = i;
-                }
-                i++;
-            }
-            if (isNotFound) {
-                throw new DbRevisionException("Storage field '" + big.getStorageField() + "' not found in table " + table.getName());
-            }
-
-            if (isDebug) {
-                System.out.println("pk idx " + idxPk);
-                System.out.println("fk idx " + idxFk);
-                System.out.println("storage idx " + idx);
-            }
-            Hashtable<Long, Object> hashFk = new Hashtable<Long, Object>(tableData.getRecords().size());
-            for (DbDataRecord record : tableData.getRecords()) {
-                DbDataFieldData fieldFk = record.getFieldsData().get(idxFk);
-                Long idRec = fieldFk.getNumberData().longValue();
-
-                hashFk.put(idRec, new Object());
-            }
-
-            // Insert records while we moved over list of foreign keys
-            for (Enumeration e = hashFk.keys(); e.hasMoreElements();) {
-                Long idFk = (Long) e.nextElement();
-
-                if (isDebug) {
-                    System.out.println("ID of fk " + idFk);
-                }
-
-                TreeSet<Long> setPk = new TreeSet<Long>();
-
-                // Создаем список упорядоченных первичных ключей
-                // для данного вторичного ключа
-                for (DbDataRecord record : tableData.getRecords()) {
-                    // get value for foreign key
-                    DbDataFieldData fieldFk = record.getFieldsData().get(idxFk);
-                    long idRec = fieldFk.getNumberData().longValue();
-
-                    // get value for primary key
-                    DbDataFieldData fieldPk = record.getFieldsData().get(idxPk);
-                    long idPkRec = fieldPk.getNumberData().longValue();
-
-                    if (idFk == idRec)
-                        setPk.add(idPkRec);
-                }
-
-                String tempData = "";
-                // двигаясь по списку первичных ключей создаем результирующий строковый объект
-                for (Long aSetPk : setPk) {
-
-                    for (DbDataRecord record : tableData.getRecords()) {
-
-                        DbDataFieldData fieldPk = record.getFieldsData().get(idxPk);
-                        long pkTemp = fieldPk.getNumberData().longValue();
-
-                        if (pkTemp == aSetPk) {
-                            DbDataFieldData fieldData = record.getFieldsData().get(idx);
-                            if (fieldData.getStringData() != null)
-                                tempData += fieldData.getStringData();
+                            case 1111:
+                                if (isDebug) {
+                                    System.out.println("param #" + (k + 1) + ", value " + fieldData.getStringData());
+                                }
+                                ps.setString(k + 1, "");
+                                break;
+                            default:
+                                System.out.println("Unknown field type.");
                         }
                     }
+                    k++;
                 }
-
-
-                if (isDebug) {
-                    System.out.println("Big text " + tempData);
+                ps.executeUpdate();
+            }
+            catch (Exception e) {
+                String es = "Error get data for table " + table.getName();
+                log.error(es, e);
+                int k=0;
+                for (DbDataFieldData data : record.getFieldData()) {
+                    log.error("date: " + data.getDateData());
+                    log.error("decimal digit: " + data.getDecimalDigit());
+                    log.error("is null: " + data.isIsNull());
+                    log.error("java type: " + table.getFields().get(k).getJavaType());
+                    log.error("number: " + data.getNumberData());
+                    log.error("size: " + data.getSize());
+                    log.error("string: " + data.getStringData());
+                    k++;
                 }
-
-                PreparedStatement ps1 = null;
-                try {
-
-                    if (log.isDebugEnabled()) {
-                        log.debug("Start insert data in bigtext field ");
-                    }
-
-                    int pos = 0;
-                    int prevPos = 0;
-                    int maxByte = adapter.getMaxLengthStringField();
-
-                    sql_ =
-                        "insert into " + big.getSlaveTable() +
-                            '(' + big.getSlavePkField() + ',' +
-                            big.getSlaveFkField() + ',' +
-                            big.getStorageField() + ')' +
-                            "values" +
-                            "(?,?,?)";
-
-                    if (log.isDebugEnabled()) {
-                        log.debug("insert bigtext. sql 2 - " + sql_);
-                    }
-
-                    byte b[] = Utils.getBytesUTF(tempData);
-
-                    ps1 = adapter.getConnection().prepareStatement(sql_);
-                    while ((pos = Utils.getStartUTF(b, maxByte, pos)) != -1) {
-                        if (log.isDebugEnabled()) {
-                            log.debug("Name sequence - " + big.getSequenceName());
-                        }
-
-                        CustomSequence seq = new CustomSequence();
-                        seq.setSequenceName(big.getSequenceName());
-                        seq.setTableName(big.getSlaveTable());
-                        seq.setColumnName(big.getSlavePkField());
-                        long idSeq = adapter.getSequenceNextValue(seq);
-
-                        if (log.isDebugEnabled()) {
-                            log.debug("Bind param #1" + idSeq);
-                        }
-
-                        ps1.setLong(1, idSeq);
-
-                        if (log.isDebugEnabled())
-                            log.debug("Bind param #2 " + idFk);
-
-                        ps1.setLong(2, idFk);
-
-
-                        String s = new String(b, prevPos, pos - prevPos, "utf-8");
-
-                        if (log.isDebugEnabled())
-                            log.debug("Bind param #3 " + s + (s != null ? ", len " + s.length() : ""));
-
-                        ps1.setString(3, s);
-
-                        if (log.isDebugEnabled())
-                            log.debug("Bind param #3 " + s + (s != null ? ", len " + s.length() : ""));
-
-                        if (isDebug && s != null && s.length() > 2000) {
-                            System.out.println("Do executeUpdate");
-                        }
-
-                        int count = ps1.executeUpdate();
-
-                        if (log.isDebugEnabled()) {
-                            log.debug("number of updated records - " + count);
-                        }
-
-                        prevPos = pos;
-
-                    } // while ( (pos=StringTools.getStartUTF ...
-                }
-                catch (SQLException e1) {
-                    throw new DbRevisionException(e1);
-                }
-                catch (UnsupportedEncodingException e1) {
-                    throw new DbRevisionException(e1);
-                }
-                finally {
-                    DatabaseManager.close(ps1);
-                    ps1 = null;
-                }
+                throw new DbRevisionException(es, e);
+            }
+            finally {
+                DbUtils.close(rs, ps);
+                rs = null;
+                ps = null;
             }
         }
     }
@@ -758,7 +570,7 @@ public class DatabaseStructureManager {
                         default:
                             System.out.println("Unknown field type. Field '" + field.getName() + "' type '" + field.getJavaStringType() + "'");
                     }
-                    record.getFieldsData().add(fieldData);
+                    record.getFieldData().add(fieldData);
                 }
                 tableData.getRecords().add(record);
             }
@@ -770,7 +582,7 @@ public class DatabaseStructureManager {
             throw new DbRevisionException(es, e);
         }
         finally {
-            DatabaseManager.close(rs, ps);
+            DbUtils.close(rs, ps);
             rs = null;
             ps = null;
         }
@@ -1193,8 +1005,7 @@ public class DatabaseStructureManager {
         return pk;
     }
 
-    public static void setDefaultValueTimestamp(DatabaseAdapter adapter, DbTable originTable, DbField originField)
-        throws Exception {
+    public static void setDefaultValueTimestamp(DatabaseAdapter adapter, DbTable originTable, DbField originField) {
         DbField tempField = DatabaseManager.cloneDescriptionField(originField);
         tempField.setName(tempField.getName() + '1');
         adapter.addColumn(originTable, tempField);

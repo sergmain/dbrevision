@@ -31,7 +31,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
-import org.riverock.dbrevision.annotation.schema.db.CustomSequence;
 import org.riverock.dbrevision.annotation.schema.db.DbDataFieldData;
 import org.riverock.dbrevision.annotation.schema.db.DbField;
 import org.riverock.dbrevision.annotation.schema.db.DbImportedPKColumn;
@@ -149,8 +148,6 @@ public abstract class DatabaseAdapter {
     public abstract boolean testExceptionSequenceExists(Exception e);
 
     public abstract boolean testExceptionConstraintExists(Exception e);
-
-    public abstract long getSequenceNextValue(final CustomSequence sequence) throws SQLException;
 
     /**
      * @return - int. Max size of char field

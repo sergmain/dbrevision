@@ -32,124 +32,108 @@
 		<xs:documentation>DbRevision framework, http://dbrevision.sourceforge.net</xs:documentation>
 	</xs:annotation>
 	<xs:import namespace="http://dbrevision.sourceforge.net/xsd/dbrevision-structure.xsd" schemaLocation="dbrevision-structure.xsd"/>
-	<xs:element name="DefinitionList" type="DefinitionList"/>
-	<xs:complexType name="DefinitionList">
-		<xs:sequence>
-			<xs:element name="Definition" type="Definition" minOccurs="0" maxOccurs="unbounded"/>
-		</xs:sequence>
-	</xs:complexType>
-	<xs:complexType name="Definition">
-		<xs:sequence>
-			<xs:element name="NameDef" type="xs:string"/>
-			<xs:element name="PreviousNameDef" type="xs:string" minOccurs="0" maxOccurs="unbounded">
-				<xs:annotation>
-					<xs:documentation>Name of all definition, which must be processed before this definition</xs:documentation>
-				</xs:annotation>
-			</xs:element>
-			<xs:element name="StructureFile" type="xs:string" minOccurs="0">
-				<xs:annotation>
-					<xs:documentation>Name of file with definition of DB structure</xs:documentation>
-				</xs:annotation>
-			</xs:element>
-			<xs:choice minOccurs="0" maxOccurs="unbounded">
-				<xs:element name="TableList" type="DefinitionTableList" minOccurs="0"/>
-				<xs:element name="ActionList" type="DefinitionActionList" minOccurs="0"/>
-				<xs:element name="Data" type="DefinitionDataList" minOccurs="0"/>
-				<xs:element name="SequenceList" type="dbrevision-structure:DbSequenceList" minOccurs="0"/>
-				<xs:element name="ImportedKeys" type="dbrevision-structure:DbImportedKeyList" minOccurs="0"/>
-				<xs:element name="PrimaryKey" type="dbrevision-structure:DbPrimaryKey" minOccurs="0"/>
-				<xs:element name="ViewList" type="dbrevision-structure:DbViewList" minOccurs="0"/>
-			</xs:choice>
-		</xs:sequence>
-		<xs:attribute name="isPatch" type="xs:boolean" use="optional" default="true"/>
-	</xs:complexType>
-	<xs:complexType name="DefinitionTableList">
-		<xs:sequence>
-			<xs:element name="Table" type="dbrevision-structure:DbTable" maxOccurs="unbounded"/>
-		</xs:sequence>
-	</xs:complexType>
-	<xs:complexType name="DefinitionDataList">
-		<xs:sequence>
-			<xs:element name="Table" type="DefinitionTableData" maxOccurs="unbounded"/>
-		</xs:sequence>
-	</xs:complexType>
-	<xs:complexType name="DefinitionTableData">
-		<xs:sequence>
-			<xs:element name="Record" type="DefinitionRecordData" maxOccurs="unbounded"/>
-		</xs:sequence>
-		<xs:attribute name="nameTable" type="xs:string" use="required"/>
-	</xs:complexType>
-	<xs:complexType name="DefinitionRecordData">
-		<xs:sequence>
-			<xs:element name="Field" type="DefinitionFieldData" maxOccurs="unbounded"/>
-		</xs:sequence>
-	</xs:complexType>
-	<xs:complexType name="DefinitionFieldData">
-		<xs:sequence>
-			<xs:element name="TypeField">
-				<xs:simpleType>
-					<xs:restriction base="xs:string">
-						<xs:enumeration value="string"/>
-						<xs:enumeration value="date"/>
-						<xs:enumeration value="number"/>
-					</xs:restriction>
-				</xs:simpleType>
-			</xs:element>
-			<xs:choice>
-				<xs:element name="StringData" type="xs:string" minOccurs="0"/>
-				<xs:element name="DateData" type="xs:dateTime" minOccurs="0"/>
-				<xs:element name="NumberData" type="xs:decimal" minOccurs="0"/>
-			</xs:choice>
-		</xs:sequence>
-		<xs:attribute name="nameField" type="xs:string" use="required"/>
-		<xs:attribute name="isNull" type="xs:boolean" use="required"/>
-	</xs:complexType>
-	<xs:element name="FieldData" type="DefinitionFieldData"/>
-	<xs:complexType name="DefinitionActionList">
-		<xs:sequence>
-			<xs:element name="Action" type="DefinitionAction" maxOccurs="unbounded"/>
-		</xs:sequence>
-	</xs:complexType>
-	<xs:complexType name="DefinitionAction">
-		<xs:sequence>
-			<xs:element name="ActionType">
-				<xs:simpleType>
-					<xs:restriction base="xs:string">
-						<xs:enumeration value="CUSTOM_SQL"/>
-						<xs:enumeration value="CUSTOM_CLASS_ACTION"/>
-						<xs:enumeration value="CREATE_SEQUENCE"/>
-						<xs:enumeration value="CREATE_TABLE"/>
-						<xs:enumeration value="ADD_TABLE_COLUMN"/>
-						<xs:enumeration value="DROP_TABLE_COLUMN"/>
-						<xs:enumeration value="ADD_PRIMARY_KEY"/>
-						<xs:enumeration value="ADD_FOREIGN_KEY"/>
-						<xs:enumeration value="DROP_PRIMARY_KEY"/>
-						<xs:enumeration value="DROP_FOREIGN_KEY"/>
-						<xs:enumeration value="DROP_TABLE"/>
-						<xs:enumeration value="DROP_SEQUENCE"/>
-						<xs:enumeration value="DELETE_BEFORE_FK"/>
-						<xs:enumeration value="COPY_COLUMN"/>
-						<xs:enumeration value="CLONE_COLUMN"/>
-						<xs:enumeration value="COPY_TABLE"/>
-					</xs:restriction>
-				</xs:simpleType>
-			</xs:element>
-			<xs:element name="ActionParameters" type="DefinitionActionDataList" minOccurs="0"/>
-		</xs:sequence>
-		<xs:attribute name="isSilensAction" type="xs:boolean" default="false"/>
-	</xs:complexType>
-	<xs:complexType name="DefinitionActionData">
-		<xs:sequence>
-			<xs:element name="Data" type="xs:string"/>
-		</xs:sequence>
-		<xs:attribute name="name" type="xs:string" use="required"/>
-	</xs:complexType>
-	<xs:complexType name="DefinitionActionDataList">
-		<xs:sequence>
-			<xs:element name="Parameter" type="DefinitionActionData" minOccurs="0" maxOccurs="unbounded"/>
-		</xs:sequence>
-	</xs:complexType>
-	<xs:element name="ActionData" type="DefinitionActionList"/>
+	<xs:element name="Patches">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="Patch" minOccurs="0" maxOccurs="unbounded"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="Patch">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="Name" type="xs:string"/>
+				<xs:element name="PreviousName" type="xs:string" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>Name of definition, which must be processed before this definition</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:choice minOccurs="0" maxOccurs="unbounded">
+					<xs:element ref="Action"/>
+					<xs:element ref="TableData"/>
+					<xs:element name="Table" type="dbrevision-structure:DbTable"/>
+					<xs:element name="Sequence" type="dbrevision-structure:DbSequence"/>
+					<xs:element name="ImportedKey" type="dbrevision-structure:DbImportedPKColumn"/>
+					<xs:element name="PrimaryKey" type="dbrevision-structure:DbPrimaryKey"/>
+					<xs:element name="View" type="dbrevision-structure:DbView"/>
+				</xs:choice>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="TableData">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="RecordData" maxOccurs="unbounded"/>
+			</xs:sequence>
+			<xs:attribute name="tableName" type="xs:string" use="required"/>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="RecordData">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="FieldData" maxOccurs="unbounded"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="FieldData">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="TypeField">
+					<xs:simpleType>
+						<xs:restriction base="xs:string">
+							<xs:enumeration value="string"/>
+							<xs:enumeration value="date"/>
+							<xs:enumeration value="number"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+				<xs:choice>
+					<xs:element name="StringData" type="xs:string" minOccurs="0"/>
+					<xs:element name="DateData" type="xs:dateTime" minOccurs="0"/>
+					<xs:element name="NumberData" type="xs:decimal" minOccurs="0"/>
+				</xs:choice>
+			</xs:sequence>
+			<xs:attribute name="fieldName" type="xs:string" use="required"/>
+			<xs:attribute name="isNull" type="xs:string" use="required"/>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="Action">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="Type">
+					<xs:simpleType>
+						<xs:restriction base="xs:string">
+							<xs:enumeration value="CUSTOM_SQL"/>
+							<xs:enumeration value="CUSTOM_CLASS_ACTION"/>
+							<xs:enumeration value="CREATE_SEQUENCE"/>
+							<xs:enumeration value="CREATE_TABLE"/>
+							<xs:enumeration value="ADD_TABLE_COLUMN"/>
+							<xs:enumeration value="DROP_TABLE_COLUMN"/>
+							<xs:enumeration value="ADD_PRIMARY_KEY"/>
+							<xs:enumeration value="ADD_FOREIGN_KEY"/>
+							<xs:enumeration value="DROP_PRIMARY_KEY"/>
+							<xs:enumeration value="DROP_FOREIGN_KEY"/>
+							<xs:enumeration value="DROP_TABLE"/>
+							<xs:enumeration value="DROP_SEQUENCE"/>
+							<xs:enumeration value="DELETE_BEFORE_FK"/>
+							<xs:enumeration value="COPY_COLUMN"/>
+							<xs:enumeration value="CLONE_COLUMN"/>
+							<xs:enumeration value="COPY_TABLE"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+				<xs:element ref="ActionParameter" minOccurs="0" maxOccurs="unbounded"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="ActionParameter">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="Data" type="xs:string"/>
+			</xs:sequence>
+			<xs:attribute name="name" type="xs:string" use="required"/>
+		</xs:complexType>
+	</xs:element>
 	<xs:complexType name="PrimaryKey">
 		<xs:attribute name="type">
 			<xs:simpleType>
@@ -161,16 +145,25 @@
 			</xs:simpleType>
 		</xs:attribute>
 	</xs:complexType>
-	<xs:complexType name="ProjectRelease">
-		<xs:sequence>
-			<xs:element name="ProjectName" type="xs:string"/>
-			<xs:element name="Release" type="Release" maxOccurs="unbounded"/>
-		</xs:sequence>
-	</xs:complexType>
-	<xs:complexType name="Release">
-		<xs:sequence>
-			<xs:element name="Version" type="xs:string"/>
-			<xs:element name="PreviousVersion" type="xs:string" minOccurs="0"/>
-		</xs:sequence>
-	</xs:complexType>
+	<xs:element name="DbRevision">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="Module" minOccurs="0" maxOccurs="unbounded">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="Description" type="xs:string"/>
+							<xs:element name="Name" type="xs:string"/>
+							<xs:element name="Versions">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="Version" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
 </xs:schema>

@@ -10,25 +10,27 @@ package org.riverock.dbrevision.annotation.schema.db;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for DbDataTable complex type.
+ * <p>Java class for anonymous complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="DbDataTable">
+ * &lt;complexType>
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
- *         &lt;element name="Record" type="{http://dbrevision.sourceforge.net/xsd/dbrevision-structure.xsd}DbDataRecord" maxOccurs="unbounded" minOccurs="0"/>
+ *         &lt;element ref="{}RecordData" maxOccurs="unbounded"/>
  *       &lt;/sequence>
+ *       &lt;attribute name="tableName" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
  *     &lt;/restriction>
  *   &lt;/complexContent>
  * &lt;/complexType>
@@ -37,41 +39,68 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "DbDataTable", propOrder = {
-    "records"
+@XmlType(name = "", propOrder = {
+    "recordData"
 })
-public class DbDataTable {
+@XmlRootElement(name = "TableData", namespace = "")
+public class TableData {
 
-    @XmlElement(name = "Record")
-    protected List<DbDataRecord> records;
+    @XmlElement(name = "RecordData", required = true)
+    protected List<RecordData> recordData;
+    @XmlAttribute(required = true)
+    protected String tableName;
 
     /**
-     * Gets the value of the records property.
+     * Gets the value of the recordData property.
      * 
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the records property.
+     * This is why there is not a <CODE>set</CODE> method for the recordData property.
      * 
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
-     *    getRecords().add(newItem);
+     *    getRecordData().add(newItem);
      * </pre>
      * 
      * 
      * <p>
      * Objects of the following type(s) are allowed in the list
-     * {@link DbDataRecord }
+     * {@link RecordData }
      * 
      * 
      */
-    public List<DbDataRecord> getRecords() {
-        if (records == null) {
-            records = new ArrayList<DbDataRecord>();
+    public List<RecordData> getRecordData() {
+        if (recordData == null) {
+            recordData = new ArrayList<RecordData>();
         }
-        return this.records;
+        return this.recordData;
+    }
+
+    /**
+     * Gets the value of the tableName property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getTableName() {
+        return tableName;
+    }
+
+    /**
+     * Sets the value of the tableName property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setTableName(String value) {
+        this.tableName = value;
     }
 
 }

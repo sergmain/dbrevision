@@ -26,14 +26,14 @@
 package org.riverock.dbrevision.db.definition;
 
 import java.sql.PreparedStatement;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import org.riverock.dbrevision.annotation.schema.db.CustomSequence;
-import org.riverock.dbrevision.annotation.schema.db.DefinitionActionDataList;
+import org.riverock.dbrevision.annotation.schema.db.ActionParameter;
 import org.riverock.dbrevision.db.DatabaseAdapter;
-import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.exception.DbRevisionException;
+import org.riverock.dbrevision.utils.DbUtils;
 
 /**
  * User: Admin
@@ -49,11 +49,12 @@ public class AddRecordToList implements DefinitionProcessingInterface {
     public AddRecordToList() {
     }
 
-    public void processAction(DatabaseAdapter db_, DefinitionActionDataList parameters) {
+    public void processAction(DatabaseAdapter adapter, List<ActionParameter> parameters) {
+
         PreparedStatement ps = null;
         try {
             if (log.isDebugEnabled())
-                log.debug("db connect - " + db_.getClass().getName());
+                log.debug("db connect - " + adapter.getClass().getName());
 
             String seqName = DefinitionService.getString(parameters, "sequence_name", null);
             if (seqName == null) {
@@ -75,12 +76,6 @@ public class AddRecordToList implements DefinitionProcessingInterface {
                 log.error(errorString);
                 throw new Exception(errorString);
             }
-
-            CustomSequence seqSite = new CustomSequence();
-            seqSite.setSequenceName(seqName);
-            seqSite.setTableName(tableName);
-            seqSite.setColumnName(columnName);
-            long seqValue = db_.getSequenceNextValue(seqSite);
 
             String valueColumnName = DefinitionService.getString(parameters, "name_value_field", null);
             if (valueColumnName == null) {
@@ -104,12 +99,11 @@ public class AddRecordToList implements DefinitionProcessingInterface {
 
             if (log.isDebugEnabled()) {
                 log.debug(sql);
-                log.debug("pk " + seqValue);
                 log.debug("value " + insertValue);
             }
 
-            ps = db_.getConnection().prepareStatement(sql);
-            ps.setLong(1, seqValue);
+            ps = adapter.getConnection().prepareStatement(sql);
+            ps.setLong(1, -1);
             ps.setString(2, insertValue);
 
             ps.executeUpdate();
@@ -120,7 +114,7 @@ public class AddRecordToList implements DefinitionProcessingInterface {
             throw new DbRevisionException(e);
         }
         finally {
-            DatabaseManager.close(ps);
+            DbUtils.close(ps);
             ps = null;
         }
     }

@@ -9,33 +9,42 @@
 package org.riverock.dbrevision.annotation.schema.db;
 
 import java.math.BigDecimal;
-
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 
 /**
- * <p>Java class for DbDataFieldData complex type.
+ * <p>Java class for anonymous complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="DbDataFieldData">
+ * &lt;complexType>
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
- *         &lt;element name="JavaTypeField" type="{http://www.w3.org/2001/XMLSchema}int"/>
- *         &lt;element name="StringData" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
- *         &lt;element name="DateData" type="{http://www.w3.org/2001/XMLSchema}dateTime" minOccurs="0"/>
- *         &lt;element name="NumberData" type="{http://www.w3.org/2001/XMLSchema}decimal" minOccurs="0"/>
- *         &lt;element name="IsNull" type="{http://www.w3.org/2001/XMLSchema}boolean"/>
+ *         &lt;element name="TypeField">
+ *           &lt;simpleType>
+ *             &lt;restriction base="{http://www.w3.org/2001/XMLSchema}string">
+ *               &lt;enumeration value="string"/>
+ *               &lt;enumeration value="date"/>
+ *               &lt;enumeration value="number"/>
+ *             &lt;/restriction>
+ *           &lt;/simpleType>
+ *         &lt;/element>
+ *         &lt;choice>
+ *           &lt;element name="StringData" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
+ *           &lt;element name="DateData" type="{http://www.w3.org/2001/XMLSchema}dateTime" minOccurs="0"/>
+ *           &lt;element name="NumberData" type="{http://www.w3.org/2001/XMLSchema}decimal" minOccurs="0"/>
+ *         &lt;/choice>
  *       &lt;/sequence>
- *       &lt;attribute name="decimalDigit" type="{http://www.w3.org/2001/XMLSchema}int" />
- *       &lt;attribute name="size" type="{http://www.w3.org/2001/XMLSchema}int" />
+ *       &lt;attribute name="fieldName" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
+ *       &lt;attribute name="isNull" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
  *     &lt;/restriction>
  *   &lt;/complexContent>
  * &lt;/complexType>
@@ -44,44 +53,50 @@ import javax.xml.datatype.XMLGregorianCalendar;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "DbDataFieldData", propOrder = {
-    "javaTypeField",
+@XmlType(name = "", propOrder = {
+    "typeField",
     "stringData",
     "dateData",
-    "numberData",
-    "isNull"
+    "numberData"
 })
-public class DbDataFieldData {
+@XmlRootElement(name = "FieldData", namespace = "")
+public class FieldData {
 
-    @XmlElement(name = "JavaTypeField")
-    protected int javaTypeField;
+    @XmlElement(name = "TypeField", required = true)
+    protected String typeField;
     @XmlElement(name = "StringData")
     protected String stringData;
     @XmlElement(name = "DateData")
     protected XMLGregorianCalendar dateData;
     @XmlElement(name = "NumberData")
     protected BigDecimal numberData;
-    @XmlElement(name = "IsNull")
-    protected boolean isNull;
-    @XmlAttribute
-    protected Integer decimalDigit;
-    @XmlAttribute
-    protected Integer size;
+    @XmlAttribute(required = true)
+    protected String fieldName;
+    @XmlAttribute(required = true)
+    protected String isNull;
 
     /**
-     * Gets the value of the javaTypeField property.
+     * Gets the value of the typeField property.
      * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
      */
-    public int getJavaTypeField() {
-        return javaTypeField;
+    public String getTypeField() {
+        return typeField;
     }
 
     /**
-     * Sets the value of the javaTypeField property.
+     * Sets the value of the typeField property.
      * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
      */
-    public void setJavaTypeField(int value) {
-        this.javaTypeField = value;
+    public void setTypeField(String value) {
+        this.typeField = value;
     }
 
     /**
@@ -157,67 +172,51 @@ public class DbDataFieldData {
     }
 
     /**
+     * Gets the value of the fieldName property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getFieldName() {
+        return fieldName;
+    }
+
+    /**
+     * Sets the value of the fieldName property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setFieldName(String value) {
+        this.fieldName = value;
+    }
+
+    /**
      * Gets the value of the isNull property.
      * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
      */
-    public boolean isIsNull() {
+    public String getIsNull() {
         return isNull;
     }
 
     /**
      * Sets the value of the isNull property.
      * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
      */
-    public void setIsNull(boolean value) {
+    public void setIsNull(String value) {
         this.isNull = value;
-    }
-
-    /**
-     * Gets the value of the decimalDigit property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Integer }
-     *     
-     */
-    public Integer getDecimalDigit() {
-        return decimalDigit;
-    }
-
-    /**
-     * Sets the value of the decimalDigit property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link Integer }
-     *     
-     */
-    public void setDecimalDigit(Integer value) {
-        this.decimalDigit = value;
-    }
-
-    /**
-     * Gets the value of the size property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Integer }
-     *     
-     */
-    public Integer getSize() {
-        return size;
-    }
-
-    /**
-     * Sets the value of the size property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link Integer }
-     *     
-     */
-    public void setSize(Integer value) {
-        this.size = value;
     }
 
 }
