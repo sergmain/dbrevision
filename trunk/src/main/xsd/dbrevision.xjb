@@ -3,66 +3,70 @@
 
 
     <jaxb:bindings schemaLocation="dbrevision.xsd" node="//xs:element[@name='Action']">
-      <jaxb:bindings node=".//xs:element[@ref='ActionParameter']">
-        <jaxb:property name="actionParameters"/>
-      </jaxb:bindings>
+        <jaxb:bindings node=".//xs:element[@ref='ActionParameter']">
+            <jaxb:property name="actionParameters"/>
+        </jaxb:bindings>
     </jaxb:bindings>
 
     <jaxb:bindings schemaLocation="dbrevision.xsd" node="//xs:element[@name='Patches']">
-      <jaxb:bindings node=".//xs:element[@ref='Patch']">
-        <jaxb:property name="patches"/>
-      </jaxb:bindings>
+        <jaxb:bindings node=".//xs:element[@ref='Patch']">
+            <jaxb:property name="patches"/>
+        </jaxb:bindings>
     </jaxb:bindings>
 
     <jaxb:bindings schemaLocation="dbrevision.xsd" node="//xs:element[@name='DbRevision']">
-      <jaxb:bindings node=".//xs:element[@name='Module']">
-        <jaxb:property name="modules"/>
-      </jaxb:bindings>
+        <jaxb:bindings node=".//xs:element[@name='Module']">
+            <jaxb:property name="modules"/>
+        </jaxb:bindings>
     </jaxb:bindings>
 
     <jaxb:bindings schemaLocation="dbrevision.xsd" node="//xs:element[@name='Versions']">
-      <jaxb:bindings node=".//xs:element[@name='Version']">
-        <jaxb:property name="versions"/>
-      </jaxb:bindings>
+        <jaxb:bindings node=".//xs:element[@name='Version']">
+            <jaxb:property name="versions"/>
+        </jaxb:bindings>
     </jaxb:bindings>
 
 
-
-
     <jaxb:bindings schemaLocation="dbrevision-structure.xsd" node="//xs:complexType[@name='DbSchema']">
-      <jaxb:bindings node=".//xs:element[@name='Table']">
-        <jaxb:property name="tables"/>
-      </jaxb:bindings>
+        <jaxb:bindings node=".//xs:element[@name='Table']">
+            <jaxb:property name="tables"/>
+        </jaxb:bindings>
     </jaxb:bindings>
 
     <jaxb:bindings schemaLocation="dbrevision-structure.xsd" node="//xs:complexType[@name='DbSchema']">
-      <jaxb:bindings node=".//xs:element[@name='View']">
-        <jaxb:property name="views"/>
-      </jaxb:bindings>
+        <jaxb:bindings node=".//xs:element[@name='View']">
+            <jaxb:property name="views"/>
+        </jaxb:bindings>
     </jaxb:bindings>
 
     <jaxb:bindings schemaLocation="dbrevision-structure.xsd" node="//xs:complexType[@name='DbSchema']">
-      <jaxb:bindings node=".//xs:element[@name='Sequence']">
-        <jaxb:property name="sequences"/>
-      </jaxb:bindings>
+        <jaxb:bindings node=".//xs:element[@name='Sequence']">
+            <jaxb:property name="sequences"/>
+        </jaxb:bindings>
     </jaxb:bindings>
 
     <jaxb:bindings schemaLocation="dbrevision-structure.xsd" node="//xs:complexType[@name='DbTable']">
-      <jaxb:bindings node=".//xs:element[@name='Field']">
-        <jaxb:property name="fields"/>
-      </jaxb:bindings>
+        <jaxb:bindings node=".//xs:element[@name='Field']">
+            <jaxb:property name="fields"/>
+        </jaxb:bindings>
     </jaxb:bindings>
 
     <jaxb:bindings schemaLocation="dbrevision-structure.xsd" node="//xs:complexType[@name='DbTable']">
-      <jaxb:bindings node=".//xs:element[@name='ImportedKey']">
-        <jaxb:property name="importedKeys"/>
-      </jaxb:bindings>
+        <jaxb:bindings node=".//xs:element[@name='ImportedKey']">
+            <jaxb:property name="importedKeys"/>
+        </jaxb:bindings>
+    </jaxb:bindings>
+
+    <jaxb:bindings schemaLocation="dbrevision-structure.xsd" node="//xs:complexType[@name='DbPrimaryKey']">
+        <jaxb:bindings node=".//xs:element[@name='Column']">
+            <jaxb:property name="columns"/>
+        </jaxb:bindings>
     </jaxb:bindings>
 
     <jaxb:bindings schemaLocation="dbrevision-structure.xsd" node="//xs:complexType[@name='DbDataTable']">
-      <jaxb:bindings node=".//xs:element[@name='Record']">
-        <jaxb:property name="records"/>
-      </jaxb:bindings>
+        <jaxb:bindings node=".//xs:element[@name='Record']">
+            <jaxb:property name="records"/>
+        </jaxb:bindings>
     </jaxb:bindings>
 
 
