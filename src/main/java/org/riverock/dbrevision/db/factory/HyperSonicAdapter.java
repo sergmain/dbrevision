@@ -27,17 +27,32 @@ package org.riverock.dbrevision.db.factory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.sql.*;
+import java.sql.Blob;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
-import org.riverock.dbrevision.annotation.schema.db.*;
+import org.riverock.dbrevision.annotation.schema.db.DbDataFieldData;
+import org.riverock.dbrevision.annotation.schema.db.DbField;
+import org.riverock.dbrevision.annotation.schema.db.DbImportedPKColumn;
+import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKey;
+import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKeyColumn;
+import org.riverock.dbrevision.annotation.schema.db.DbSequence;
+import org.riverock.dbrevision.annotation.schema.db.DbTable;
+import org.riverock.dbrevision.annotation.schema.db.DbView;
 import org.riverock.dbrevision.db.DatabaseAdapter;
 import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.exception.DbRevisionException;
+import org.riverock.dbrevision.utils.DbUtils;
 
 /**
  *
@@ -224,7 +239,7 @@ public class HyperSonicAdapter extends DatabaseAdapter {
             throw new DbRevisionException(e);
         }
         finally {
-            DatabaseManager.close(ps);
+            DbUtils.close(ps);
             ps = null;
         }
 
@@ -251,7 +266,7 @@ public class HyperSonicAdapter extends DatabaseAdapter {
             throw new DbRevisionException(e);
         }
         finally {
-            DatabaseManager.close(ps);
+            DbUtils.close(ps);
             ps = null;
         }
     }
@@ -274,7 +289,7 @@ public class HyperSonicAdapter extends DatabaseAdapter {
             throw new DbRevisionException(e);
         }
         finally {
-            DatabaseManager.close(ps);
+            DbUtils.close(ps);
             ps = null;
         }
     }
@@ -362,7 +377,7 @@ public class HyperSonicAdapter extends DatabaseAdapter {
             throw new DbRevisionException(e);
         }
         finally {
-            DatabaseManager.close(ps);
+            DbUtils.close(ps);
             ps = null;
         }
     }
@@ -403,7 +418,7 @@ public class HyperSonicAdapter extends DatabaseAdapter {
         catch (SQLException e) {
             throw new DbRevisionException(e);
         } finally {
-            DatabaseManager.close(ps);
+            DbUtils.close(ps);
             ps = null;
         }
     }
@@ -434,35 +449,6 @@ public class HyperSonicAdapter extends DatabaseAdapter {
             return clob.getSubString(1, maxLength);
         }
 */
-
-    /**
-     * Возвращает значение сиквенса(последовательности) для данного имени последовательности.
-     * Для разных коннектов к разным базам данных может быть решена по разному.
-     *
-     * @param sequence - String. Имя последовательноти для получения следующего значения.
-     * @return long - следующее значение для ключа из последовательности
-     * @throws SQLException
-     */
-    public long getSequenceNextValue(CustomSequence sequence)
-        throws SQLException {
-        PreparedStatement ps = null;
-        ResultSet rs = null;
-        try {
-            ps = getConnection().prepareStatement("select max(" + sequence.getColumnName() + ") max_id from " + sequence.getTableName());
-
-            rs = ps.executeQuery();
-
-            if (rs.next())
-                return rs.getLong(1) + 1;
-        }
-        finally {
-            DatabaseManager.close(rs, ps);
-            rs = null;
-            ps = null;
-        }
-
-        return 1;
-    }
 
     public boolean testExceptionTableNotFound(Exception e) {
         if (e == null)

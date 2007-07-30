@@ -36,7 +36,6 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.riverock.dbrevision.annotation.schema.db.CustomSequence;
 import org.riverock.dbrevision.annotation.schema.db.DbDataFieldData;
 import org.riverock.dbrevision.annotation.schema.db.DbField;
 import org.riverock.dbrevision.annotation.schema.db.DbImportedPKColumn;
@@ -46,6 +45,7 @@ import org.riverock.dbrevision.annotation.schema.db.DbView;
 import org.riverock.dbrevision.db.DatabaseAdapter;
 import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.exception.DbRevisionException;
+import org.riverock.dbrevision.utils.DbUtils;
 
 /**
  * $Id: MaxDBAdapter.java 1141 2006-12-14 14:43:29Z serg_main $
@@ -127,7 +127,7 @@ public class MaxDBAdapter extends DatabaseAdapter {
         catch (SQLException e) {
             throw new DbRevisionException(e);
         } finally {
-            DatabaseManager.close(ps);
+            DbUtils.close(ps);
             ps = null;
         }
     }
@@ -176,20 +176,6 @@ public class MaxDBAdapter extends DatabaseAdapter {
 
 	return clob.getSubString(1, maxLength);
 */
-    }
-
-    /**
-     * Возвращает значение сиквенса(последовательности) для данного имени последовательности.
-     * Для разных коннектов к разным базам данных может быть решена по разному.
-     *
-     * @param sequence - String. Имя последовательноти для получения следующего значения.
-     * @return long - следующее значение для ключа из последовательности
-     * @throws SQLException
-     */
-    public long getSequenceNextValue(CustomSequence sequence)
-        throws SQLException {
-        throw new SQLException("not implemented");
-//        return 0;
     }
 
     public boolean testExceptionTableNotFound(Exception e) {

@@ -6,7 +6,7 @@ package org.riverock.dbrevision.manager.config;
  * Time: 16:55:52
  */
 public class ConfigParserFactory {
-    private static final ConfigParser CONFIG_PARSER = new SimpleConfigParserImpl();
+    private static final ConfigParser CONFIG_PARSER = new JaxbConfigParserImpl();
 
     public static ConfigParser getConfigParser() {
         return CONFIG_PARSER;

@@ -25,17 +25,18 @@
  */
 package org.riverock.dbrevision.db.definition;
 
+import java.util.List;
+
+import org.riverock.dbrevision.annotation.schema.db.ActionParameter;
 import org.riverock.dbrevision.db.DatabaseAdapter;
-import org.riverock.dbrevision.annotation.schema.db.DefinitionActionDataList;
 
 /**
  * User: Admin
  * Date: May 20, 2003
  * Time: 10:02:30 PM
- *
+ * <p/>
  * $Id: DefinitionProcessingInterface.java 1075 2006-11-24 18:08:42Z serg_main $
  */
-public interface DefinitionProcessingInterface
-{
-    public void processAction(DatabaseAdapter db_, DefinitionActionDataList parameters);
+public interface DefinitionProcessingInterface {
+    public void processAction(DatabaseAdapter adapter, List<ActionParameter> parameters);
 }

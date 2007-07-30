@@ -1,13 +1,18 @@
 package org.riverock.dbrevision.db.factory;
 
-import org.riverock.dbrevision.annotation.schema.db.*;
-import org.riverock.dbrevision.db.DatabaseAdapter;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+
+import org.riverock.dbrevision.annotation.schema.db.DbDataFieldData;
+import org.riverock.dbrevision.annotation.schema.db.DbField;
+import org.riverock.dbrevision.annotation.schema.db.DbImportedPKColumn;
+import org.riverock.dbrevision.annotation.schema.db.DbSequence;
+import org.riverock.dbrevision.annotation.schema.db.DbTable;
+import org.riverock.dbrevision.annotation.schema.db.DbView;
+import org.riverock.dbrevision.db.DatabaseAdapter;
 
 /**
  * Created by IntelliJ IDEA.
@@ -139,10 +144,6 @@ public class LocalDatabaseAdapter extends DatabaseAdapter {
 
     public boolean testExceptionConstraintExists(Exception e) {
         return false;
-    }
-
-    public long getSequenceNextValue(final CustomSequence sequence) throws SQLException {
-        return 0;
     }
 
     public int getMaxLengthStringField() {
