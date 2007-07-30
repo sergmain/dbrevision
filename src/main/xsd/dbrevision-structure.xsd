@@ -110,7 +110,7 @@
 	</xs:complexType>
 	<xs:complexType name="DbPrimaryKey">
 		<xs:sequence>
-			<xs:element name="columns" type="dbrevision-structure:DbPrimaryKeyColumn" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="Column" type="dbrevision-structure:DbPrimaryKeyColumn" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
 	</xs:complexType>
 	<xs:complexType name="DbPrimaryKeyColumn">
