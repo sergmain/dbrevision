@@ -23,7 +23,7 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
-package org.riverock.dbrevision.db.definition;
+package org.riverock.dbrevision.manager.patch;
 
 import java.util.List;
 
@@ -35,8 +35,8 @@ import org.riverock.dbrevision.db.DatabaseAdapter;
  * Date: May 20, 2003
  * Time: 10:02:30 PM
  * <p/>
- * $Id: DefinitionProcessingInterface.java 1075 2006-11-24 18:08:42Z serg_main $
+ * $Id: PatchAction.java 1075 2006-11-24 18:08:42Z serg_main $
  */
-public interface DefinitionProcessingInterface {
+public interface PatchAction {
     public void processAction(DatabaseAdapter adapter, List<ActionParameter> parameters);
 }

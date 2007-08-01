@@ -23,7 +23,7 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
-package org.riverock.dbrevision.db.definition;
+package org.riverock.dbrevision.manager.patch;
 
 import java.sql.Statement;
 import java.util.HashMap;
@@ -45,10 +45,10 @@ import org.riverock.dbrevision.utils.Utils;
  * Date: May 15, 2003
  * Time: 11:15:35 PM
  * <p/>
- * $Id: DefinitionService.java 1141 2006-12-14 14:43:29Z serg_main $
+ * $Id: PatchService.java 1141 2006-12-14 14:43:29Z serg_main $
  */
-public final class DefinitionService {
-    private static Logger log = Logger.getLogger(DefinitionService.class);
+public final class PatchService {
+    private static Logger log = Logger.getLogger(PatchService.class);
 
     public static final String CUSTOM_SQL_TYPE="CUSTOM_SQL";
     public static final String CUSTOM_CLASS_ACTION_TYPE="CUSTOM_CLASS_ACTION";
@@ -441,7 +441,7 @@ public final class DefinitionService {
                                     if (obj == null)
                                         throw new Exception("Patch - " + patch.getName() + ", action '" + CUSTOM_CLASS_ACTION_TYPE + "', obj is null");
 
-                                    ((DefinitionProcessingInterface) obj).processAction(db_, action.getActionParameters());
+                                    ((PatchAction) obj).processAction(db_, action.getActionParameters());
                                 }
                                 break;
 
