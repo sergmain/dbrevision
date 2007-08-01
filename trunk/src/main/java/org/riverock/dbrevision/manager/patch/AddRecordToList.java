@@ -23,7 +23,7 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
-package org.riverock.dbrevision.db.definition;
+package org.riverock.dbrevision.manager.patch;
 
 import java.sql.PreparedStatement;
 import java.util.List;
@@ -43,7 +43,7 @@ import org.riverock.dbrevision.utils.DbUtils;
  * $Id: AddRecordToList.java 1141 2006-12-14 14:43:29Z serg_main $
  */
 @SuppressWarnings({"UnusedAssignment"})
-public class AddRecordToList implements DefinitionProcessingInterface {
+public class AddRecordToList implements PatchAction {
     private static Logger log = Logger.getLogger(AddRecordToList.class);
 
     public AddRecordToList() {
@@ -56,35 +56,35 @@ public class AddRecordToList implements DefinitionProcessingInterface {
             if (log.isDebugEnabled())
                 log.debug("db connect - " + adapter.getClass().getName());
 
-            String seqName = DefinitionService.getString(parameters, "sequence_name", null);
+            String seqName = PatchService.getString(parameters, "sequence_name", null);
             if (seqName == null) {
                 String errorString = "Name of sequnce not found";
                 log.error(errorString);
                 throw new Exception(errorString);
             }
 
-            String tableName = DefinitionService.getString(parameters, "name_table", null);
+            String tableName = PatchService.getString(parameters, "name_table", null);
             if (tableName == null) {
                 String errorString = "Name of table not found";
                 log.error(errorString);
                 throw new Exception(errorString);
             }
 
-            String columnName = DefinitionService.getString(parameters, "name_pk_field", null);
+            String columnName = PatchService.getString(parameters, "name_pk_field", null);
             if (columnName == null) {
                 String errorString = "Name of column not found";
                 log.error(errorString);
                 throw new Exception(errorString);
             }
 
-            String valueColumnName = DefinitionService.getString(parameters, "name_value_field", null);
+            String valueColumnName = PatchService.getString(parameters, "name_value_field", null);
             if (valueColumnName == null) {
                 String errorString = "Name of valueColumnName not found";
                 log.error(errorString);
                 throw new Exception(errorString);
             }
 
-            String insertValue = DefinitionService.getString(parameters, "insert_value", null);
+            String insertValue = PatchService.getString(parameters, "insert_value", null);
             if (insertValue == null) {
                 String errorString = "Name of insertValue not found";
                 log.error(errorString);
