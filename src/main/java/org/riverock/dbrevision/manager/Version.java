@@ -1,13 +1,24 @@
 package org.riverock.dbrevision.manager;
 
 import org.riverock.dbrevision.Constants;
+import org.riverock.dbrevision.manager.patch.PatchComparator;
+import org.riverock.dbrevision.utils.Utils;
+import org.riverock.dbrevision.annotation.schema.db.*;
 import org.riverock.dbrevision.db.DatabaseAdapter;
 import org.riverock.dbrevision.exception.InitStructureFileNotFoundException;
 import org.riverock.dbrevision.exception.VersionPathNotFoundException;
+import org.riverock.dbrevision.exception.PatchPrepareException;
 
 import java.io.File;
+import java.io.FileFilter;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Collections;
+
+import javax.xml.bind.JAXBException;
 
 /**
  * User: SergeMaslyukov
@@ -45,6 +56,29 @@ public class Version {
             throw new InitStructureFileNotFoundException("Init structure file not found: " + initStructureFile.getAbsolutePath() );
         }
         this.patchPath = new File(versionPath, Constants.PATCH_DIR_NAME);
+        initPatches(); 
+    }
+
+    private void initPatches() {
+        File[] files = patchPath.listFiles(
+            new FileFilter() {
+                public boolean accept(File pathname) {
+                    return pathname.isFile();
+                }
+            }
+        );
+        List<Patch> list = new ArrayList<Patch>();
+        try {
+            for (File file : files) {
+                FileInputStream fis = new FileInputStream(file);
+                Patches patches = Utils.getObjectFromXml(Patches.class, fis);
+                list.addAll(patches.getPatches());
+            }
+            Collections.sort(list, PatchComparator.getInstance());
+        }
+        catch (Exception e) {
+            throw new PatchPrepareException(e);
+        }
     }
 
     public void applay() {
