@@ -19,7 +19,7 @@
 	</Patch>
 	<Patch>
 		<Name>test_1_2</Name>
-		<PreviousName>test_1_1</PreviousName>
+		<PreviousName>test_2_1</PreviousName>
         <Table schema="MILLENNIUM" name="TEST_1_2" type="TABLE" remark="Test table 1-2">
             <Field name="ID_TEST12" dataType="NUMBER" javaType="3" javaStringType="java.sql.Types.DECIMAL" size="4" decimalDigit="0" nullable="0"/>
             <Field name="ID_TEST11" dataType="NUMBER" javaType="3" javaStringType="java.sql.Types.DECIMAL" size="4" decimalDigit="0" nullable="0"/>
@@ -36,6 +36,7 @@
 	</Patch>
 	<Patch>
 		<Name>test_0_0</Name>
+        <PreviousName>webmill_init_def_v2</PreviousName>
 			<Action>
                 <Type>CUSTOM_SQL</Type>
                 <ActionParameter name="sql">
@@ -51,7 +52,7 @@
 	</Patch>
 	<Patch>
 		<Name>test_0_2</Name>
-		<PreviousName>test_0_1</PreviousName>
+		<PreviousName>test_1_2</PreviousName>
 		<View schema="MILLENNIUM" name="F_DEL_V_B2C_ITEMS_PRICE_SIMPLE" type="VIEW">
 			<Text>select  a1.*, e.name_currency, e.id_currency
 from

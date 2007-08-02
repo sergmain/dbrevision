@@ -1,1 +1,98 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<Patches xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="..\..\..\..\..\..\main\xsd\dbrevision.xsd">
+	<Patch>
+		<Name>test_2_1</Name>
+		<PreviousName>test_1_1</PreviousName>
+		<PrimaryKey>
+			<Column schemaName="MILLENNIUM" tableName="TEST_1_1" columnName="ID_TEST11" keySeq="1" pkName="ID_TEST11_T11_PK"/>
+		</PrimaryKey>
+        <ImportedKey pkSchemaName="MILLENNIUM" pkTableName="TEST_1_1" pkColumnName="ID_TEST11" pkName="ID_TEST11_T11_PK" fkSchemaName="MILLENNIUM" fkTableName="TEST_1_2" fkColumnName="ID_TEST11" keySeq="1" fkName="ID_TEST11_T12_FK">
+            <DeleteRule ruleType="0" ruleName="java.sql.DatabaseMetaData.importedKeyCascade"/>
+            <Deferrability ruleType="7" ruleName="java.sql.DatabaseMetaData.importedKeyNotDeferrable"/>
+        </ImportedKey>
+	</Patch>
+	<Patch>
+		<Name>test_1_0</Name>
+		<PreviousName>test_0_0</PreviousName>
+        <Sequence name="SEQ_TEST_1_1" minValue="1" maxValue="99999" incrementBy="1" lastNumber="1"/>
+        <Sequence name="SEQ_TEST_1_2" minValue="1" maxValue="99999" incrementBy="1" lastNumber="1"/>
+	</Patch>
+	<Patch>
+		<Name>test_1_2</Name>
+		<PreviousName>test_2_1</PreviousName>
+        <Table schema="MILLENNIUM" name="TEST_1_2" type="TABLE" remark="Test table 1-2">
+            <Field name="ID_TEST12" dataType="NUMBER" javaType="3" javaStringType="java.sql.Types.DECIMAL" size="4" decimalDigit="0" nullable="0"/>
+            <Field name="ID_TEST11" dataType="NUMBER" javaType="3" javaStringType="java.sql.Types.DECIMAL" size="4" decimalDigit="0" nullable="0"/>
+            <Field name="NAME_TEST12" dataType="VARCHAR2" javaType="12" javaStringType="java.sql.Types.VARCHAR" size="30" decimalDigit="0" nullable="0"/>
+        </Table>
+	</Patch>
+	<Patch>
+		<Name>test_1_1</Name>
+		<PreviousName>test_1_0</PreviousName>
+        <Table schema="MILLENNIUM" name="TEST_1_1" type="TABLE" remark="Test table 1-1">
+            <Field name="ID_TEST11" dataType="NUMBER" javaType="3" javaStringType="java.sql.Types.DECIMAL" size="4" decimalDigit="0" nullable="0"/>
+            <Field name="NAME_TEST11" dataType="VARCHAR2" javaType="12" javaStringType="java.sql.Types.VARCHAR" size="30" decimalDigit="0" nullable="0"/>
+        </Table>
+	</Patch>
+	<Patch>
+		<Name>test_0_0</Name>
+        <PreviousName>webmill_init_def_v2</PreviousName>
+			<Action>
+                <Type>CUSTOM_SQL</Type>
+                <ActionParameter name="sql">
+                    <Data>DROP TABLE TEST_1_2</Data>
+				</ActionParameter>
+			</Action>
+			<Action>
+				<Type>DROP_TABLE</Type>
+				<ActionParameter name="name_table">
+						<Data>TEST_1_2</Data>
+				</ActionParameter>
+			</Action>
+	</Patch>
+	<Patch>
+		<Name>test_0_2</Name>
+		<PreviousName>test_1_2</PreviousName>
+		<View schema="MILLENNIUM" name="F_DEL_V_B2C_ITEMS_PRICE_SIMPLE" type="VIEW">
+			<Text>select  a1.*, e.name_currency, e.id_currency
+from
+(select a.*, b.id_site from price_list a, price_shop_table b
+where a.id_shop = b.id_shop and   a.absolete = 0
+) a1, cash_currency e
+where   a1.currency = e.currency(+) and
+        a1.id_site = e.id_site(+)
+            </Text>
+		</View>
+		<View schema="MILLENNIUM" name="F_D_V_AUTH_ARM_FULL" type="VIEW">
+			<Text>select distinct b.id_arm, code_arm from auth_arm b WITH READ ONLY</Text>
+		</View>
+		<View schema="MILLENNIUM" name="V_RELATE_RIGHT_FULL" type="VIEW">
+			<Text>select a.id_relate_right, a.id_access_group, a.id_object_arm, a.code_right,
+
+c.name_object_arm, c.code_object_arm, c.name_arm, c.id_arm,
+b.name_access_group, c.code_arm, is_road, is_service, is_firm
+from v_relate_right_arm a, auth_access_group b, V_AUTH_MODULE_FULL c
+where a.id_object_arm = c.id_object_arm and a.id_access_group = b.id_access_group
+            </Text>
+		</View>
+		<Sequence name="FOR_DEL_SEQ_A" minValue="0" maxValue="9999" incrementBy="1" isCycle="false" isOrder="false" cacheSize="0" lastNumber="2"/>
+		<Sequence name="LIST_GROUP_PRODUCT_SEQ" minValue="1" maxValue="99999999999999999999999999" incrementBy="1" isCycle="false" isOrder="false" cacheSize="0" lastNumber="11"/>
+		<Table schema="MILLENNIUM" name="A_TEST" type="TABLE">
+			<PrimaryKey>
+				<Column schemaName="MILLENNIUM" tableName="A_TEST" columnName="ID_LANG" keySeq="2" pkName="ID_TEST_LANG_A_TEST_PK"/>
+				<Column schemaName="MILLENNIUM" tableName="A_TEST" columnName="ID_TEST" keySeq="1" pkName="ID_TEST_LANG_A_TEST_PK"/>
+			</PrimaryKey>
+			<Field name="ID_TEST" dataType="NUMBER" javaType="3" javaStringType="java.sql.Types.DECIMAL" size="22" decimalDigit="0" nullable="0"/>
+			<Field name="ID_LANG" dataType="NUMBER" javaType="3" javaStringType="java.sql.Types.DECIMAL" size="22" decimalDigit="0" nullable="0"/>
+			<Field name="TYPE" dataType="VARCHAR2" javaType="12" javaStringType="java.sql.Types.VARCHAR" size="30" decimalDigit="0" nullable="1"/>
+			<Field name="IS_YESNO" dataType="NUMBER" javaType="3" javaStringType="java.sql.Types.DECIMAL" size="1" decimalDigit="0" nullable="0" defaultValue="1"/>
+		</Table>
+		<Table schema="MILLENNIUM" name="A_TEST_" type="TABLE">
+			<PrimaryKey/>
+			<Field name="ID_TEST_1" dataType="NUMBER" javaType="3" javaStringType="java.sql.Types.DECIMAL" size="22" decimalDigit="0" nullable="1"/>
+			<Field name="ID_TEST" dataType="NUMBER" javaType="3" javaStringType="java.sql.Types.DECIMAL" size="22" decimalDigit="0" nullable="1"/>
+			<Field name="ID_LANG" dataType="NUMBER" javaType="3" javaStringType="java.sql.Types.DECIMAL" size="22" decimalDigit="0" nullable="1"/>
+			<Field name="NAMER" dataType="VARCHAR2" javaType="12" javaStringType="java.sql.Types.VARCHAR" size="20" decimalDigit="0" nullable="1"/>
+		</Table>
+	</Patch>
+</Patches>

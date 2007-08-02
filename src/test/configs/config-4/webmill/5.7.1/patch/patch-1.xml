@@ -1,1 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<Patches xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="..\..\..\..\..\..\main\xsd\dbrevision.xsd">
+	<Patch>
+		<Name>patch-1</Name>
+        <Action>
+            <Type>CUSTOM_CLASS_ACTION</Type>
+            <ActionParameter name="class_name">
+                <Data>org.riverock.db.definition.InitWebmillStructureV2</Data>
+            </ActionParameter>
+        </Action>
+	</Patch>
+</Patches>
+    

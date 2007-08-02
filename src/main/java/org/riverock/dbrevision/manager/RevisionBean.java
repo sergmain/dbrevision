@@ -12,10 +12,6 @@ public class RevisionBean {
 
     private String lastPatch;
 
-    private Integer lastProcessedStep;
-
-    private boolean isComplete;
-
     public String getModuleName() {
         return moduleName;
     }
@@ -38,21 +34,5 @@ public class RevisionBean {
 
     public void setLastPatch(String lastPatch) {
         this.lastPatch = lastPatch;
-    }
-
-    public Integer getLastProcessedStep() {
-        return lastProcessedStep;
-    }
-
-    public void setLastProcessedStep(Integer lastProcessedStep) {
-        this.lastProcessedStep = lastProcessedStep;
-    }
-
-    public boolean isComplete() {
-        return isComplete;
-    }
-
-    public void setComplete(boolean complete) {
-        isComplete = complete;
     }
 }

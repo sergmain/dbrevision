@@ -4,6 +4,9 @@ import org.riverock.dbrevision.db.DatabaseAdapter;
 import org.riverock.dbrevision.exception.FirstVersionWithPatchdException;
 import org.riverock.dbrevision.exception.ModulePathNotFoundException;
 import org.riverock.dbrevision.exception.CurrentVersionNotDefinedException;
+import org.riverock.dbrevision.annotation.schema.db.Patch;
+import org.riverock.dbrevision.manager.patch.PatchService;
+import org.riverock.dbrevision.manager.dao.ManagerDaoFactory;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -46,6 +49,14 @@ public class Module {
             }
         }
     }
+    public void applay() {
+        for (Version version : versions) {
+            if (version.isComplete()) {
+                continue;
+            }
+            version.applay();
+        }
+    }
 
     public String getName() {
         return name;
@@ -84,9 +95,5 @@ public class Module {
             return null;
         }
         return versions.get(versions.size()-1);
-    }
-
-    public void applay() {
-        
     }
 }

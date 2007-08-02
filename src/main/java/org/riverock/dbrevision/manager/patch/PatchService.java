@@ -108,16 +108,7 @@ public final class PatchService {
         actionTypes.put(COPY_TABLE_TYPE, ActionTypes.COPY_TABLE_TYPE_VALUE);
     }
 
-    private static Map<String, Object> definitionRelateHash = null;
-    private static Map<String, Patch> definitionHash = null;
-    private static Map<String, String> patchMap = null;
-    private static Patches patches = new Patches();
-
-    public synchronized static void registerRelateDefinitionDown(String definitionMain, String definitionTarget) {
-        Utils.putKey(definitionRelateHash, definitionMain, definitionTarget);
-    }
-
-    public static void processDefinitionList(DatabaseAdapter db_, Patch patch) {
+    public static void processPatch(DatabaseAdapter db_, Patch patch) {
         if (patch==null) {
             throw new NullPointerException("patch is null");
         }
@@ -527,53 +518,5 @@ public final class PatchService {
                         }
             }
         }
-    }
-
-    private synchronized static void walk(String key) {
-        Object obj = definitionRelateHash.get(key);
-        if (obj != null) {
-            if (obj instanceof String) {
-                String nameDef = (String) obj;
-                walk(nameDef);
-            }
-            else if (obj instanceof List) {
-                List v = (List) obj;
-                walkList(v);
-            }
-            else {
-                throw new IllegalStateException("Wrong type of element in list, valid String and List, current: " + obj.getClass().getName());
-            }
-        }
-        Object value = patchMap.get(key);
-        boolean flag = isInQueue(key);
-        if (value == null && !flag) {
-            patches.getPatches().add(definitionHash.get(key));
-        }
-    }
-
-    private synchronized static void walkList(List v) {
-        for (Object obj : v) {
-            if (obj==null) {
-                throw new IllegalStateException("Element in list is null");
-            }
-            if (obj instanceof String) {
-                String nameDef = (String) obj;
-                walk(nameDef);
-            }
-            else if (obj instanceof List) {
-                walkList((List) obj);
-            }
-            else {
-                throw new IllegalStateException("Wrong type of element in list, valid String and List, current: " + obj.getClass().getName());
-            }
-        }
-    }
-
-    private synchronized static boolean isInQueue(String patchName) {
-        for (Patch patch : patches.getPatches()) {
-            if (patch.getName().equals(patchName))
-                return true;
-        }
-        return false;
     }
 }
