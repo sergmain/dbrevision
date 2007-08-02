@@ -7,6 +7,7 @@ import java.util.Iterator;
 import org.riverock.dbrevision.annotation.schema.db.Patch;
 import org.riverock.dbrevision.exception.TwoPatchesWithEmptyPreviousPatchException;
 import org.riverock.dbrevision.exception.FirstPatchNotFoundException;
+import org.riverock.dbrevision.exception.TwoPatchesWithSameNameException;
 
 /**
  * User: SMaslyukov
@@ -14,10 +15,11 @@ import org.riverock.dbrevision.exception.FirstPatchNotFoundException;
  * Time: 15:26:14
  */
 public class PatchSorter {
+    
     public static List<Patch> sort(List<Patch> patches) {
         // looking for 1st element
-        List<Patch> list = new ArrayList<Patch>(patches.size());
         Patch firstPatch=null;
+        List<Patch> list = new ArrayList<Patch>(patches.size());
         for (Patch patch : patches) {
             if (patch.getPreviousName()==null) {
                 if (firstPatch!=null) {
@@ -32,6 +34,8 @@ public class PatchSorter {
         if (firstPatch==null) {
             throw new FirstPatchNotFoundException();
         }
+
+        checkDuplicateNames(patches);
 
         List<Patch> result = new ArrayList<Patch>(patches.size());
         Patch current = firstPatch;
@@ -49,5 +53,21 @@ public class PatchSorter {
         }
         result.add(current);
         return result;
+    }
+
+    private static void checkDuplicateNames(List<Patch> patches) {
+        List<Patch> result = new ArrayList<Patch>(patches);
+        while (!result.isEmpty()) {
+            if (patches.size()==1) {
+                break;
+            }
+            Patch current = result.get(0);
+            result.remove(0);
+            for (Patch patch : result) {
+                if (current.getName().equals(patch.getName())) {
+                    throw new TwoPatchesWithSameNameException("Patch name: " + current.getName());
+                }
+            }
+        }
     }
 }

@@ -9,6 +9,7 @@ import junit.framework.TestCase;
 import org.riverock.dbrevision.annotation.schema.db.Patch;
 import org.riverock.dbrevision.exception.TwoPatchesWithSameNameException;
 import org.riverock.dbrevision.exception.TwoPatchesWithEmptyPreviousPatchException;
+import org.riverock.dbrevision.exception.FirstPatchNotFoundException;
 
 /**
  * User: SMaslyukov
@@ -17,7 +18,41 @@ import org.riverock.dbrevision.exception.TwoPatchesWithEmptyPreviousPatchExcepti
  */
 public class TestPatchSorter extends TestCase {
 
+    public void testWrongList_listWithOneElement() throws Exception {
+        List<Patch> list = new ArrayList<Patch>();
+        list.add( getPatch("aaa", null));
+        assertNotNull(PatchSorter.sort(list));
+    }
+
+    public void testWrongList_firstPatchNotFound() throws Exception {
+        List<Patch> list = new ArrayList<Patch>();
+        list.add( getPatch("aaa", "zzz"));
+        list.add( getPatch("aaa", "bbb"));
+        boolean isCorrect = false;
+        try {
+            PatchSorter.sort(list);
+        }
+        catch (FirstPatchNotFoundException e) {
+            isCorrect = true;
+        }
+        assertTrue(isCorrect);
+    }
+
     public void testWrongList_twoFirstPatch() throws Exception {
+        List<Patch> list = new ArrayList<Patch>();
+        list.add( getPatch("aaa", null));
+        list.add( getPatch("aaa", "bbb"));
+        boolean isCorrect = false;
+        try {
+            PatchSorter.sort(list);
+        }
+        catch (TwoPatchesWithSameNameException e) {
+            isCorrect = true;
+        }
+        assertTrue(isCorrect);
+    }
+
+    public void testWrongList_totalWrong() throws Exception {
         List<Patch> list = new ArrayList<Patch>();
         list.add( getPatch("aaa", null));
         list.add( getPatch("aaa", null));
@@ -26,6 +61,9 @@ public class TestPatchSorter extends TestCase {
             PatchSorter.sort(list);
         }
         catch (TwoPatchesWithSameNameException e) {
+            isCorrect = true;
+        }
+        catch (TwoPatchesWithEmptyPreviousPatchException e) {
             isCorrect = true;
         }
         assertTrue(isCorrect);
