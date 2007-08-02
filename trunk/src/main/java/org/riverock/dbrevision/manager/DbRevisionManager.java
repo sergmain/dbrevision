@@ -1,11 +1,13 @@
 package org.riverock.dbrevision.manager;
 
 import org.riverock.dbrevision.Constants;
+import org.riverock.dbrevision.annotation.schema.db.Patch;
 import org.riverock.dbrevision.db.DatabaseAdapter;
 import org.riverock.dbrevision.exception.ConfigFileNotFoundException;
 import org.riverock.dbrevision.exception.CurrentVersionCodeNotFoundException;
 import org.riverock.dbrevision.exception.DbRevisionPathNotFoundException;
 import org.riverock.dbrevision.exception.ModuleNotConfiguredException;
+import org.riverock.dbrevision.exception.DbRevisionException;
 import org.riverock.dbrevision.manager.config.ConfigParserFactory;
 import org.riverock.dbrevision.manager.dao.ManagerDaoFactory;
 
@@ -14,6 +16,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
 
 /**
  * User: SergeMaslyukov
@@ -82,7 +86,7 @@ public class DbRevisionManager {
     }
 
     private void prepareCurrentVersions() {
-        List<RevisionBean> revisionBeans = ManagerDaoFactory.getManagerDao().getRevisionBean();
+        List<RevisionBean> revisionBeans = ManagerDaoFactory.getManagerDao().getRevisions(databaseAdapter);
         for (RevisionBean revisionBean : revisionBeans) {
             Module module = getModule(revisionBean.getModuleName());
             if (module!=null) {
@@ -113,12 +117,43 @@ public class DbRevisionManager {
 
     private void markAllCompleteProccesedVesion(Version version, RevisionBean revisionBean) {
         Version v;
-        if (revisionBean.isComplete()) {
-            v = version;
+        if (version.getPatches().isEmpty()) {
+            if (StringUtils.isNotBlank(revisionBean.getLastPatch())) {
+                throw new DbRevisionException("Invalid value of lastPatch in database. Module: " + revisionBean.getModuleName()+", version: " + revisionBean.getCurrentVerson());
+            }
+            v = version;  
+        }
+        else if (StringUtils.isBlank(revisionBean.getLastPatch())) {
+                throw new DbRevisionException("Invalid value of lastPatch in database. Module: " + revisionBean.getModuleName()+", version: " + revisionBean.getCurrentVerson());
         }
         else {
-            v = version.getPreviousVersion();
+            if (version.getPatches().get(version.getPatches().size()-1).getName().equals(revisionBean.getLastPatch())) {
+                v = version;
+            }
+            else {
+                v = version.getPreviousVersion();
+                List<Patch> completed = new ArrayList<Patch>();
+                boolean isFound = false;
+                for (Patch patch : version.getPatches()) {
+                    if (patch.getName().equals(revisionBean.getLastPatch())) {
+                        completed.add(patch);
+                        isFound = true;
+                        break;
+                    }
+                    completed.add(patch);
+                }
+
+                if (isFound) {
+                    for (Patch patch : completed) {
+                        patch.setProcessed(true);
+                    }
+                }
+                else {
+                    throw new DbRevisionException("Value of lastPatch in database not equals to last value in config. Module: " + revisionBean.getModuleName()+", version: " + revisionBean.getCurrentVerson());
+                }
+            }
         }
+
         while (v!=null) {
             v.setComplete(true);
             v = v.getPreviousVersion();

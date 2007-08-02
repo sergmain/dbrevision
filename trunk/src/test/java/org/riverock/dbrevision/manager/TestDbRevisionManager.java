@@ -232,7 +232,6 @@ public class TestDbRevisionManager extends TestCase {
             assertFalse(v.isComplete());
             v = v.getPreviousVersion();
         }
-
     }
 
     /**

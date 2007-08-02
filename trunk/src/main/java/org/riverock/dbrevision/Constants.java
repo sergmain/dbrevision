@@ -10,4 +10,6 @@ public class Constants {
     public static final String INIT_STRUCTURE_FILE_NAME = "init-structure.xml";
 
     public static final String PATCH_DIR_NAME = "patch";
+
+    public static final String DB_REVISION_TABLE_NAME = "DB_REVISION";
 }

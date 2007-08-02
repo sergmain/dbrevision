@@ -8,6 +8,7 @@ import org.riverock.dbrevision.annotation.schema.db.Patch;
 import org.riverock.dbrevision.exception.TwoPatchesWithEmptyPreviousPatchException;
 import org.riverock.dbrevision.exception.FirstPatchNotFoundException;
 import org.riverock.dbrevision.exception.TwoPatchesWithSameNameException;
+import org.riverock.dbrevision.exception.NoChildPatchFoundException;
 
 /**
  * User: SMaslyukov
@@ -42,13 +43,18 @@ public class PatchSorter {
         while (!list.isEmpty()) {
             result.add(current);
             Iterator<Patch> it = list.iterator();
+            boolean isFound=false;
             while (it.hasNext()) {
                 Patch patch = it.next();
                 if (current.getName().equals(patch.getPreviousName())) {
                     current = patch;
                     it.remove();
+                    isFound=true;
                     break;
                 }
+            }
+            if (!isFound && !list.isEmpty()) {
+                throw new NoChildPatchFoundException("patch name: " +current.getName());
             }
         }
         result.add(current);

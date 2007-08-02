@@ -2,7 +2,6 @@ package org.riverock.dbrevision.manager.patch;
 
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Collections;
 
 import junit.framework.TestCase;
 
@@ -10,6 +9,7 @@ import org.riverock.dbrevision.annotation.schema.db.Patch;
 import org.riverock.dbrevision.exception.TwoPatchesWithSameNameException;
 import org.riverock.dbrevision.exception.TwoPatchesWithEmptyPreviousPatchException;
 import org.riverock.dbrevision.exception.FirstPatchNotFoundException;
+import org.riverock.dbrevision.exception.NoChildPatchFoundException;
 
 /**
  * User: SMaslyukov
@@ -98,6 +98,45 @@ public class TestPatchSorter extends TestCase {
         assertEquals("bbb", list.get(2).getName() );
         assertEquals("ddd", list.get(3).getName() );
         assertEquals("ccc", list.get(4).getName() );
+    }
+
+    public void testNoChildFoundSorter() throws Exception {
+        List<Patch> list = new ArrayList<Patch>();
+        list.add( getPatch("webmill_init_def_v2", null));
+        list.add( getPatch("test_0_0", "webmill_init_def_v2"));
+        list.add( getPatch("test_1_0", "test_0_0"));
+        list.add( getPatch("test_1_1", "test_1_0"));
+        list.add( getPatch("test_2_1", "test_1_1"));
+        list.add( getPatch("test_0_2", "test_0_1"));
+        boolean isCorrect = false;
+        try {
+            PatchSorter.sort(list);
+        }
+        catch (NoChildPatchFoundException e) {
+            isCorrect = true;
+        }
+        assertTrue(isCorrect);
+    }
+
+    public void testTwoChildrenSorter() throws Exception {
+        List<Patch> list = new ArrayList<Patch>();
+        list.add( getPatch("webmill_init_def_v2", null));
+        list.add( getPatch("test_0_0", "webmill_init_def_v2"));
+        list.add( getPatch("test_1_0", "test_0_0"));
+        list.add( getPatch("test_1_1", "test_1_0"));
+        list.add( getPatch("test_2_1", "test_1_1"));
+        list.add( getPatch("test_1_2", "test_2_1"));
+        list.add( getPatch("test_0_2", "test_1_2"));
+        list = PatchSorter.sort(list);
+        assertNotNull(list);
+        assertEquals(7, list.size());
+        assertEquals("webmill_init_def_v2", list.get(0).getName() );
+        assertEquals("test_0_0", list.get(1).getName() );
+        assertEquals("test_1_0", list.get(2).getName() );
+        assertEquals("test_1_1", list.get(3).getName() );
+        assertEquals("test_2_1", list.get(4).getName() );
+        assertEquals("test_1_2", list.get(5).getName() );
+        assertEquals("test_0_2", list.get(6).getName() );
     }
 
 

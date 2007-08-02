@@ -1,24 +1,29 @@
 package org.riverock.dbrevision.manager;
 
-import org.riverock.dbrevision.Constants;
-import org.riverock.dbrevision.manager.patch.PatchComparator;
-import org.riverock.dbrevision.utils.Utils;
-import org.riverock.dbrevision.annotation.schema.db.*;
-import org.riverock.dbrevision.db.DatabaseAdapter;
-import org.riverock.dbrevision.exception.InitStructureFileNotFoundException;
-import org.riverock.dbrevision.exception.VersionPathNotFoundException;
-import org.riverock.dbrevision.exception.PatchPrepareException;
-
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Collections;
 
 import javax.xml.bind.JAXBException;
+
+import org.apache.commons.lang.StringUtils;
+
+import org.riverock.dbrevision.Constants;
+import org.riverock.dbrevision.annotation.schema.db.Patch;
+import org.riverock.dbrevision.annotation.schema.db.Patches;
+import org.riverock.dbrevision.db.DatabaseAdapter;
+import org.riverock.dbrevision.exception.InitStructureFileNotFoundException;
+import org.riverock.dbrevision.exception.NoChildPatchFoundException;
+import org.riverock.dbrevision.exception.PatchParseException;
+import org.riverock.dbrevision.exception.PatchPrepareException;
+import org.riverock.dbrevision.exception.TwoPatchesWithEmptyPreviousPatchException;
+import org.riverock.dbrevision.exception.VersionPathNotFoundException;
+import org.riverock.dbrevision.manager.patch.PatchService;
+import org.riverock.dbrevision.manager.patch.PatchSorter;
+import org.riverock.dbrevision.manager.dao.ManagerDaoFactory;
+import org.riverock.dbrevision.utils.Utils;
 
 /**
  * User: SergeMaslyukov
@@ -30,7 +35,7 @@ public class Version {
     private Version previousVersion=null;
     private Version nextVersion=null;
 
-    List<Patch> patches=new ArrayList<Patch>();
+    List<Patch> patches=null;
 
     private DatabaseAdapter databaseAdapter=null;
 
@@ -43,9 +48,12 @@ public class Version {
     private File initStructureFile=null;
 
     private File patchPath=null;
+    
+    private File modulePath=null;
 
     public Version(DatabaseAdapter databaseAdapter, File modulePath, String versionName) {
         this.databaseAdapter = databaseAdapter;
+        this.modulePath = modulePath;
         this.versionName = versionName;
         this.versionPath = new File(modulePath, this.versionName);
         if (!versionPath.exists()) {
@@ -67,14 +75,40 @@ public class Version {
                 }
             }
         );
+        if (files==null) {
+            patches = new ArrayList<Patch>();
+            return;
+        }
         List<Patch> list = new ArrayList<Patch>();
         try {
             for (File file : files) {
                 FileInputStream fis = new FileInputStream(file);
-                Patches patches = Utils.getObjectFromXml(Patches.class, fis);
+                Patches patches;
+                try {
+                    patches = Utils.getObjectFromXml(Patches.class, fis);
+                }
+                catch (JAXBException e) {
+                    throw new PatchParseException("Patch file: " + file.getAbsolutePath(), e);
+                }
                 list.addAll(patches.getPatches());
             }
-            Collections.sort(list, PatchComparator.getInstance());
+            try {
+                patches = PatchSorter.sort(list);
+            }
+            catch (TwoPatchesWithEmptyPreviousPatchException e) {
+                String s="";
+                for (File file : files) {
+                    s+=("\n"+file.getAbsolutePath());
+                }
+                throw new TwoPatchesWithEmptyPreviousPatchException(s, e);
+            }
+            catch (NoChildPatchFoundException e) {
+                String s="";
+                for (File file : files) {
+                    s+=("\n"+file.getAbsolutePath());
+                }
+                throw new NoChildPatchFoundException(s, e);
+            }
         }
         catch (Exception e) {
             throw new PatchPrepareException(e);
@@ -82,6 +116,35 @@ public class Version {
     }
 
     public void applay() {
+        if (isComplete) {
+            return;
+        }
+        for (Patch patch : patches) {
+            if (patch.isProcessed()) {
+                continue;
+            }
+            PatchService.processPatch(databaseAdapter, patch);
+            ManagerDaoFactory.getManagerDao().makrCurrentVersion(databaseAdapter, modulePath.getName(), versionName, patch.getName());
+        }
+        ManagerDaoFactory.getManagerDao().makrCurrentVersion(databaseAdapter, modulePath.getName(), versionName, null);
+    }
+
+    public void applayPatch(String patchName) {
+        if (isComplete || StringUtils.isBlank(patchName)) {
+            return;
+        }
+        Patch firstNotProcessed=null;
+        for (Patch patch : patches) {
+            if (!patch.isProcessed()) {
+                firstNotProcessed = patch;
+                break;
+            }
+        }
+        
+        if (firstNotProcessed!=null && firstNotProcessed.getName().equals(patchName)) {
+            PatchService.processPatch(databaseAdapter, firstNotProcessed);
+            ManagerDaoFactory.getManagerDao().makrCurrentVersion(databaseAdapter, modulePath.getName(), versionName, firstNotProcessed.getName());
+        }
     }
 
     public Version getPreviousVersion() {
@@ -109,11 +172,6 @@ public class Version {
             return null;
         }
         return patches.get(patches.size()-1);
-    }
-
-    private boolean isPreviousVersionCorrect() {
-
-        return false;
     }
 
     public boolean isComplete() {
