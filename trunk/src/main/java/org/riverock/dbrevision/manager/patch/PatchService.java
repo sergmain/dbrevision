@@ -132,22 +132,24 @@ public final class PatchService {
         processAction(db_, patch);
     }
 
-    public static String getString(List<ActionParameter> actionList, String nameParam, String defValue)
-        throws IllegalArgumentException {
-        String value = getString(actionList, nameParam);
-        if (value == null)
+    public static String getString(Action action, String nameParam, String defValue) {
+        String value = getString(action, nameParam);
+        if (value == null) {
             return defValue;
+        }
 
         return value;
     }
 
-    public synchronized static String getString(List<ActionParameter> actionList, String nameParam) {
-        if (actionList == null || nameParam == null || nameParam.length() == 0)
+    public static String getString(Action action, String nameParam) {
+        if (action == null || nameParam == null) {
             return null;
+        }
 
-        for (ActionParameter action : actionList) {
-            if (action.getName().equals(nameParam))
-                return action.getData();
+        for (ActionParameter actionParameter : action.getActionParameters()) {
+            if (actionParameter.getName().equals(nameParam)) {
+                return actionParameter.getData();
+            }
         }
         return null;
     }
@@ -183,8 +185,8 @@ public final class PatchService {
         return null;
     }
 
-    public static Long getLong(List<ActionParameter> actionList, String nameParam, long defValue) {
-        Long value = getLong(actionList, nameParam);
+    public static Long getLong(Action action, String nameParam, long defValue) {
+        Long value = getLong(action, nameParam);
         if (value == null) {
             return defValue;
         }
@@ -192,20 +194,20 @@ public final class PatchService {
         return value;
     }
 
-    public synchronized static Long getLong(List<ActionParameter> actionList, String nameParam) {
-        if (actionList == null || nameParam == null || nameParam.length() == 0) {
+    public synchronized static Long getLong(Action action, String nameParam) {
+        if (action == null || nameParam == null) {
             return null;
         }
 
-        for (ActionParameter action : actionList) {
-            if (action.getName().equals(nameParam)) {
-                String value = action.getData();
+        for (ActionParameter actionParameter : action.getActionParameters()) {
+            if (actionParameter.getName().equals(nameParam)) {
+                String value = actionParameter.getData();
                 Long longValue;
                 try {
                     longValue = new Long(value);
                 }
                 catch (Exception e) {
-                    String errorString = "Error convert String to Long from data - " + action.getData();
+                    String errorString = "Error convert String to Long from data - " + actionParameter.getData();
                     log.error(errorString, e);
                     throw new IllegalArgumentException(errorString, e);
                 }
@@ -215,8 +217,8 @@ public final class PatchService {
         return null;
     }
 
-    public static Integer getInteger(List<ActionParameter> actionList, String nameParam, int defValue) {
-        Integer value = getInteger(actionList, nameParam);
+    public static Integer getInteger(Action action, String nameParam, int defValue) {
+        Integer value = getInteger(action, nameParam);
         if (value == null) {
             return defValue;
         }
@@ -224,20 +226,20 @@ public final class PatchService {
         return value;
     }
 
-    public static Integer getInteger(List<ActionParameter> actionList, String nameParam) {
-        if (actionList == null || nameParam == null || nameParam.length() == 0) {
+    public static Integer getInteger(Action action, String nameParam) {
+        if (action == null || nameParam == null) {
             return null;
         }
 
-        for (ActionParameter action : actionList) {
-            if (action.getName().equals(nameParam)) {
-                String value = action.getData();
+        for (ActionParameter actionParameter : action.getActionParameters()) {
+            if (actionParameter.getName().equals(nameParam)) {
+                String value = actionParameter.getData();
                 Integer intValue;
                 try {
                     intValue = new Integer(value);
                 }
                 catch (Exception e) {
-                    String errorString = "Error convert String to Integer from data - " + action.getData();
+                    String errorString = "Error convert String to Integer from data - " + actionParameter.getData();
                     log.error(errorString, e);
                     throw new IllegalArgumentException(errorString, e);
                 }
@@ -247,8 +249,8 @@ public final class PatchService {
         return null;
     }
 
-    public static Boolean getBoolean(List<ActionParameter> actionList, String nameParam, boolean defValue) {
-        Boolean value = getBoolean(actionList, nameParam);
+    public static Boolean getBoolean(Action action, String nameParam, boolean defValue) {
+        Boolean value = getBoolean(action, nameParam);
         if (value == null) {
             return defValue;
         }
@@ -256,26 +258,28 @@ public final class PatchService {
         return value;
     }
 
-    public synchronized static Boolean getBoolean(List<ActionParameter> actionList, String nameParam) {
-        if (actionList == null || nameParam == null || nameParam.length() == 0) {
+    public synchronized static Boolean getBoolean(Action action, String nameParam) {
+        if (action == null || nameParam == null) {
             return null;
         }
 
-        for (ActionParameter action : actionList) {
-            if (action.getName().equals(nameParam)) {
-                String value = action.getData();
-                if (value == null)
+        for (ActionParameter actionParameter : action.getActionParameters()) {
+            if (actionParameter.getName().equals(nameParam)) {
+                String value = actionParameter.getData();
+                if (value == null) {
                     value = "false";
+                }
 
-                if (value.equals("1"))
+                if (value.equals("1")) {
                     value = "true";
+                }
 
                 Boolean booleanValue;
                 try {
                     booleanValue = Boolean.valueOf(value);
                 }
                 catch (Exception e) {
-                    String errorString = "Error convert String to Boolean from data - " + action.getData();
+                    String errorString = "Error convert String to Boolean from data - " + actionParameter.getData();
                     log.error(errorString, e);
                     throw new IllegalArgumentException(errorString);
                 }
@@ -387,18 +391,18 @@ public final class PatchService {
 
                                     DbField field = new DbField();
 
-                                    field.setName(getString(action.getActionParameters(), "column_name"));
+                                    field.setName(getString(action, "column_name"));
                                     field.setJavaType(
                                         DatabaseManager.sqlTypesMapping(
-                                            getString(action.getActionParameters(), "column_type")
+                                            getString(action, "column_type")
                                         )
                                     );
-                                    field.setSize(getInteger(action.getActionParameters(), "column_size", 0));
-                                    field.setDecimalDigit(getInteger(action.getActionParameters(), "column_decimal_digit", 0));
-                                    field.setDefaultValue(getString(action.getActionParameters(), "column_default_value"));
-                                    field.setNullable(getInteger(action.getActionParameters(), "column_nullable", 0));
+                                    field.setSize(getInteger(action, "column_size", 0));
+                                    field.setDecimalDigit(getInteger(action, "column_decimal_digit", 0));
+                                    field.setDefaultValue(getString(action, "column_default_value"));
+                                    field.setNullable(getInteger(action, "column_nullable", 0));
 
-                                    DatabaseStructureManager.addColumn(db_, getString(action.getActionParameters(), "table_name"), field);
+                                    DatabaseStructureManager.addColumn(db_, getString(action, "table_name"), field);
                                 }
                                 break;
 
@@ -414,14 +418,14 @@ public final class PatchService {
 
                                 case CREATE_SEQUENCE_TYPE_VALUE: {
                                     DbSequence seq = new DbSequence();
-                                    seq.setCacheSize(getInteger(action.getActionParameters(), "sequence_cache_size", 0));
-                                    seq.setIncrementBy(getInteger(action.getActionParameters(), "sequence_increment", 1));
-                                    seq.setIsCycle(getBoolean(action.getActionParameters(), "sequence_is_cycle", false));
-                                    seq.setIsOrder(getBoolean(action.getActionParameters(), "sequence_is_order", false));
-                                    seq.setLastNumber(getLong(action.getActionParameters(), "sequence_last_number", 0));
-                                    seq.setMaxValue(getString(action.getActionParameters(), "sequence_max_value", "0"));
-                                    seq.setMinValue(getInteger(action.getActionParameters(), "sequence_min_value", 0));
-                                    seq.setName(getString(action.getActionParameters(), "sequence_name"));
+                                    seq.setCacheSize(getInteger(action, "sequence_cache_size", 0));
+                                    seq.setIncrementBy(getInteger(action, "sequence_increment", 1));
+                                    seq.setIsCycle(getBoolean(action, "sequence_is_cycle", false));
+                                    seq.setIsOrder(getBoolean(action, "sequence_is_order", false));
+                                    seq.setLastNumber(getLong(action, "sequence_last_number", 0));
+                                    seq.setMaxValue(getString(action, "sequence_max_value", "0"));
+                                    seq.setMinValue(getInteger(action, "sequence_min_value", 0));
+                                    seq.setName(getString(action, "sequence_name"));
 
                                     db_.createSequence(seq);
                                 }
@@ -433,7 +437,7 @@ public final class PatchService {
                                 break;
 
                                 case CUSTOM_CLASS_ACTION_TYPE_VALUE: {
-                                    String className = getString(action.getActionParameters(), "class_name");
+                                    String className = getString(action, "class_name");
                                     if (className == null)
                                         throw new Exception("Patch - " + patch.getName() + ", action '" + CUSTOM_CLASS_ACTION_TYPE + "' must have parameter 'class_name'");
 
@@ -441,12 +445,12 @@ public final class PatchService {
                                     if (obj == null)
                                         throw new Exception("Patch - " + patch.getName() + ", action '" + CUSTOM_CLASS_ACTION_TYPE + "', obj is null");
 
-                                    ((PatchAction) obj).processAction(db_, action.getActionParameters());
+                                    ((PatchAction) obj).processAction(db_, action);
                                 }
                                 break;
 
                                 case CUSTOM_SQL_TYPE_VALUE: {
-                                    String sql = getString(action.getActionParameters(), "sql");
+                                    String sql = getString(action, "sql");
                                     if (log.isDebugEnabled()) {
                                         log.debug("Action type " + action.getType());
                                         log.debug("Custom sql " + sql);
@@ -488,7 +492,7 @@ public final class PatchService {
                                 break;
 
                                 case DROP_TABLE_TYPE_VALUE: {
-                                    String nameTable = getString(action.getActionParameters(), "name_table");
+                                    String nameTable = getString(action, "name_table");
                                     if (nameTable != null) {
                                         db_.dropTable(nameTable);
                                         db_.getConnection().commit();
@@ -504,7 +508,7 @@ public final class PatchService {
                                 break;
 
                                 case DROP_SEQUENCE_TYPE_VALUE: {
-                                    String nameSeq = getString(action.getActionParameters(), "name_sequence");
+                                    String nameSeq = getString(action, "name_sequence");
                                     if (nameSeq != null) {
                                         db_.dropSequence(nameSeq);
                                     } else

@@ -268,17 +268,16 @@ public class Utils {
      * @param classType
      * @param is
      * @return
-     * @throws Exception
+     * @throws javax.xml.bind.JAXBException on error
      */
-    public static <T> T getObjectFromXml(final Class<T> classType, InputStream is) throws Exception {
+    public static <T> T getObjectFromXml(final Class<T> classType, InputStream is) throws JAXBException {
         try {
             JAXBContext jaxbContext = JAXBContext.newInstance ( classType.getPackage().getName() );
             Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-
             Source inSrc = new StreamSource(is);
             return unmarshaller.unmarshal(inSrc, classType).getValue();
         }
-        catch (Exception e) {
+        catch (JAXBException e) {
             log.error("Error get object from xml string\n", e);
             throw e;
         }
