@@ -33,7 +33,7 @@ import java.util.List;
 
 import org.riverock.dbrevision.annotation.schema.db.DbDataFieldData;
 import org.riverock.dbrevision.annotation.schema.db.DbField;
-import org.riverock.dbrevision.annotation.schema.db.DbImportedPKColumn;
+import org.riverock.dbrevision.annotation.schema.db.DbForeignKey;
 import org.riverock.dbrevision.annotation.schema.db.DbSequence;
 import org.riverock.dbrevision.annotation.schema.db.DbTable;
 import org.riverock.dbrevision.annotation.schema.db.DbView;
@@ -104,7 +104,7 @@ public abstract class DatabaseAdapter {
 
     public abstract void dropSequence(String nameSequence);
 
-    public abstract void dropConstraint(DbImportedPKColumn impPk);
+    public abstract void dropConstraint(DbForeignKey impPk);
 
     public abstract void addColumn(DbTable table, DbField field);
 

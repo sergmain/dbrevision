@@ -34,19 +34,22 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Collections;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import org.riverock.dbrevision.annotation.schema.db.DbDataFieldData;
 import org.riverock.dbrevision.annotation.schema.db.DbField;
-import org.riverock.dbrevision.annotation.schema.db.DbImportedPKColumn;
+import org.riverock.dbrevision.annotation.schema.db.DbForeignKey;
 import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKey;
 import org.riverock.dbrevision.annotation.schema.db.DbSequence;
 import org.riverock.dbrevision.annotation.schema.db.DbTable;
 import org.riverock.dbrevision.annotation.schema.db.DbView;
+import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKeyColumn;
 import org.riverock.dbrevision.db.DatabaseAdapter;
 import org.riverock.dbrevision.db.DatabaseManager;
+import org.riverock.dbrevision.db.DbPkComparator;
 import org.riverock.dbrevision.exception.DbRevisionException;
 import org.riverock.dbrevision.utils.DbUtils;
 
@@ -184,40 +187,25 @@ public class InterbaseAdapter extends DatabaseAdapter {
         if (table.getPrimaryKey() != null && table.getPrimaryKey().getColumns().size() != 0) {
             DbPrimaryKey pk = table.getPrimaryKey();
 
-            String namePk = pk.getColumns().get(0).getPkName();
-
-//            constraintDefinition:
+            //            constraintDefinition:
 //            [ CONSTRAINT name ]
 //            UNIQUE ( column [,column...] ) |
 //            PRIMARY KEY ( column [,column...] ) |
 
-            sql += ",\nCONSTRAINT " + namePk + " PRIMARY KEY (\n";
+            sql += ",\nCONSTRAINT " + pk.getPkName() + " PRIMARY KEY (\n";
 
-            int seq = Integer.MIN_VALUE;
+            Collections.sort(pk.getColumns(), DbPkComparator.getInstance());
             isFirst = true;
-
-            if (true) throw new RuntimeException("Need implement PK comparator");
-/*
-            for (int i = 0; i < pk.getColumnsCount(); i++) {
-                DbPrimaryKeyColumn column = null;
-                int seqTemp = Integer.MAX_VALUE;
-                for (int k = 0; k < pk.getColumnsCount(); k++) {
-                    DbPrimaryKeyColumn columnTemp = pk.getColumns(k);
-                    if (seq < columnTemp.getKeySeq().intValue() && columnTemp.getKeySeq().intValue() < seqTemp) {
-                        seqTemp = columnTemp.getKeySeq().intValue();
-                        column = columnTemp;
-                    }
-                }
-                seq = column.getKeySeq().intValue();
-
-                if (!isFirst)
+            for (DbPrimaryKeyColumn column : pk.getColumns()) {
+                if (!isFirst) {
                     sql += ",";
-                else
+                }
+                else {
                     isFirst = !isFirst;
+                }
 
                 sql += column.getColumnName();
             }
-*/
             sql += "\n)";
         }
         sql += "\n)";
@@ -227,10 +215,12 @@ public class InterbaseAdapter extends DatabaseAdapter {
             st = this.getConnection().createStatement();
             st.execute(sql);
             int count = st.getUpdateCount();
-            if (log.isDebugEnabled())
+            if (log.isDebugEnabled()) {
                 log.debug("count of processed records " + count);
+            }
         }
         catch (SQLException e) {
+            log.error("SQL:\n"+sql);
             throw new DbRevisionException(e);
         }
         finally {
@@ -275,7 +265,7 @@ public class InterbaseAdapter extends DatabaseAdapter {
     public void dropSequence(String nameSequence) {
     }
 
-    public void dropConstraint(DbImportedPKColumn impPk) {
+    public void dropConstraint(DbForeignKey impPk) {
         if (impPk == null) {
             return;
         }

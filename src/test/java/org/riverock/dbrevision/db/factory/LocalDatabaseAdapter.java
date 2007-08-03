@@ -8,7 +8,7 @@ import java.util.List;
 
 import org.riverock.dbrevision.annotation.schema.db.DbDataFieldData;
 import org.riverock.dbrevision.annotation.schema.db.DbField;
-import org.riverock.dbrevision.annotation.schema.db.DbImportedPKColumn;
+import org.riverock.dbrevision.annotation.schema.db.DbForeignKey;
 import org.riverock.dbrevision.annotation.schema.db.DbSequence;
 import org.riverock.dbrevision.annotation.schema.db.DbTable;
 import org.riverock.dbrevision.annotation.schema.db.DbView;
@@ -74,7 +74,7 @@ public class LocalDatabaseAdapter extends DatabaseAdapter {
 
     }
 
-    public void dropConstraint(DbImportedPKColumn impPk) {
+    public void dropConstraint(DbForeignKey impPk) {
 
     }
 

@@ -43,7 +43,7 @@ import org.apache.log4j.Logger;
 
 import org.riverock.dbrevision.annotation.schema.db.DbDataFieldData;
 import org.riverock.dbrevision.annotation.schema.db.DbField;
-import org.riverock.dbrevision.annotation.schema.db.DbImportedPKColumn;
+import org.riverock.dbrevision.annotation.schema.db.DbForeignKey;
 import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKey;
 import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKeyColumn;
 import org.riverock.dbrevision.annotation.schema.db.DbSequence;
@@ -198,14 +198,12 @@ public class HyperSonicAdapter extends DatabaseAdapter {
         if (table.getPrimaryKey() != null && table.getPrimaryKey().getColumns().size() > 0) {
             DbPrimaryKey pk = table.getPrimaryKey();
 
-            String namePk = pk.getColumns().get(0).getPkName();
-
-//            constraintDefinition:
+            //            constraintDefinition:
 //            [ CONSTRAINT name ]
 //            UNIQUE ( column [,column...] ) |
 //            PRIMARY KEY ( column [,column...] ) |
 
-            sql += ",\nCONSTRAINT " + namePk + " PRIMARY KEY (\n";
+            sql += ",\nCONSTRAINT " + pk.getPkName() + " PRIMARY KEY (\n";
 
             int seq = Integer.MIN_VALUE;
             isFirst = true;
@@ -274,7 +272,7 @@ public class HyperSonicAdapter extends DatabaseAdapter {
     public void dropSequence(String nameSequence) {
     }
 
-    public void dropConstraint(DbImportedPKColumn impPk) {
+    public void dropConstraint(DbForeignKey impPk) {
         if (impPk == null)
             return;
 

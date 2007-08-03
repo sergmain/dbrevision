@@ -11,24 +11,21 @@ package org.riverock.dbrevision.annotation.schema.db;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for anonymous complex type.
+ * <p>Java class for DbIndexColumn complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType>
+ * &lt;complexType name="DbIndexColumn">
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;sequence>
- *         &lt;element name="Data" type="{http://www.w3.org/2001/XMLSchema}string"/>
- *       &lt;/sequence>
- *       &lt;attribute name="name" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
+ *       &lt;attribute name="ascending" type="{http://www.w3.org/2001/XMLSchema}boolean" />
+ *       &lt;attribute name="columnName" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
+ *       &lt;attribute name="keySeq" use="required" type="{http://www.w3.org/2001/XMLSchema}int" />
  *     &lt;/restriction>
  *   &lt;/complexContent>
  * &lt;/complexType>
@@ -37,63 +34,78 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "", propOrder = {
-    "data"
-})
-@XmlRootElement(name = "ActionParameter", namespace = "")
-public class ActionParameter {
+@XmlType(name = "DbIndexColumn")
+public class DbIndexColumn {
 
-    @XmlElement(name = "Data", required = true)
-    protected String data;
+    @XmlAttribute
+    protected Boolean ascending;
     @XmlAttribute(required = true)
-    protected String name;
+    protected String columnName;
+    @XmlAttribute(required = true)
+    protected int keySeq;
 
     /**
-     * Gets the value of the data property.
+     * Gets the value of the ascending property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link Boolean }
+     *     
+     */
+    public Boolean isAscending() {
+        return ascending;
+    }
+
+    /**
+     * Sets the value of the ascending property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link Boolean }
+     *     
+     */
+    public void setAscending(Boolean value) {
+        this.ascending = value;
+    }
+
+    /**
+     * Gets the value of the columnName property.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getData() {
-        return data;
+    public String getColumnName() {
+        return columnName;
     }
 
     /**
-     * Sets the value of the data property.
+     * Sets the value of the columnName property.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setData(String value) {
-        this.data = value;
+    public void setColumnName(String value) {
+        this.columnName = value;
     }
 
     /**
-     * Gets the value of the name property.
+     * Gets the value of the keySeq property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
      */
-    public String getName() {
-        return name;
+    public int getKeySeq() {
+        return keySeq;
     }
 
     /**
-     * Sets the value of the name property.
+     * Sets the value of the keySeq property.
      * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
      */
-    public void setName(String value) {
-        this.name = value;
+    public void setKeySeq(int value) {
+        this.keySeq = value;
     }
 
 }

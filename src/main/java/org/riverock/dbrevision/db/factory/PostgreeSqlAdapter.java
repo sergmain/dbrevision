@@ -46,7 +46,7 @@ import oracle.sql.CLOB;
 
 import org.riverock.dbrevision.annotation.schema.db.DbDataFieldData;
 import org.riverock.dbrevision.annotation.schema.db.DbField;
-import org.riverock.dbrevision.annotation.schema.db.DbImportedPKColumn;
+import org.riverock.dbrevision.annotation.schema.db.DbForeignKey;
 import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKey;
 import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKeyColumn;
 import org.riverock.dbrevision.annotation.schema.db.DbSequence;
@@ -158,14 +158,12 @@ public class PostgreeSqlAdapter extends DatabaseAdapter {
         if (table.getPrimaryKey() != null && !table.getPrimaryKey().getColumns().isEmpty()) {
             DbPrimaryKey pk = table.getPrimaryKey();
 
-            String namePk = pk.getColumns().get(0).getPkName();
-
 //            constraintDefinition:
 //            [ CONSTRAINT name ]
 //            UNIQUE ( column [,column...] ) |
 //            PRIMARY KEY ( column [,column...] ) |
 
-            sql += ",\nCONSTRAINT " + namePk + " PRIMARY KEY (\n";
+            sql += ",\nCONSTRAINT " + pk.getPkName() + " PRIMARY KEY (\n";
 
             int seq = Integer.MIN_VALUE;
             isFirst = true;
@@ -246,6 +244,7 @@ DEFERRABLE INITIALLY DEFERRED
         }
         finally {
             DbUtils.close(ps);
+            //noinspection UnusedAssignment
             ps = null;
         }
     }
@@ -265,11 +264,12 @@ DEFERRABLE INITIALLY DEFERRED
         }
         finally {
             DbUtils.close(ps);
+            //noinspection UnusedAssignment
             ps = null;
         }
     }
 
-    public void dropConstraint(DbImportedPKColumn impPk) {
+    public void dropConstraint(DbForeignKey impPk) {
         throw new DbRevisionException("not implemented");
     }
 
@@ -350,6 +350,7 @@ DEFERRABLE INITIALLY DEFERRED
         }
         finally {
             DbUtils.close(ps);
+            //noinspection UnusedAssignment
             ps = null;
         }
     }
@@ -399,7 +400,9 @@ DEFERRABLE INITIALLY DEFERRED
             throw new DbRevisionException(e);
         } finally {
             DbUtils.close(rs, ps);
+            //noinspection UnusedAssignment
             rs = null;
+            //noinspection UnusedAssignment
             ps = null;
         }
         if (v.size() > 0)
@@ -432,7 +435,9 @@ DEFERRABLE INITIALLY DEFERRED
             throw new DbRevisionException(e);
         } finally {
             DbUtils.close(rs, ps);
+            //noinspection UnusedAssignment
             rs = null;
+            //noinspection UnusedAssignment
             ps = null;
         }
         return null;
@@ -547,8 +552,7 @@ DEFERRABLE INITIALLY DEFERRED
         byte[] buffer = new byte[maxLength];
 
         // length of bytes read
-        int length = 0;
-
+        int length;
         String ret = "";
         boolean flag = false;
         // Fetch data

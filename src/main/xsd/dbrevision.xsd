@@ -54,7 +54,8 @@
 					<xs:element ref="TableData"/>
 					<xs:element name="Table" type="dbrevision-structure:DbTable"/>
 					<xs:element name="Sequence" type="dbrevision-structure:DbSequence"/>
-					<xs:element name="ImportedKey" type="dbrevision-structure:DbImportedPKColumn"/>
+					<xs:element name="ForeignKey" type="dbrevision-structure:DbForeignKey"/>
+					<xs:element name="Index" type="dbrevision-structure:DbIndex"/>
 					<xs:element name="PrimaryKey" type="dbrevision-structure:DbPrimaryKey"/>
 					<xs:element name="View" type="dbrevision-structure:DbView"/>
 				</xs:choice>

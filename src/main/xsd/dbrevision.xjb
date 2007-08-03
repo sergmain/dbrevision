@@ -59,8 +59,20 @@
     </jaxb:bindings>
 
     <jaxb:bindings schemaLocation="dbrevision-structure.xsd" node="//xs:complexType[@name='DbTable']">
-        <jaxb:bindings node=".//xs:element[@name='ImportedKey']">
-            <jaxb:property name="importedKeys"/>
+        <jaxb:bindings node=".//xs:element[@name='ForeignKey']">
+            <jaxb:property name="foreignKeys"/>
+        </jaxb:bindings>
+    </jaxb:bindings>
+
+    <jaxb:bindings schemaLocation="dbrevision-structure.xsd" node="//xs:complexType[@name='DbTable']">
+        <jaxb:bindings node=".//xs:element[@name='Index']">
+            <jaxb:property name="indexes"/>
+        </jaxb:bindings>
+    </jaxb:bindings>
+
+    <jaxb:bindings schemaLocation="dbrevision-structure.xsd" node="//xs:complexType[@name='DbIndex']">
+        <jaxb:bindings node=".//xs:element[@name='Column']">
+            <jaxb:property name="columns"/>
         </jaxb:bindings>
     </jaxb:bindings>
 
@@ -69,6 +81,19 @@
             <jaxb:property name="columns"/>
         </jaxb:bindings>
     </jaxb:bindings>
+
+    <jaxb:bindings schemaLocation="dbrevision-structure.xsd" node="//xs:complexType[@name='DbForeignKey']">
+        <jaxb:bindings node=".//xs:element[@name='Column']">
+            <jaxb:property name="columns"/>
+        </jaxb:bindings>
+    </jaxb:bindings>
+
+    <jaxb:bindings schemaLocation="dbrevision-structure.xsd" node="//xs:complexType[@name='DbIndex']">
+        <jaxb:bindings node=".//xs:attribute[@name='isNonUnique']">
+            <jaxb:property name="nonUnique"/>
+        </jaxb:bindings>
+    </jaxb:bindings>
+
 
     <jaxb:bindings schemaLocation="dbrevision-structure.xsd" node="//xs:complexType[@name='DbDataTable']">
         <jaxb:bindings node=".//xs:element[@name='Record']">

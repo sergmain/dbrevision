@@ -5,10 +5,8 @@ import org.riverock.dbrevision.db.DatabaseAdapter;
 import org.riverock.dbrevision.db.DatabaseStructureManager;
 import org.riverock.dbrevision.annotation.schema.db.DbTable;
 import org.riverock.dbrevision.annotation.schema.db.DbField;
-import org.riverock.dbrevision.annotation.schema.db.DbImportedPKColumn;
 import org.riverock.dbrevision.Constants;
 import org.riverock.dbrevision.utils.DbUtils;
-import org.riverock.dbrevision.utils.Utils;
 import org.riverock.dbrevision.exception.DbRevisionException;
 
 import java.util.ArrayList;
@@ -74,11 +72,12 @@ public class ManagerDaoImpl implements ManagerDao {
                 table.getFields().add(getField("CURRENT_VERSION", Types.VARCHAR, 50, 0, 0));
                 table.getFields().add(getField("LAST_PATCH", Types.VARCHAR, 50, 0, 1));
 
+                // TODO add unique index on module_name column
 /*
-                DbImportedPKColumn uniqueNameIdx = new DbImportedPKColumn();
+                DbForeignKey uniqueNameIdx = new DbForeignKey();
                 uniqueNameIdx.setPkName();    
 
-                table.getImportedKeys().add()
+                table.getForeignKeys().add()
 */
                 adapter.createTable(table);
             }

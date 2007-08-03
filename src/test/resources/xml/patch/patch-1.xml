@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Patches xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="..\..\..\..\..\..\main\xsd\dbrevision.xsd">
+<Patches xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="..\..\..\..\main\xsd\dbrevision.xsd">
 	<Patch>
 		<Name>test_2_1</Name>
 		<PreviousName>test_1_1</PreviousName>
-		<PrimaryKey>
-			<Column schemaName="MILLENNIUM" tableName="TEST_1_1" columnName="ID_TEST11" keySeq="1" pkName="ID_TEST11_T11_PK"/>
+		<PrimaryKey schemaName="MILLENNIUM" tableName="TEST_1_1" pkName="ID_TEST11_T11_PK">
+			<Column columnName="ID_TEST11" keySeq="1" />
 		</PrimaryKey>
-        <ImportedKey pkSchemaName="MILLENNIUM" pkTableName="TEST_1_1" pkColumnName="ID_TEST11" pkName="ID_TEST11_T11_PK" fkSchemaName="MILLENNIUM" fkTableName="TEST_1_2" fkColumnName="ID_TEST11" keySeq="1" fkName="ID_TEST11_T12_FK">
+        <ForeignKey pkSchemaName="MILLENNIUM" pkTableName="TEST_1_1" pkName="ID_TEST11_T11_PK" fkSchemaName="MILLENNIUM" fkTableName="TEST_1_2" fkName="ID_TEST11_T12_FK">
+            <Column pkColumnName="ID_TEST11" fkColumnName="ID_TEST11" keySeq="1"/>  
             <DeleteRule ruleType="0" ruleName="java.sql.DatabaseMetaData.importedKeyCascade"/>
             <Deferrability ruleType="7" ruleName="java.sql.DatabaseMetaData.importedKeyNotDeferrable"/>
-        </ImportedKey>
+        </ForeignKey>
 	</Patch>
 	<Patch>
 		<Name>test_1_0</Name>
@@ -77,9 +78,9 @@ where a.id_object_arm = c.id_object_arm and a.id_access_group = b.id_access_grou
 		<Sequence name="FOR_DEL_SEQ_A" minValue="0" maxValue="9999" incrementBy="1" isCycle="false" isOrder="false" cacheSize="0" lastNumber="2"/>
 		<Sequence name="LIST_GROUP_PRODUCT_SEQ" minValue="1" maxValue="99999999999999999999999999" incrementBy="1" isCycle="false" isOrder="false" cacheSize="0" lastNumber="11"/>
 		<Table schema="MILLENNIUM" name="A_TEST" type="TABLE">
-			<PrimaryKey>
-				<Column schemaName="MILLENNIUM" tableName="A_TEST" columnName="ID_LANG" keySeq="2" pkName="ID_TEST_LANG_A_TEST_PK"/>
-				<Column schemaName="MILLENNIUM" tableName="A_TEST" columnName="ID_TEST" keySeq="1" pkName="ID_TEST_LANG_A_TEST_PK"/>
+			<PrimaryKey schemaName="MILLENNIUM" tableName="A_TEST" pkName="ID_TEST_LANG_A_TEST_PK">
+                <Column columnName="ID_TEST" keySeq="1"/>
+				<Column columnName="ID_LANG" keySeq="2"/>
 			</PrimaryKey>
 			<Field name="ID_TEST" dataType="NUMBER" javaType="3" javaStringType="java.sql.Types.DECIMAL" size="22" decimalDigit="0" nullable="0"/>
 			<Field name="ID_LANG" dataType="NUMBER" javaType="3" javaStringType="java.sql.Types.DECIMAL" size="22" decimalDigit="0" nullable="0"/>
@@ -87,7 +88,6 @@ where a.id_object_arm = c.id_object_arm and a.id_access_group = b.id_access_grou
 			<Field name="IS_YESNO" dataType="NUMBER" javaType="3" javaStringType="java.sql.Types.DECIMAL" size="1" decimalDigit="0" nullable="0" defaultValue="1"/>
 		</Table>
 		<Table schema="MILLENNIUM" name="A_TEST_" type="TABLE">
-			<PrimaryKey/>
 			<Field name="ID_TEST_1" dataType="NUMBER" javaType="3" javaStringType="java.sql.Types.DECIMAL" size="22" decimalDigit="0" nullable="1"/>
 			<Field name="ID_TEST" dataType="NUMBER" javaType="3" javaStringType="java.sql.Types.DECIMAL" size="22" decimalDigit="0" nullable="1"/>
 			<Field name="ID_LANG" dataType="NUMBER" javaType="3" javaStringType="java.sql.Types.DECIMAL" size="22" decimalDigit="0" nullable="1"/>
