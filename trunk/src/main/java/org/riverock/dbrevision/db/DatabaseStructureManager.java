@@ -37,11 +37,12 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.List;
-import java.util.Map;
+import java.util.Collections;
 
 import javax.xml.datatype.DatatypeFactory;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import org.riverock.dbrevision.annotation.schema.db.*;
@@ -63,135 +64,89 @@ public class DatabaseStructureManager {
      * create foreign key
      *
      * @param adapter db adapter
-     * @param fkList list of foreign keys
+     * @param fk list of foreign keys
      */
-    public static void createForeignKey(DatabaseAdapter adapter, DbImportedKeyList fkList) {
-        if (fkList == null || fkList.getKeys().isEmpty()) {
+    public static void createForeignKey(DatabaseAdapter adapter, DbForeignKey fk) {
+        if (fk == null) {
             return;
         }
 
-        Map<String, DbImportedPKColumn> hash = DatabaseManager.getFkNames(fkList.getKeys());
+        if (StringUtils.isBlank(fk.getFkName())) {
+            throw new DbRevisionException("Foreign key name is null");
+        }
 
-        int p = 0;
+        String sql =
+            "ALTER TABLE " + fk.getFkTableName() + " " +
+                "ADD CONSTRAINT " + fk.getFkName() + " FOREIGN KEY (";
 
-        for (Map.Entry<String, DbImportedPKColumn> entry : hash.entrySet()) {
-
-            DbImportedPKColumn fkColumn = entry.getValue();
-            String searchCurrent = DatabaseManager.getRelateString(fkColumn);
-            String sql =
-                "ALTER TABLE " + fkList.getKeys().get(0).getFkTableName() + " " +
-                    "ADD CONSTRAINT " +
-                    (
-                        fkColumn.getFkName() == null || fkColumn.getFkName().length() == 0
-                            ? fkList.getKeys().get(0).getFkTableName() + p + "_fk"
-                            : fkColumn.getFkName()
-                    ) +
-                    " FOREIGN KEY (";
-
-            int seq = Integer.MIN_VALUE;
-            boolean isFirst = true;
-            for (DbImportedPKColumn currFkCol : fkList.getKeys()) {
-                String search = DatabaseManager.getRelateString(currFkCol);
-                if (!searchCurrent.equals(search))
-                    continue;
-
-                DbImportedPKColumn column = null;
-                int seqTemp = Integer.MAX_VALUE;
-                for (DbImportedPKColumn columnTemp : fkList.getKeys()) {
-                    String searchTemp = DatabaseManager.getRelateString(columnTemp);
-                    if (!searchCurrent.equals(searchTemp))
-                        continue;
-
-                    if (seq < columnTemp.getKeySeq() && columnTemp.getKeySeq() < seqTemp) {
-                        seqTemp = columnTemp.getKeySeq();
-                        column = columnTemp;
-                    }
-                }
-                seq = column.getKeySeq();
-
-                if (!isFirst)
-                    sql += ",";
-                else
-                    isFirst = !isFirst;
-
-                sql += column.getFkColumnName();
+        Collections.sort(fk.getColumns(), DbFkComparator.getInstance());
+        boolean isFirst = true;
+        for (DbForeignKeyColumn foreignKeyColumn : fk.getColumns()) {
+            if (!isFirst) {
+                sql += ",";
             }
-            sql += ")\nREFERENCES " + fkColumn.getPkTableName() + " (";
-
-            seq = Integer.MIN_VALUE;
-            isFirst = true;
-            for (DbImportedPKColumn currFkCol : fkList.getKeys()) {
-                String search = DatabaseManager.getRelateString(currFkCol);
-                if (!searchCurrent.equals(search))
-                    continue;
-
-                DbImportedPKColumn column = null;
-                int seqTemp = Integer.MAX_VALUE;
-                for (DbImportedPKColumn columnTemp : fkList.getKeys()) {
-                    String searchTemp = DatabaseManager.getRelateString(columnTemp);
-                    if (!searchCurrent.equals(searchTemp))
-                        continue;
-
-                    if (seq < columnTemp.getKeySeq() && columnTemp.getKeySeq() < seqTemp) {
-                        seqTemp = columnTemp.getKeySeq();
-                        column = columnTemp;
-                    }
-                }
-
-                seq = column.getKeySeq();
-
-                if (!isFirst)
-                    sql += ",";
-                else
-                    isFirst = !isFirst;
-
-                sql += column.getPkColumnName();
-            }
-            sql += ") ";
-            switch (fkColumn.getDeleteRule().getRuleType()) {
-                case DatabaseMetaData.importedKeyRestrict:
-                    sql += adapter.getOnDeleteSetNull();
-                    break;
-                case DatabaseMetaData.importedKeyCascade:
-                    sql += "ON DELETE CASCADE ";
-                    break;
-
-                default:
-                    throw new IllegalArgumentException(" imported keys delete rule '" +
-                        fkColumn.getDeleteRule().getRuleName() + "' not supported");
-            }
-            switch (fkColumn.getDeferrability().getRuleType()) {
-                case DatabaseMetaData.importedKeyNotDeferrable:
-                    break;
-                case DatabaseMetaData.importedKeyInitiallyDeferred:
-                    sql += " DEFERRABLE INITIALLY DEFERRED";
-                    break;
-
-                default:
-                    throw new IllegalArgumentException(" imported keys deferred rule '" +
-                        fkColumn.getDeferrability().getRuleName() + "' not supported");
+            else {
+                isFirst = false;
             }
 
-            PreparedStatement ps = null;
-            try {
-                ps = adapter.getConnection().prepareStatement(sql);
-                ps.executeUpdate();
+            sql += foreignKeyColumn.getFkColumnName();
+        }
+        sql += ")\nREFERENCES " + fk.getPkTableName() + " (";
+
+        isFirst = true;
+        for (DbForeignKeyColumn foreignKeyColumn : fk.getColumns()) {
+            if (!isFirst) {
+                sql += ",";
             }
-            catch (SQLException exc) {
-                if (!adapter.testExceptionTableExists(exc)) {
-                    System.out.println("sql " + sql);
-                    System.out.println("code " + exc.getErrorCode());
-                    System.out.println("state " + exc.getSQLState());
-                    System.out.println("message " + exc.getMessage());
-                    System.out.println("string " + exc.toString());
-                }
-                throw new DbRevisionException(exc);
-            }
-            finally {
-                DbUtils.close(ps);
-                ps = null;
+            else {
+                isFirst = false;
             }
 
+            sql += foreignKeyColumn.getPkColumnName();
+        }
+        sql += ") ";
+        switch (fk.getDeleteRule().getRuleType()) {
+            case DatabaseMetaData.importedKeyRestrict:
+                sql += adapter.getOnDeleteSetNull();
+                break;
+            case DatabaseMetaData.importedKeyCascade:
+                sql += "ON DELETE CASCADE ";
+                break;
+
+            default:
+                throw new IllegalArgumentException(" imported keys delete rule '" +
+                    fk.getDeleteRule().getRuleName() + "' not supported");
+        }
+        switch (fk.getDeferrability().getRuleType()) {
+            case DatabaseMetaData.importedKeyNotDeferrable:
+                break;
+            case DatabaseMetaData.importedKeyInitiallyDeferred:
+                sql += " DEFERRABLE INITIALLY DEFERRED";
+                break;
+
+            default:
+                throw new IllegalArgumentException(" imported keys deferred rule '" +
+                    fk.getDeferrability().getRuleName() + "' not supported");
+        }
+
+        PreparedStatement ps = null;
+        try {
+            ps = adapter.getConnection().prepareStatement(sql);
+            ps.executeUpdate();
+        }
+        catch (SQLException exc) {
+            if (!adapter.testExceptionTableExists(exc)) {
+                System.out.println("sql " + sql);
+                System.out.println("code " + exc.getErrorCode());
+                System.out.println("state " + exc.getSQLState());
+                System.out.println("message " + exc.getMessage());
+                System.out.println("string " + exc.toString());
+            }
+            throw new DbRevisionException(exc);
+        }
+        finally {
+            DbUtils.close(ps);
+            ps = null;
         }
     }
 
@@ -803,45 +758,128 @@ public class DatabaseStructureManager {
         return v;
     }
 
+    public static List<DbIndex> getIndexes(DatabaseAdapter adapter, String schemaName, String tableName) {
+        List<DbIndex> v = new ArrayList<DbIndex>();
+        try {
+            DatabaseMetaData db = adapter.getConnection().getMetaData();
+            ResultSet columnNames = null;
+
+            if (log.isDebugEnabled()) {
+                log.debug("Get data from getIndexes");
+            }
+
+            columnNames = db.getIndexInfo(null, schemaName, tableName, false, false);
+
+            DbIndex key=null;
+            while (columnNames.next()) {
+                if (key==null) {
+                    key = createIndex(columnNames);
+                    v.add(key);
+                }
+                else {
+
+                    DbIndex fk = createIndex(columnNames);
+                    if (
+                        !StringUtils.equals(key.getCatalogName(), fk.getCatalogName()) ||
+                            !StringUtils.equals(key.getSchemaName(), fk.getSchemaName()) ||
+                            !StringUtils.equals(key.getTableName(), fk.getTableName()) ||
+                            !StringUtils.equals(key.getIndexName(), fk.getIndexName())
+                        )
+                    {
+                        key = fk;
+                        v.add(key);
+                    }
+                }
+                DbIndexColumn column = new DbIndexColumn();
+                column.setColumnName(columnNames.getString("COLUMN_NAME"));
+                column.setKeySeq(DbUtils.getInteger(columnNames, "ORDINAL_POSITION"));
+                String asc = columnNames.getString("ASC_OR_DESC");
+                Boolean isAscending = null;
+                if (StringUtils.equals(asc, "A")) {
+                    isAscending = true;
+                }
+                else if (StringUtils.equals(asc, "D")) {
+                    isAscending = false;
+                }
+                column.setAscending(isAscending);
+
+                key.getColumns().add(column);
+
+
+                if (log.isDebugEnabled()) {
+                    log.debug(
+                        key.getCatalogName() + " - " +
+                            key.getSchemaName() + "." +
+                            key.getTableName() +
+                            " - " +
+                            column.getColumnName() +
+                            "; " +
+                            column.getKeySeq() + " " +
+                            column.isAscending() + " "
+                    );
+                }
+            }
+            columnNames.close();
+            columnNames = null;
+
+            log.debug("Done  data from getForeignKeys");
+        }
+        catch (Exception e) {
+            throw new DbRevisionException(e);
+        }
+        return v;
+    }
+
     /**
      * Return info about all PK for tables, which referenced from current table(tableName)
      *
      * @param adapter db adapter
      * @param tableName  name of table
      * @param schemaName name of schema
-     * @return List<DbImportedPKColumn>
+     * @return List<DbForeignKey>
      */
-    public static List<DbImportedPKColumn> getImportedKeys(DatabaseAdapter adapter, String schemaName, String tableName) {
-        List<DbImportedPKColumn> v = new ArrayList<DbImportedPKColumn>();
+    public static List<DbForeignKey> getForeignKeys(DatabaseAdapter adapter, String schemaName, String tableName) {
+        List<DbForeignKey> v = new ArrayList<DbForeignKey>();
         try {
             DatabaseMetaData db = adapter.getConnection().getMetaData();
             ResultSet columnNames = null;
 
-            if (log.isDebugEnabled())
-                log.debug("Get data from getImportedKeys");
+            if (log.isDebugEnabled()) {
+                log.debug("Get data from getForeignKeys");
+            }
 
             try {
                 columnNames = db.getImportedKeys(null, schemaName, tableName);
 
+                DbForeignKey key=null;
                 while (columnNames.next()) {
-                    DbImportedPKColumn impPk = new DbImportedPKColumn();
+                    if (key==null) {
+                        key = createForeignKey(columnNames);
+                        v.add(key);
+                    }
+                    else {
 
-                    impPk.setPkSchemaName(columnNames.getString("PKTABLE_SCHEM"));
-                    impPk.setPkTableName(columnNames.getString("PKTABLE_NAME"));
-                    impPk.setPkColumnName(columnNames.getString("PKCOLUMN_NAME"));
+                        DbForeignKey fk = createForeignKey(columnNames);
+                        if (
+                            !StringUtils.equals(key.getPkSchemaName(), fk.getPkSchemaName()) ||
+                                !StringUtils.equals(key.getPkTableName(), fk.getPkTableName()) ||
+                                !StringUtils.equals(key.getPkName(), fk.getPkName()) ||
+                                !StringUtils.equals(key.getFkSchemaName(), fk.getFkSchemaName()) ||
+                                !StringUtils.equals(key.getFkTableName(), fk.getFkTableName()) ||
+                                !StringUtils.equals(key.getFkName(), fk.getFkName()) 
+                            )
+                        {
+                            key = fk;
+                            v.add(key);
+                        }
+                    }
+                    DbForeignKeyColumn column = new DbForeignKeyColumn();
+                    column.setPkColumnName(columnNames.getString("PKCOLUMN_NAME"));
+                    column.setFkColumnName(columnNames.getString("FKCOLUMN_NAME"));
+                    column.setKeySeq(DbUtils.getInteger(columnNames, "KEY_SEQ"));
 
-                    impPk.setFkSchemaName(columnNames.getString("FKTABLE_SCHEM"));
-                    impPk.setFkTableName(columnNames.getString("FKTABLE_NAME"));
-                    impPk.setFkColumnName(columnNames.getString("FKCOLUMN_NAME"));
+                    key.getColumns().add(column);
 
-                    impPk.setKeySeq(DbUtils.getInteger(columnNames, "KEY_SEQ"));
-
-                    impPk.setPkName(columnNames.getString("PK_NAME"));
-                    impPk.setFkName(columnNames.getString("FK_NAME"));
-
-                    impPk.setUpdateRule(DatabaseManager.decodeUpdateRule(columnNames));
-                    impPk.setDeleteRule(DatabaseManager.decodeDeleteRule(columnNames));
-                    impPk.setDeferrability(DatabaseManager.decodeDeferrabilityRule(columnNames));
 
                     if (log.isDebugEnabled()) {
                         log.debug(
@@ -912,18 +950,16 @@ public class DatabaseStructureManager {
                                 log.debug("unknown DEFERRABILITY(" + deferr + ")");
                                 break;
                         }
-
                     }
-                    v.add(impPk);
                 }
                 columnNames.close();
                 columnNames = null;
 
             }
             catch (Exception e1) {
-                log.debug("Method getImportedKeys(null, null, tableName) not supported", e1);
+                log.debug("Method getForeignKeys(null, null, tableName) not supported", e1);
             }
-            log.debug("Done  data from getImportedKeys");
+            log.debug("Done  data from getForeignKeys");
 
         }
         catch (Exception e) {
@@ -932,76 +968,156 @@ public class DatabaseStructureManager {
         return v;
     }
 
-    public static DbPrimaryKey getPrimaryKey(DatabaseAdapter adapter, String schemaPattern, String tablePattern) {
+    private static DbForeignKey createForeignKey(ResultSet columnNames) throws SQLException {
+        DbForeignKey key = new DbForeignKey();
+        key.setPkSchemaName(columnNames.getString("PKTABLE_SCHEM"));
+        key.setPkTableName(columnNames.getString("PKTABLE_NAME"));
+        key.setPkName(columnNames.getString("PK_NAME"));
 
-        DbPrimaryKey pk = new DbPrimaryKey();
-        ArrayList<DbPrimaryKeyColumn> v = new ArrayList<DbPrimaryKeyColumn>();
+        key.setFkSchemaName(columnNames.getString("FKTABLE_SCHEM"));
+        key.setFkTableName(columnNames.getString("FKTABLE_NAME"));
+        key.setFkName(columnNames.getString("FK_NAME"));
+
+        key.setUpdateRule(DatabaseManager.decodeUpdateRule(columnNames));
+        key.setDeleteRule(DatabaseManager.decodeDeleteRule(columnNames));
+        key.setDeferrability(DatabaseManager.decodeDeferrabilityRule(columnNames));
+        return key;
+    }
+
+    /**
+     * <P>Each index column description has the following columns:
+     *  <OL>
+     *	<LI><B>TABLE_CAT</B> String => table catalog (may be <code>null</code>)
+     *	<LI><B>TABLE_SCHEM</B> String => table schema (may be <code>null</code>)
+     *	<LI><B>TABLE_NAME</B> String => table name
+     *	<LI><B>NON_UNIQUE</B> boolean => Can index values be non-unique.
+     *      false when TYPE is tableIndexStatistic
+     *	<LI><B>INDEX_QUALIFIER</B> String => index catalog (may be <code>null</code>);
+     *      <code>null</code> when TYPE is tableIndexStatistic
+     *	<LI><B>INDEX_NAME</B> String => index name; <code>null</code> when TYPE is
+     *      tableIndexStatistic
+     *	<LI><B>TYPE</B> short => index type:
+     *      <UL>
+     *      <LI> tableIndexStatistic - this identifies table statistics that are
+     *           returned in conjuction with a table's index descriptions
+     *      <LI> tableIndexClustered - this is a clustered index
+     *      <LI> tableIndexHashed - this is a hashed index
+     *      <LI> tableIndexOther - this is some other style of index
+     *      </UL>
+     *	<LI><B>ORDINAL_POSITION</B> short => column sequence number
+     *      within index; zero when TYPE is tableIndexStatistic
+     *	<LI><B>COLUMN_NAME</B> String => column name; <code>null</code> when TYPE is
+     *      tableIndexStatistic
+     *	<LI><B>ASC_OR_DESC</B> String => column sort sequence, "A" => ascending,
+     *      "D" => descending, may be <code>null</code> if sort sequence is not supported;
+     *      <code>null</code> when TYPE is tableIndexStatistic
+     *	<LI><B>CARDINALITY</B> int => When TYPE is tableIndexStatistic, then
+     *      this is the number of rows in the table; otherwise, it is the
+     *      number of unique values in the index.
+     *	<LI><B>PAGES</B> int => When TYPE is  tableIndexStatisic then
+     *      this is the number of pages used for the table, otherwise it
+     *      is the number of pages used for the current index.
+     *	<LI><B>FILTER_CONDITION</B> String => Filter condition, if any.
+     *      (may be <code>null</code>)
+     *  </OL>
+     * 
+     * @param columnNames result set
+     * @return index
+     * @throws SQLException on error
+     */
+    private static DbIndex createIndex(ResultSet columnNames) throws SQLException {
+        DbIndex index = new DbIndex();
+        index.setCatalogName(columnNames.getString("TABLE_CAT"));
+        index.setSchemaName(columnNames.getString("TABLE_SCHEM"));
+        index.setTableName(columnNames.getString("TABLE_NAME"));
+        index.setNonUnique(DbUtils.getBoolean(columnNames, "NON_UNIQUE", false));
+
+        index.setIndexQualifier(columnNames.getString("INDEX_QUALIFIER"));
+        index.setIndexName(columnNames.getString("INDEX_NAME"));
+        index.setType(DbUtils.getInteger(columnNames, "TYPE"));
+        index.setCardinality(DbUtils.getInteger(columnNames, "CARDINALITY"));
+        index.setPages(DbUtils.getInteger(columnNames, "PAGES"));
+        index.setFilterCondition(columnNames.getString("FILTER_CONDITION"));
+
+        return index;
+    }
+
+    public static DbPrimaryKey getPrimaryKey(DatabaseAdapter adapter, String schemaPattern, String tablePattern) {
 
         if (log.isDebugEnabled()) {
             log.debug("Get data from getPrimaryKeys");
         }
 
+        DbPrimaryKey pk=null;
         try {
             DatabaseMetaData db = adapter.getConnection().getMetaData();
             ResultSet metaData = null;
             metaData = db.getPrimaryKeys(null, schemaPattern, tablePattern);
+
             while (metaData.next()) {
+                if (pk==null) {
+                    pk = new DbPrimaryKey();
+                    pk.setCatalogName(metaData.getString("TABLE_CAT"));
+                    pk.setSchemaName(metaData.getString("TABLE_SCHEM"));
+                    pk.setTableName(metaData.getString("TABLE_NAME"));
+                    pk.setPkName(metaData.getString("PK_NAME"));
+                }
                 DbPrimaryKeyColumn pkColumn = new DbPrimaryKeyColumn();
 
-                pkColumn.setCatalogName(metaData.getString("TABLE_CAT"));
-                pkColumn.setSchemaName(metaData.getString("TABLE_SCHEM"));
-                pkColumn.setTableName(metaData.getString("TABLE_NAME"));
                 pkColumn.setColumnName(metaData.getString("COLUMN_NAME"));
                 pkColumn.setKeySeq(DbUtils.getInteger(metaData, "KEY_SEQ"));
-                pkColumn.setPkName(metaData.getString("PK_NAME"));
 
+                pk.getColumns().add(pkColumn);
+                
                 if (log.isDebugEnabled()) {
                     log.debug(
-                        pkColumn.getCatalogName() + "." +
-                            pkColumn.getSchemaName() + "." +
-                            pkColumn.getTableName() +
+                        pk.getCatalogName() + "." +
+                            pk.getSchemaName() + "." +
+                            pk.getTableName() +
                             " - " +
                             pkColumn.getColumnName() +
                             " " +
                             pkColumn.getKeySeq() + " " +
-                            pkColumn.getPkName() + " " +
+                            pk.getPkName() + " " +
                             ""
                     );
                 }
-                v.add(pkColumn);
             }
             metaData.close();
             metaData = null;
         }
-        catch (Exception e1) {
-            log.warn("Method db.getPrimaryKeys(null, null, tableName) not supported", e1);
+        catch (SQLException e1) {
+            throw new DbRevisionException(e1);
         }
 
         if (log.isDebugEnabled()) {
             log.debug("Done data from getPrimaryKeys");
         }
+        if (pk==null) {
+            return null;
+        }
+
+        Collections.sort(pk.getColumns(), DbPkComparator.getInstance());
 
         if (log.isDebugEnabled()) {
-            if (v.size() > 1) {
+            if (pk.getColumns().size() > 1) {
                 log.debug("Table with multicolumn PK.");
 
-                for (DbPrimaryKeyColumn pkColumn : v) {
+                for (DbPrimaryKeyColumn pkColumn : pk.getColumns()) {
                     log.debug(
-                            pkColumn.getCatalogName() + "." +
-                                    pkColumn.getSchemaName() + "." +
-                                    pkColumn.getTableName() +
+                            pk.getCatalogName() + "." +
+                                    pk.getSchemaName() + "." +
+                                    pk.getTableName() +
                                     " - " +
                                     pkColumn.getColumnName() +
                                     " " +
                                     pkColumn.getKeySeq() + " " +
-                                    pkColumn.getPkName() + " " +
+                                    pk.getPkName() + " " +
                                     ""
                     );
                 }
             }
         }
-        pk.getColumns().addAll(v);
-
         return pk;
     }
 

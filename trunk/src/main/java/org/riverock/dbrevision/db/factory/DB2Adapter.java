@@ -42,7 +42,7 @@ import org.apache.log4j.Logger;
 
 import org.riverock.dbrevision.annotation.schema.db.DbDataFieldData;
 import org.riverock.dbrevision.annotation.schema.db.DbField;
-import org.riverock.dbrevision.annotation.schema.db.DbImportedPKColumn;
+import org.riverock.dbrevision.annotation.schema.db.DbForeignKey;
 import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKey;
 import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKeyColumn;
 import org.riverock.dbrevision.annotation.schema.db.DbSequence;
@@ -190,8 +190,7 @@ public class DB2Adapter extends DatabaseAdapter {
         if (table.getPrimaryKey() != null && table.getPrimaryKey().getColumns().size() > 0) {
             DbPrimaryKey pk = table.getPrimaryKey();
 
-            String namePk = pk.getColumns().get(0).getPkName();
-            sql += ", CONSTRAINT " + namePk + " PRIMARY KEY ( ";
+            sql += ", CONSTRAINT " + pk.getPkName() + " PRIMARY KEY ( ";
 
             int seq = Integer.MIN_VALUE;
             isFirst = true;
@@ -267,7 +266,7 @@ public class DB2Adapter extends DatabaseAdapter {
     public void dropSequence(String nameSequence) {
     }
 
-    public void dropConstraint(DbImportedPKColumn impPk) {
+    public void dropConstraint(DbForeignKey impPk) {
         if (impPk == null) {
             return;
         }

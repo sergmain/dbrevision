@@ -53,8 +53,8 @@ public class DbStructureExport {
     public static void export(DatabaseAdapter adapter, OutputStream outputStream, boolean isData, boolean isOnlyCurrent) {
         try {
             DbSchema schema = DatabaseManager.getDbStructure(adapter, isOnlyCurrent);
-            for (DbTable table : schema.getTables()) {
-                if (isData) {
+            if (isData) {
+                for (DbTable table : schema.getTables()) {
                     table.setData(DatabaseStructureManager.getDataTable(adapter, table));
                 }
             }

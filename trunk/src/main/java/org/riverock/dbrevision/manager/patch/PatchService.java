@@ -29,8 +29,10 @@ import java.sql.Statement;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
 
 import org.apache.log4j.Logger;
+import org.apache.commons.lang.StringUtils;
 
 import org.riverock.dbrevision.annotation.schema.db.*;
 import org.riverock.dbrevision.db.DatabaseAdapter;
@@ -118,7 +120,7 @@ public final class PatchService {
 
         processTable(db_, patch);
         processPrimaryKey(db_, patch);
-        processImportedKeys(db_, patch);
+        processForeignKeys(db_, patch);
         processSequences(db_, patch);
         processAction(db_, patch);
     }
@@ -282,7 +284,7 @@ public final class PatchService {
 
     ////////////////////////
 
-    private synchronized static void processTable(DatabaseAdapter db_, Patch patch) {
+    private static void processTable(DatabaseAdapter db_, Patch patch) {
         log.debug("processTable ");
         if (patch == null) {
             return;
@@ -295,7 +297,7 @@ public final class PatchService {
         }
     }
 
-    private synchronized static void processPrimaryKey(DatabaseAdapter db_, Patch patch) {
+    private static void processPrimaryKey(DatabaseAdapter db_, Patch patch) {
         log.debug("processPrimaryKey ");
         if (patch == null) {
             return;
@@ -307,40 +309,36 @@ public final class PatchService {
 
                  if (!pk.getColumns().isEmpty()) {
                      DbSchema schema = DatabaseManager.getDbStructure(db_);
-                     DbTable table = DatabaseManager.getTableFromStructure(schema, pk.getColumns().get(0).getTableName());
+                     DbTable table = DatabaseManager.getTableFromStructure(schema, pk.getTableName());
                      DatabaseManager.addPrimaryKey(db_, table, pk);
                  }
              }
         }
     }
 
-    private synchronized static void processImportedKeys(DatabaseAdapter db_, Patch patch) {
-        log.debug("processImportedKeys ");
+    private static void processForeignKeys(DatabaseAdapter adapter, Patch patch) {
+        log.debug("processForeignKeys ");
         if (patch == null) {
             return;
         }
 
+        List<DbForeignKey> keys = new ArrayList<DbForeignKey>();
         for (Object o : patch.getActionOrTableDataOrTable()) {
-             if (o instanceof DbImportedKeyList) {
-                 DbImportedKeyList fkList = (DbImportedKeyList)o;
-                 if (!fkList.getKeys().isEmpty()) {
-                        // Todo: and what we do with this table?
-/*
-                        DbSchema schema = DatabaseManager.getDbStructure(db_);
-                        DbTable table =
-                            DatabaseManager.getTableFromStructure(
-                                schema,
-                                fkList.getKeys(0).getPkTableName()
-                            );
-
-*/
-                     DatabaseStructureManager.createForeignKey(db_, fkList);
-                 }
+             if (o instanceof DbForeignKey) {
+                 keys.add((DbForeignKey)o);
             }
+        }
+
+        int p=0;
+        for (DbForeignKey key : keys) {
+            if (StringUtils.isBlank(key.getFkName())) {
+                key.setFkName(key.getFkTableName() + p + "_fk");
+            }
+            DatabaseStructureManager.createForeignKey(adapter, key);
         }
     }
 
-    private synchronized static void processSequences(DatabaseAdapter db_, Patch patch) {
+    private static void processSequences(DatabaseAdapter db_, Patch patch) {
         log.debug("processSequences ");
         if (patch == null) {
             return;
@@ -353,7 +351,7 @@ public final class PatchService {
         }
     }
 
-    private synchronized static void processAction(DatabaseAdapter db_, Patch patch) {
+    private static void processAction(DatabaseAdapter db_, Patch patch) {
         log.debug("processAction ");
         if (patch == null) {
             return;

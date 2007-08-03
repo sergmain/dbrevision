@@ -4,15 +4,13 @@ import java.io.InputStream;
 
 import junit.framework.TestCase;
 
-import org.riverock.dbrevision.annotation.schema.db.DbSchema;
-import org.riverock.dbrevision.annotation.schema.db.Patches;
-import org.riverock.dbrevision.annotation.schema.db.Patch;
-import org.riverock.dbrevision.annotation.schema.db.PrimaryKey;
-import org.riverock.dbrevision.annotation.schema.db.DbImportedPKColumn;
-import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKey;
-import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKeyColumn;
 import org.riverock.dbrevision.annotation.schema.db.Action;
 import org.riverock.dbrevision.annotation.schema.db.ActionParameter;
+import org.riverock.dbrevision.annotation.schema.db.DbForeignKey;
+import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKey;
+import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKeyColumn;
+import org.riverock.dbrevision.annotation.schema.db.Patch;
+import org.riverock.dbrevision.annotation.schema.db.Patches;
 import org.riverock.dbrevision.utils.Utils;
 
 /**
@@ -36,20 +34,20 @@ public class TestPatchUnmarshaling extends TestCase {
         assertEquals(2, p.getActionOrTableDataOrTable().size());
 
         assertTrue( p.getActionOrTableDataOrTable().get(0) instanceof DbPrimaryKey);
-        assertTrue( p.getActionOrTableDataOrTable().get(1) instanceof DbImportedPKColumn);
+        assertTrue( p.getActionOrTableDataOrTable().get(1) instanceof DbForeignKey);
 
         DbPrimaryKey pk = (DbPrimaryKey)p.getActionOrTableDataOrTable().get(0);
         assertEquals(1, pk.getColumns().size());
 
         DbPrimaryKeyColumn col = pk.getColumns().get(0);
         // schemaName="MILLENNIUM" tableName="TEST_1_1" columnName="ID_TEST11" keySeq="1" pkName="ID_TEST11_T11_PK"
-        assertEquals("MILLENNIUM", col.getSchemaName());
-        assertEquals("TEST_1_1", col.getTableName());
+        assertEquals("MILLENNIUM", pk.getSchemaName());
+        assertEquals("TEST_1_1", pk.getTableName());
         assertEquals("ID_TEST11", col.getColumnName());
         assertEquals(1, col.getKeySeq());
-        assertEquals("ID_TEST11_T11_PK", col.getPkName());
+        assertEquals("ID_TEST11_T11_PK", pk.getPkName());
 
-        DbImportedPKColumn fk = (DbImportedPKColumn)p.getActionOrTableDataOrTable().get(1);
+        DbForeignKey fk = (DbForeignKey)p.getActionOrTableDataOrTable().get(1);
         assertNotNull(fk.getDeleteRule());
         assertEquals(new Integer(0), fk.getDeleteRule().getRuleType());
         assertEquals("java.sql.DatabaseMetaData.importedKeyCascade", fk.getDeleteRule().getRuleName());
@@ -63,11 +61,12 @@ public class TestPatchUnmarshaling extends TestCase {
         assertEquals("MILLENNIUM", fk.getFkSchemaName());
         assertEquals("TEST_1_1", fk.getPkTableName());
         assertEquals("TEST_1_2", fk.getFkTableName());
-        assertEquals("ID_TEST11", fk.getPkColumnName());
-        assertEquals("ID_TEST11", fk.getFkColumnName());
         assertEquals("ID_TEST11_T11_PK", fk.getPkName());
         assertEquals("ID_TEST11_T12_FK", fk.getFkName());
-        assertEquals(new Integer(1), fk.getKeySeq());
+        assertEquals(1, fk.getColumns().size());
+        assertEquals("ID_TEST11", fk.getColumns().get(0).getPkColumnName());
+        assertEquals("ID_TEST11", fk.getColumns().get(0).getFkColumnName());
+        assertEquals(new Integer(1), fk.getColumns().get(0).getKeySeq());
     }
 
     public void testUnmarshalPatch_2() throws Exception {

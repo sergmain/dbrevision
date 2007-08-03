@@ -46,7 +46,7 @@ import oracle.sql.CLOB;
 
 import org.riverock.dbrevision.annotation.schema.db.DbDataFieldData;
 import org.riverock.dbrevision.annotation.schema.db.DbField;
-import org.riverock.dbrevision.annotation.schema.db.DbImportedPKColumn;
+import org.riverock.dbrevision.annotation.schema.db.DbForeignKey;
 import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKey;
 import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKeyColumn;
 import org.riverock.dbrevision.annotation.schema.db.DbSequence;
@@ -190,14 +190,12 @@ public class OracleAdapter extends DatabaseAdapter {
         if (table.getPrimaryKey() != null && !table.getPrimaryKey().getColumns().isEmpty()) {
             DbPrimaryKey pk = table.getPrimaryKey();
 
-            String namePk = pk.getColumns().get(0).getPkName();
-
-//            constraintDefinition:
+            //            constraintDefinition:
 //            [ CONSTRAINT name ]
 //            UNIQUE ( column [,column...] ) |
 //            PRIMARY KEY ( column [,column...] ) |
 
-            sql += ",\nCONSTRAINT " + namePk + " PRIMARY KEY (\n";
+            sql += ",\nCONSTRAINT " + pk.getPkName() + " PRIMARY KEY (\n";
 
             int seq = Integer.MIN_VALUE;
             isFirst = true;
@@ -246,6 +244,7 @@ public class OracleAdapter extends DatabaseAdapter {
     }
 
     public void createForeignKey(DbTable view) {
+        
     }
 
     /**
@@ -303,7 +302,7 @@ public class OracleAdapter extends DatabaseAdapter {
         }
     }
 
-    public void dropConstraint(DbImportedPKColumn impPk){
+    public void dropConstraint(DbForeignKey impPk){
         throw new DbRevisionException("not implemented");
     }
 

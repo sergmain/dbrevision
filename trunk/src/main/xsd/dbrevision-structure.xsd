@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2007 sp1 (http://www.altova.com) by Serg (Home) -->
 <!--
   ~ org.riverock.dbrevision - Database revision framework
   ~ For more information about DbRevision, please visit project site
@@ -59,18 +60,14 @@
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
-	<xs:complexType name="DbViewList">
-		<xs:sequence>
-			<xs:element name="View" type="dbrevision-structure:DbView" minOccurs="0" maxOccurs="unbounded"/>
-		</xs:sequence>
-	</xs:complexType>
 	<xs:complexType name="DbTable">
 		<xs:complexContent>
 			<xs:extension base="dbrevision-structure:DbAbstractTable">
 				<xs:sequence>
 					<xs:element name="PrimaryKey" type="dbrevision-structure:DbPrimaryKey" minOccurs="0"/>
 					<xs:element name="Field" type="dbrevision-structure:DbField" minOccurs="0" maxOccurs="unbounded"/>
-					<xs:element name="ImportedKey" type="dbrevision-structure:DbImportedPKColumn" minOccurs="0" maxOccurs="unbounded"/>
+					<xs:element name="ForeignKey" type="dbrevision-structure:DbForeignKey" minOccurs="0" maxOccurs="unbounded"/>
+					<xs:element name="Index" type="dbrevision-structure:DbIndex" minOccurs="0" maxOccurs="unbounded"/>
 					<xs:element name="Data" type="dbrevision-structure:DbDataTable" minOccurs="0"/>
 				</xs:sequence>
 			</xs:extension>
@@ -110,37 +107,55 @@
 	</xs:complexType>
 	<xs:complexType name="DbPrimaryKey">
 		<xs:sequence>
-			<xs:element name="Column" type="dbrevision-structure:DbPrimaryKeyColumn" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="Column" type="dbrevision-structure:DbPrimaryKeyColumn" maxOccurs="unbounded"/>
 		</xs:sequence>
-	</xs:complexType>
-	<xs:complexType name="DbPrimaryKeyColumn">
 		<xs:attribute name="catalogName" type="xs:string"/>
 		<xs:attribute name="schemaName" type="xs:string"/>
 		<xs:attribute name="tableName" type="xs:string" use="required"/>
-		<xs:attribute name="columnName" type="xs:string" use="required"/>
-		<xs:attribute name="keySeq" type="xs:int" use="required"/>
 		<xs:attribute name="pkName" type="xs:string"/>
 	</xs:complexType>
-	<xs:complexType name="DbImportedPKColumn">
+	<xs:complexType name="DbPrimaryKeyColumn">
+		<xs:attribute name="columnName" type="xs:string" use="required"/>
+		<xs:attribute name="keySeq" type="xs:int" use="required"/>
+	</xs:complexType>
+	<xs:complexType name="DbForeignKey">
 		<xs:sequence>
+			<xs:element name="Column" type="dbrevision-structure:DbForeignKeyColumn" maxOccurs="unbounded"/>
 			<xs:element name="UpdateRule" type="dbrevision-structure:DbKeyActionRule" minOccurs="0"/>
 			<xs:element name="DeleteRule" type="dbrevision-structure:DbKeyActionRule" minOccurs="0"/>
 			<xs:element name="Deferrability" type="dbrevision-structure:DbKeyActionRule" minOccurs="0"/>
 		</xs:sequence>
 		<xs:attribute name="pkSchemaName" type="xs:string"/>
 		<xs:attribute name="pkTableName" type="xs:string"/>
-		<xs:attribute name="pkColumnName" type="xs:string"/>
+		<xs:attribute name="pkName" type="xs:string" use="required"/>
 		<xs:attribute name="fkSchemaName" type="xs:string"/>
-		<xs:attribute name="fkTableName" type="xs:string"/>
+		<xs:attribute name="fkTableName" type="xs:string" use="required"/>
+		<xs:attribute name="fkName" type="xs:string"/>
+	</xs:complexType>
+	<xs:complexType name="DbForeignKeyColumn">
+		<xs:attribute name="pkColumnName" type="xs:string"/>
 		<xs:attribute name="fkColumnName" type="xs:string"/>
 		<xs:attribute name="keySeq" type="xs:int"/>
-		<xs:attribute name="fkName" type="xs:string"/>
-		<xs:attribute name="pkName" type="xs:string"/>
 	</xs:complexType>
-	<xs:complexType name="DbImportedKeyList">
+	<xs:complexType name="DbIndex">
 		<xs:sequence>
-			<xs:element name="Keys" type="dbrevision-structure:DbImportedPKColumn" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="Column" type="dbrevision-structure:DbIndexColumn" maxOccurs="unbounded"/>
 		</xs:sequence>
+		<xs:attribute name="catalogName" type="xs:string"/>
+		<xs:attribute name="schemaName" type="xs:string"/>
+		<xs:attribute name="tableName" type="xs:string" use="required"/>
+		<xs:attribute name="indexName" type="xs:string"/>
+		<xs:attribute name="isNonUnique" type="xs:boolean"/>
+		<xs:attribute name="indexQualifier" type="xs:string"/>
+		<xs:attribute name="type" type="xs:int"/>
+		<xs:attribute name="cardinality" type="xs:int"/>
+		<xs:attribute name="pages" type="xs:int"/>
+		<xs:attribute name="filterCondition" type="xs:string"/>
+	</xs:complexType>
+	<xs:complexType name="DbIndexColumn">
+		<xs:attribute name="columnName" type="xs:string" use="required"/>
+		<xs:attribute name="keySeq" type="xs:int" use="required"/>
+		<xs:attribute name="ascending" type="xs:boolean"/>
 	</xs:complexType>
 	<xs:complexType name="DbKeyActionRule">
 		<xs:attribute name="ruleType" type="xs:int"/>

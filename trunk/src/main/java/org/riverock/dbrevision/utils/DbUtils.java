@@ -175,15 +175,56 @@ public class DbUtils {
      * @return value as Long
      * @throws java.sql.SQLException on error
      */
+    public static Boolean getBoolean(final ResultSet rs, final String f) throws SQLException {
+        return getBoolean(rs, f, null);
+    }
+
+    /**
+     * @param rs - ResultSet
+     * @param f - name of field
+     * @param def - default value
+     * @return value of column as Long
+     * @throws java.sql.SQLException on error
+     */
+    public static Boolean getBoolean(final ResultSet rs, final String f, final Boolean def) throws SQLException {
+
+        if (rs == null || f == null) {
+            return def;
+        }
+
+        try {
+            boolean temp = rs.getBoolean(f);
+            if (rs.wasNull()) {
+                return def;
+            }
+
+            return temp;
+        }
+        catch (SQLException exc) {
+            log.error("Error get Boolean field '" + f + "'", exc);
+            throw exc;
+        }
+    }
+
+    /**
+     * String f - name of field
+     *
+     * @param rs ResultSet
+     * @param f name of field
+     * @return value as Long
+     * @throws java.sql.SQLException on error
+     */
     public static Long getLong(final ResultSet rs, final String f)
         throws SQLException {
         return getLong(rs, f, null);
     }
 
     /**
-     * ResultSet rs - ResultSet
-     * String f - name of field
-     * Long def - default value
+     * @param rs - ResultSet
+     * @param f - name of field
+     * @param def - default value
+     * @return value of column as Long
+     * @throws java.sql.SQLException on error
      */
     public static Long getLong(final ResultSet rs, final String f, final Long def)
         throws SQLException {

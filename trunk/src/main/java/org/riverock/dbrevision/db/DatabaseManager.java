@@ -33,20 +33,19 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.log4j.Logger;
 
 import org.riverock.dbrevision.annotation.schema.db.DbField;
-import org.riverock.dbrevision.annotation.schema.db.DbImportedPKColumn;
+import org.riverock.dbrevision.annotation.schema.db.DbForeignKey;
 import org.riverock.dbrevision.annotation.schema.db.DbKeyActionRule;
 import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKey;
 import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKeyColumn;
 import org.riverock.dbrevision.annotation.schema.db.DbSchema;
 import org.riverock.dbrevision.annotation.schema.db.DbTable;
 import org.riverock.dbrevision.annotation.schema.db.DbView;
+import org.riverock.dbrevision.annotation.schema.db.DbForeignKeyColumn;
 import org.riverock.dbrevision.exception.DbRevisionException;
 import org.riverock.dbrevision.utils.DbUtils;
 
@@ -62,8 +61,6 @@ public final class DatabaseManager {
     private static Logger log = Logger.getLogger(DatabaseManager.class);
 
     private static final String DEFAULT_DATE_VALUES[] = {"sysdate", "current_timestamp", "current_time", "current_date"};
-
-    public static final DbPkComparator pkComparator = new DbPkComparator();
 
     public static void addPrimaryKey(final DatabaseAdapter db_, final DbTable table, final DbPrimaryKey pk) {
         if (table == null) {
@@ -197,36 +194,41 @@ public final class DatabaseManager {
 
     public static DbPrimaryKeyColumn cloneDescriptionPrimaryKeyColumn(final DbPrimaryKeyColumn srcCol) {
         DbPrimaryKeyColumn c = new DbPrimaryKeyColumn();
-        c.setCatalogName(srcCol.getCatalogName());
         c.setColumnName(srcCol.getColumnName());
         c.setKeySeq(srcCol.getKeySeq());
-        c.setPkName(srcCol.getPkName());
-        c.setSchemaName(srcCol.getSchemaName());
-        c.setTableName(srcCol.getTableName());
 
         return c;
     }
 
-    public static DbImportedPKColumn cloneDescriptionFK(final DbImportedPKColumn srcFk) {
+    public static DbForeignKey cloneDescriptionFK(final DbForeignKey srcFk) {
         if (srcFk == null) {
             return null;
         }
 
-        DbImportedPKColumn f = new DbImportedPKColumn();
-        f.setDeferrability(srcFk.getDeferrability());
-        f.setDeleteRule(srcFk.getDeleteRule());
-        f.setFkColumnName(srcFk.getFkColumnName());
-        f.setFkName(srcFk.getFkName());
-        f.setFkTableName(srcFk.getFkTableName());
-        f.setFkSchemaName(srcFk.getFkSchemaName());
-        f.setKeySeq(srcFk.getKeySeq());
-        f.setPkColumnName(srcFk.getPkColumnName());
-        f.setPkName(srcFk.getPkName());
-        f.setPkTableName(srcFk.getPkTableName());
-        f.setPkSchemaName(srcFk.getPkSchemaName());
-        f.setUpdateRule(srcFk.getUpdateRule());
+        DbForeignKey fk = new DbForeignKey();
+        fk.setDeferrability(srcFk.getDeferrability());
+        fk.setDeleteRule(srcFk.getDeleteRule());
+        fk.setFkName(srcFk.getFkName());
+        fk.setFkTableName(srcFk.getFkTableName());
+        fk.setFkSchemaName(srcFk.getFkSchemaName());
+        fk.setPkName(srcFk.getPkName());
+        fk.setPkTableName(srcFk.getPkTableName());
+        fk.setPkSchemaName(srcFk.getPkSchemaName());
+        fk.setUpdateRule(srcFk.getUpdateRule());
+        for (DbForeignKeyColumn srcFkColumn : srcFk.getColumns()) {
+            fk.getColumns().add(cloneDescriptionForeignKeyColumn(srcFkColumn));
+        }
 
-        return f;
+        return fk;
+    }
+
+    private static DbForeignKeyColumn cloneDescriptionForeignKeyColumn(DbForeignKeyColumn srcFkColumn) {
+        DbForeignKeyColumn c = new DbForeignKeyColumn();
+        c.setFkColumnName(srcFkColumn.getFkColumnName());
+        c.setKeySeq(srcFkColumn.getKeySeq());
+        c.setPkColumnName(srcFkColumn.getPkColumnName());
+
+        return c;
     }
 
     public static DbPrimaryKey cloneDescriptionPK(final DbPrimaryKey srcPk) {
@@ -235,6 +237,10 @@ public final class DatabaseManager {
         }
 
         DbPrimaryKey pk = new DbPrimaryKey();
+        pk.setCatalogName(srcPk.getCatalogName());
+        pk.setPkName(srcPk.getPkName());
+        pk.setSchemaName(srcPk.getSchemaName());
+        pk.setTableName(srcPk.getTableName());
         for (DbPrimaryKeyColumn column : srcPk.getColumns()) {
             pk.getColumns().add(cloneDescriptionPrimaryKeyColumn(column));
         }
@@ -287,9 +293,9 @@ public final class DatabaseManager {
             r.getFields().add(f);
         }
 
-        for (DbImportedPKColumn DbImportedPKColumn : srcTable.getImportedKeys()) {
-            DbImportedPKColumn f = cloneDescriptionFK(DbImportedPKColumn);
-            r.getImportedKeys().add(f);
+        for (DbForeignKey DbForeignKey : srcTable.getForeignKeys()) {
+            DbForeignKey fk = cloneDescriptionFK(DbForeignKey);
+            r.getForeignKeys().add(fk);
         }
 
         return r;
@@ -338,34 +344,6 @@ public final class DatabaseManager {
             }
         }
         return null;
-    }
-
-    public static boolean isFieldForeignKey(final DbTable table, final DbField field) {
-        if (table == null || field == null) {
-            return false;
-        }
-
-        for (DbImportedPKColumn DbImportedPKColumn : table.getImportedKeys()) {
-            if (table.getName().equalsIgnoreCase(DbImportedPKColumn.getFkTableName()) &&
-                field.getName().equalsIgnoreCase(DbImportedPKColumn.getFkColumnName())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public static boolean isFieldPrimaryKey(final DbTable table, final DbField field) {
-        if (table == null || field == null) {
-            return false;
-        }
-
-        DbPrimaryKey pk = table.getPrimaryKey();
-        for (DbPrimaryKeyColumn DbPrimaryKeyColumn : pk.getColumns()) {
-            if (field.getName().equalsIgnoreCase(DbPrimaryKeyColumn.getColumnName())) {
-                return true;
-            }
-        }
-        return false;
     }
 
     public static boolean isFieldExists(final DbSchema schema, final DbTable table, final DbField field) {
@@ -429,7 +407,8 @@ public final class DatabaseManager {
         for (DbTable table : schema.getTables()) {
             table.getFields().addAll(DatabaseStructureManager.getFieldsList(adapter, table.getSchema(), table.getName()));
             table.setPrimaryKey(DatabaseStructureManager.getPrimaryKey(adapter, table.getSchema(), table.getName()));
-            table.getImportedKeys().addAll(DatabaseStructureManager.getImportedKeys(adapter, table.getSchema(), table.getName()));
+            table.getForeignKeys().addAll(DatabaseStructureManager.getForeignKeys(adapter, table.getSchema(), table.getName()));
+            table.getIndexes().addAll(DatabaseStructureManager.getIndexes(adapter, table.getSchema(), table.getName()));
         }
 
         for (DbView view : schema.getViews()) {
@@ -548,17 +527,6 @@ public final class DatabaseManager {
         return false;
     }
 
-    public static boolean isMultiColumnFk(final DbTable table, final DbImportedPKColumn key) {
-        for (DbImportedPKColumn checkKey : table.getImportedKeys()) {
-            if (checkKey.getFkColumnName().equals(key.getFkColumnName()) &&
-                checkKey.getKeySeq() != key.getKeySeq()
-                ) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     /**
      * Check what field's default value is default timestamp(date) for bd column
      * For example for Oracle value is 'SYSDATE'
@@ -578,53 +546,6 @@ public final class DatabaseManager {
             }
         }
         return false;
-    }
-
-    public static String getRelateString(final DbImportedPKColumn column) {
-        return (
-            column.getFkSchemaName() == null || column.getFkSchemaName().length() == 0 ?
-                "" :
-                column.getFkSchemaName() + '.'
-        ) +
-            column.getFkTableName() + '.' +
-            column.getFkColumnName() +
-            "->" +
-            (
-                column.getPkSchemaName() == null || column.getPkSchemaName().length() == 0 ?
-                    "" :
-                    column.getPkSchemaName() + '.'
-            ) +
-            column.getPkTableName() + '.' +
-            column.getFkColumnName()
-            ;
-    }
-
-    public static Map<String, DbImportedPKColumn> getFkNames(final List<DbImportedPKColumn> keys) {
-        Map<String, DbImportedPKColumn> hash = new HashMap<String, DbImportedPKColumn>();
-        for (DbImportedPKColumn column : keys) {
-            String search = getRelateString(column);
-            Object obj = hash.get(search);
-            if (obj == null) {
-                hash.put(search, column);
-            }
-
-        }
-        return hash;
-/*
-        DbImportedPKColumn[] result = new DbImportedPKColumn[hash.size()];
-
-        int i=0;
-        for (Enumeration e = hash.elements(); e.hasMoreElements() ;i++)
-        {
-            result[i] = (DbImportedPKColumn)e.nextElement();
-        }
-        if (log.isDebugEnabled())
-        {
-            for (i=0; i<result.length; i++)
-                log.debug("key: "+result[i] );
-        }
-        return result;
-*/
     }
 
     public static int sqlTypesMapping(final String type) {

@@ -27,16 +27,16 @@ package org.riverock.dbrevision.system;
 
 import java.io.FileInputStream;
 
-import org.xml.sax.InputSource;
+import org.apache.commons.lang.StringUtils;
 
+import org.riverock.dbrevision.annotation.schema.db.DbField;
+import org.riverock.dbrevision.annotation.schema.db.DbForeignKey;
+import org.riverock.dbrevision.annotation.schema.db.DbSchema;
+import org.riverock.dbrevision.annotation.schema.db.DbTable;
+import org.riverock.dbrevision.annotation.schema.db.DbView;
 import org.riverock.dbrevision.db.DatabaseAdapter;
 import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.db.DatabaseStructureManager;
-import org.riverock.dbrevision.annotation.schema.db.DbSchema;
-import org.riverock.dbrevision.annotation.schema.db.DbView;
-import org.riverock.dbrevision.annotation.schema.db.DbTable;
-import org.riverock.dbrevision.annotation.schema.db.DbImportedKeyList;
-import org.riverock.dbrevision.annotation.schema.db.DbField;
 import org.riverock.dbrevision.utils.Utils;
 
 /**
@@ -79,13 +79,18 @@ public class ValidateStructure {
         DatabaseManager.createWithReplaceAllView(db_, millSchema);
     }
 
-    private static void processForeignKey(DatabaseAdapter db_, DbSchema millSchema) throws Exception {
+    private static void processForeignKeys(DatabaseAdapter adapter, DbSchema millSchema) throws Exception {
         for (DbTable table : millSchema.getTables()) {
             if (!DatabaseManager.isSkipTable(table.getName())) {
                 System.out.println("Create foreign key for table " + table.getName());
-                DbImportedKeyList fk = new DbImportedKeyList();
-                fk.getKeys().addAll(table.getImportedKeys());
-                DatabaseStructureManager.createForeignKey(db_, fk);
+
+                int p = 0;
+                for (DbForeignKey foreignKey : table.getForeignKeys()) {
+                    if (StringUtils.isBlank(foreignKey.getFkName())) {
+                        foreignKey.setFkName(foreignKey.getFkTableName() + p + "_fk");
+                    }
+                    DatabaseStructureManager.createForeignKey(adapter, foreignKey);
+                }
             }
             else {
                 System.out.println("skip table " + table.getName());
@@ -93,32 +98,27 @@ public class ValidateStructure {
         }
     }
 
-    private static void validateStructure(DbSchema millSchema, String nameConnection) throws Exception {
-        System.out.println("Connection - " + nameConnection);
-
-        DatabaseAdapter db_=null;
-//        db_ = DatabaseAdapter.getInstance(nameConnection);
-        DbSchema schema = DatabaseManager.getDbStructure(db_);
+    private static DbSchema validateStructure(DatabaseAdapter adapter, DbSchema millSchema) throws Exception {
+        DbSchema schema = DatabaseManager.getDbStructure(adapter);
 
         String nameFile = "test-schema.xml";
-        String outputSchemaFile = nameFile;
         System.out.println("Marshal data to file " + nameFile);
 
-        Utils.writeToFile(schema, outputSchemaFile);
+        Utils.writeToFile(schema, nameFile);
 
         for (DbTable table : millSchema.getTables()) {
             if (!DatabaseManager.isSkipTable(table.getName())) {
                 DbTable originTable = DatabaseManager.getTableFromStructure(schema, table.getName());
                 if (!DatabaseManager.isTableExists(schema, table)) {
                     System.out.println("Create new table " + table.getName());
-                    db_.createTable(table);
+                    adapter.createTable(table);
                 }
                 else {
                     // check valid structure of fields
                     for (DbField field : table.getFields()) {
                         if (!DatabaseManager.isFieldExists(schema, table, field)) {
                             System.out.println("Add field '" + field.getName() + "' to table '" + table.getName() + "'");
-                            db_.addColumn(table, field);
+                            adapter.addColumn(table, field);
                         }
 
                         DbField originField =
@@ -129,7 +129,7 @@ public class ValidateStructure {
                                 " not set to " + field.getDefaultValue());
                             if (DatabaseManager.checkDefaultTimestamp(field.getDefaultValue())) {
                                 System.out.println("Field recognized as default date field");
-                                DatabaseStructureManager.setDefaultValueTimestamp(db_, originTable, field );
+                                DatabaseStructureManager.setDefaultValueTimestamp(adapter, originTable, field );
                             }
                             else
                                 System.out.println("Unknown default type of field");
@@ -168,28 +168,25 @@ public class ValidateStructure {
         }
 */
 
-        processAllView(db_, millSchema);
-        processForeignKey(db_, millSchema);
+        processAllView(adapter, millSchema);
+        processForeignKeys(adapter, millSchema);
 
-        db_.getConnection().commit();
-        DbSchema schemaResult = DatabaseManager.getDbStructure(db_);
-        System.out.println("Marshal data to file");
-        Utils.writeToFile(schemaResult, "schema-result-" + nameConnection + ".xml");
-//        DatabaseAdapter.close(db_);
+        return DatabaseManager.getDbStructure(adapter);
     }
 
     public static void main(String args[]) throws Exception {
         long mills = System.currentTimeMillis();
 
+
         System.out.println("Unmarshal data from file");
         FileInputStream stream = new FileInputStream("webmill-schema.xml");
-        InputSource inSrc = new InputSource( stream );
         DbSchema millSchema = Utils.getObjectFromXml(DbSchema.class, stream);
 
+        DatabaseAdapter adapter=null;
 //        validateStructure(millSchema, "ORACLE_MILL_TEST");
-        validateStructure(millSchema, "HSQLDB");
+        validateStructure(adapter, millSchema);
 //        validateStructure(millSchema, "MYSQL");
-        validateStructure(millSchema, "MSSQL-JTDS");
+        validateStructure(adapter, millSchema);
 
 //        validateStructure(millSchema, "IBM-DB2");
 
