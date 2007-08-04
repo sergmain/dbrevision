@@ -25,9 +25,6 @@
  */
 package org.riverock.dbrevision.manager.patch;
 
-import java.util.List;
-
-import org.riverock.dbrevision.annotation.schema.db.ActionParameter;
 import org.riverock.dbrevision.annotation.schema.db.Action;
 import org.riverock.dbrevision.db.DatabaseAdapter;
 
@@ -39,5 +36,5 @@ import org.riverock.dbrevision.db.DatabaseAdapter;
  * $Id: PatchAction.java 1075 2006-11-24 18:08:42Z serg_main $
  */
 public interface PatchAction {
-    public void processAction(DatabaseAdapter adapter, Action action);
+    public void processAction(DatabaseAdapter adapter, Action action) throws Exception;
 }
