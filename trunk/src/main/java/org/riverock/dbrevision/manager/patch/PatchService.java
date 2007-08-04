@@ -382,9 +382,7 @@ public final class PatchService {
 
                                     field.setName(getString(action, "column_name"));
                                     field.setJavaType(
-                                        DatabaseManager.sqlTypesMapping(
-                                            getString(action, "column_type")
-                                        )
+                                        DatabaseManager.sqlTypesMapping(getString(action, "column_type"))
                                     );
                                     field.setSize(getInteger(action, "column_size", 0));
                                     field.setDecimalDigit(getInteger(action, "column_decimal_digit", 0));
