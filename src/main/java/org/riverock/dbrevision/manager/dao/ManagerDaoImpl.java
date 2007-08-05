@@ -58,6 +58,42 @@ public class ManagerDaoImpl implements ManagerDao {
         return list;
     }
 
+    public RevisionBean getRevision(DatabaseAdapter adapter, String moduleName, String versionName) {
+        checkDbRevisionTableExist(adapter);
+        ResultSet rs = null;
+        PreparedStatement ps = null;
+        try {
+            ps = adapter.getConnection().prepareStatement(
+                "select MODULE_NAME, CURRENT_VERSION, LAST_PATCH from "+ Constants.DB_REVISION_TABLE_NAME + ' ' +
+                    "where MODULE_NAME=? and CURRENT_VERSION=?"
+            );
+            ps.setString(1, moduleName);
+            ps.setString(2, versionName);
+            rs = ps.executeQuery();
+            RevisionBean revision=null;
+            if (rs.next()) {
+                revision = new RevisionBean();
+                revision.setModuleName(rs.getString("MODULE_NAME"));
+                revision.setCurrentVerson(rs.getString("CURRENT_VERSION"));
+                revision.setLastPatch(rs.getString("LAST_PATCH"));
+                if (rs.wasNull()) {
+                    revision.setLastPatch(null);
+                }
+            }
+            return revision;
+        }
+        catch (SQLException e) {
+            throw new DbRevisionException(e);
+        }
+        finally {
+            DbUtils.close(rs, ps);
+            //noinspection UnusedAssignment
+            rs = null;
+            //noinspection UnusedAssignment
+            ps = null;
+        }
+    }
+
     public void checkDbRevisionTableExist(DatabaseAdapter adapter) {
         try {
             DatabaseMetaData metaData = adapter.getConnection().getMetaData();
