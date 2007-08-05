@@ -23,6 +23,10 @@ public class NonExistedVersionManagerDaoImpl implements ManagerDao {
         return list;
     }
 
+    public RevisionBean getRevision(DatabaseAdapter adapter, String moduleNAme, String versionName) {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
     public void checkDbRevisionTableExist(DatabaseAdapter adapter) {
         //To change body of implemented methods use File | Settings | File Templates.
     }
