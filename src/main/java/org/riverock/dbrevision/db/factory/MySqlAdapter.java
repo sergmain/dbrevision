@@ -99,19 +99,24 @@ public final class MySqlAdapter extends DatabaseAdapter {
         return getClobField(rs, nameField, 20000);
     }
 
-    public byte[] getBlobField(ResultSet rs, String nameField, int maxLength) throws Exception {
-        Blob blob = rs.getBlob(nameField);
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        int count;
-        byte buffer[] = new byte[1024];
+    public byte[] getBlobField(ResultSet rs, String nameField, int maxLength) {
+        try {
+            Blob blob = rs.getBlob(nameField);
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            int count;
+            byte buffer[] = new byte[1024];
 
-        InputStream inputStream = blob.getBinaryStream();
-        while ((count = inputStream.read(buffer)) >= 0) {
-            outputStream.write(buffer, 0, count);
-            outputStream.flush();
+            InputStream inputStream = blob.getBinaryStream();
+            while ((count = inputStream.read(buffer)) >= 0) {
+                outputStream.write(buffer, 0, count);
+                outputStream.flush();
+            }
+            outputStream.close();
+            return outputStream.toByteArray();
         }
-        outputStream.close();
-        return outputStream.toByteArray();
+        catch (Exception e) {
+            throw new DbRevisionException(e);
+        }
     }
 
     public void createTable(DbTable table) {
@@ -475,23 +480,33 @@ public final class MySqlAdapter extends DatabaseAdapter {
     public void createSequence(DbSequence seq) {
     }
 
-    public void setLongVarbinary(PreparedStatement ps, int index, DbDataFieldData fieldData) throws SQLException {
-        byte[] bytes = Base64.decodeBase64(fieldData.getStringData().getBytes());
+    public void setLongVarbinary(PreparedStatement ps, int index, DbDataFieldData fieldData) {
+        try {
+            byte[] bytes = Base64.decodeBase64(fieldData.getStringData().getBytes());
 
-        byte[] fileBytes = new byte[]{};
-        if (bytes!=null) {
-            fileBytes = bytes;
+            byte[] fileBytes = new byte[]{};
+            if (bytes!=null) {
+                fileBytes = bytes;
+            }
+            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(fileBytes);
+            ps.setBinaryStream(index, byteArrayInputStream, fileBytes.length);
+
+            bytes = null;
+            byteArrayInputStream = null;
+            fileBytes = null;
         }
-        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(fileBytes);
-        ps.setBinaryStream(index, byteArrayInputStream, fileBytes.length);
-
-        bytes = null;
-        byteArrayInputStream = null;
-        fileBytes = null;
+        catch (SQLException e) {
+            throw new DbRevisionException(e);
+        }
     }
 
-    public void setLongVarchar(PreparedStatement ps, int index, DbDataFieldData fieldData) throws SQLException {
-        ps.setString(index, fieldData.getStringData());
+    public void setLongVarchar(PreparedStatement ps, int index, DbDataFieldData fieldData) {
+        try {
+            ps.setString(index, fieldData.getStringData());
+        }
+        catch (SQLException e) {
+            throw new DbRevisionException(e);
+        }
     }
 
     public String getClobField(ResultSet rs, String nameField, int maxLength) {

@@ -81,7 +81,7 @@ public class DbRevisionManager {
         }
     }
 
-    List<Module> getModules() {
+    public List<Module> getModules() {
         return modules;
     }
 
@@ -112,6 +112,10 @@ public class DbRevisionManager {
                     "Current version '"+revisionBean.getCurrentVerson()+"' not exist in configuration for module '"+revisionBean.getModuleName()+"'. " +
                             "Check '<db-revision-path>/config.xml' file."
             );
+        }
+        Version v = module.getLastVersion();
+        if (v==null || v.isComplete()) {
+            module.setComplete(true);
         }
     }
 

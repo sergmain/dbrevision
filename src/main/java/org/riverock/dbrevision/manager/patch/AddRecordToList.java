@@ -45,7 +45,7 @@ import org.riverock.dbrevision.utils.DbUtils;
 public class AddRecordToList implements PatchAction {
     private static Logger log = Logger.getLogger(AddRecordToList.class);
 
-    public void processAction(DatabaseAdapter adapter, Action action) {
+    public PatchStatus process(DatabaseAdapter adapter, Action action) {
 
         PreparedStatement ps = null;
         try {
@@ -113,5 +113,6 @@ public class AddRecordToList implements PatchAction {
             DbUtils.close(ps);
             ps = null;
         }
+        return null;
     }
 }
