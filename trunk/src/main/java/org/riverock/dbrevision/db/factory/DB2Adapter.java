@@ -93,24 +93,28 @@ public class DB2Adapter extends DatabaseAdapter {
         return false;
     }
 
-    public String getClobField(ResultSet rs, String nameField)
-        throws SQLException {
+    public String getClobField(ResultSet rs, String nameField) {
         return getClobField(rs, nameField, 20000);
     }
 
-    public byte[] getBlobField(ResultSet rs, String nameField, int maxLength) throws Exception {
-        Blob blob = rs.getBlob(nameField);
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        int count;
-        byte buffer[] = new byte[1024];
+    public byte[] getBlobField(ResultSet rs, String nameField, int maxLength) {
+        try {
+            Blob blob = rs.getBlob(nameField);
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            int count;
+            byte buffer[] = new byte[1024];
 
-        InputStream inputStream = blob.getBinaryStream();
-        while ((count = inputStream.read(buffer)) >= 0) {
-            outputStream.write(buffer, 0, count);
-            outputStream.flush();
+            InputStream inputStream = blob.getBinaryStream();
+            while ((count = inputStream.read(buffer)) >= 0) {
+                outputStream.write(buffer, 0, count);
+                outputStream.flush();
+            }
+            outputStream.close();
+            return outputStream.toByteArray();
         }
-        outputStream.close();
-        return outputStream.toByteArray();
+        catch (Exception e) {
+            throw new DbRevisionException(e);
+        }
     }
 
     public void createTable(DbTable table) {
@@ -342,18 +346,25 @@ public class DB2Adapter extends DatabaseAdapter {
     public void createSequence(DbSequence seq) {
     }
 
-    public void setLongVarbinary(PreparedStatement ps, int index, DbDataFieldData fieldData)
-        throws SQLException {
-        ps.setNull(index, Types.VARCHAR);
+    public void setLongVarbinary(PreparedStatement ps, int index, DbDataFieldData fieldData) {
+        try {
+            ps.setNull(index, Types.VARCHAR);
+        }
+        catch (SQLException e) {
+            throw new DbRevisionException(e);
+        }
     }
 
-    public void setLongVarchar(PreparedStatement ps, int index, DbDataFieldData fieldData)
-        throws SQLException {
-        ps.setString(index, "");
+    public void setLongVarchar(PreparedStatement ps, int index, DbDataFieldData fieldData) {
+        try {
+            ps.setString(index, "");
+        }
+        catch (SQLException e) {
+            throw new DbRevisionException(e);
+        }
     }
 
-    public String getClobField(ResultSet rs, String nameField, int maxLength)
-        throws SQLException {
+    public String getClobField(ResultSet rs, String nameField, int maxLength) {
         return null;
     }
 /*

@@ -28,7 +28,6 @@ package org.riverock.dbrevision.db;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.List;
 
 import org.riverock.dbrevision.annotation.schema.db.DbDataFieldData;
@@ -88,9 +87,9 @@ public abstract class DatabaseAdapter {
 
     public abstract boolean isByteArrayInUtf8();
 
-    public abstract String getClobField(ResultSet rs, String nameFeld) throws SQLException;
+    public abstract String getClobField(ResultSet rs, String nameFeld);
 
-    public abstract byte[] getBlobField(ResultSet rs, String nameField, int maxLength) throws Exception;
+    public abstract byte[] getBlobField(ResultSet rs, String nameField, int maxLength);
 
     public abstract void createTable(DbTable table);
 
@@ -120,20 +119,17 @@ public abstract class DatabaseAdapter {
 
     public abstract String getViewText(DbView view);
 
-    public abstract void setLongVarbinary(PreparedStatement ps, int index, DbDataFieldData fieldData)
-        throws SQLException;
+    public abstract void setLongVarbinary(PreparedStatement ps, int index, DbDataFieldData fieldData);
 
-    public abstract void setLongVarchar(PreparedStatement ps, int index, DbDataFieldData fieldData)
-        throws SQLException;
+    public abstract void setLongVarchar(PreparedStatement ps, int index, DbDataFieldData fieldData);
 
     /**
      * @param rs result set
      * @param nameFeld name of field
      * @param maxLength max length of CLOB field
      * @return value of specific table columns
-     * @throws SQLException on SQL error
      */
-    public abstract String getClobField(ResultSet rs, String nameFeld, int maxLength) throws SQLException;
+    public abstract String getClobField(ResultSet rs, String nameFeld, int maxLength);
 
     public abstract boolean testExceptionTableNotFound(Exception e);
 

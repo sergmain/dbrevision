@@ -432,7 +432,7 @@ public final class PatchService {
                                     if (obj == null)
                                         throw new Exception("Patch - " + patch.getName() + ", action '" + CUSTOM_CLASS_ACTION_TYPE + "', obj is null");
 
-                                    ((PatchAction) obj).processAction(db_, action);
+                                    ((PatchAction) obj).process(db_, action);
                                 }
                                 break;
 

@@ -29,6 +29,8 @@ public class Module {
 
     private File modulePath=null;
 
+    private boolean isComplete=false;
+
     public Module(DatabaseAdapter databaseAdapter, File dbRevisionPath, ModuleConfig moduleConfig) {
         this.databaseAdapter = databaseAdapter;
         this.description = moduleConfig.getDescription();
@@ -95,5 +97,13 @@ public class Module {
             return null;
         }
         return versions.get(versions.size()-1);
+    }
+
+    public boolean isComplete() {
+        return isComplete;
+    }
+
+    public void setComplete(boolean complete) {
+        isComplete = complete;
     }
 }

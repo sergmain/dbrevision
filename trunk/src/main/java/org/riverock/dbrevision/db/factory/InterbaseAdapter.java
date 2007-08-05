@@ -92,12 +92,11 @@ public class InterbaseAdapter extends DatabaseAdapter {
         return false;
     }
 
-    public String getClobField(ResultSet rs, String nameField)
-        throws SQLException {
+    public String getClobField(ResultSet rs, String nameField) {
         return getClobField(rs, nameField, 20000);
     }
 
-    public byte[] getBlobField(ResultSet rs, String nameField, int maxLength) throws Exception {
+    public byte[] getBlobField(ResultSet rs, String nameField, int maxLength) {
         return null;
     }
 
@@ -488,18 +487,25 @@ ALTER TABLE table
     public void createSequence(DbSequence seq) {
     }
 
-    public void setLongVarbinary(PreparedStatement ps, int index, DbDataFieldData fieldData)
-        throws SQLException {
-        ps.setNull(index, Types.VARCHAR);
+    public void setLongVarbinary(PreparedStatement ps, int index, DbDataFieldData fieldData) {
+        try {
+            ps.setNull(index, Types.VARCHAR);
+        }
+        catch (SQLException e) {
+            throw new DbRevisionException(e);
+        }
     }
 
-    public void setLongVarchar(PreparedStatement ps, int index, DbDataFieldData fieldData)
-        throws SQLException {
-        ps.setString(index, "");
+    public void setLongVarchar(PreparedStatement ps, int index, DbDataFieldData fieldData) {
+        try {
+            ps.setString(index, "");
+        }
+        catch (SQLException e) {
+            throw new DbRevisionException(e);
+        }
     }
 
-    public String getClobField(ResultSet rs, String nameField, int maxLength)
-        throws SQLException {
+    public String getClobField(ResultSet rs, String nameField, int maxLength) {
         return null;
     }
 /*

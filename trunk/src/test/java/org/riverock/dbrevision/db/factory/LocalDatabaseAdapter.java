@@ -3,7 +3,6 @@ package org.riverock.dbrevision.db.factory;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.List;
 
 import org.riverock.dbrevision.annotation.schema.db.DbDataFieldData;
@@ -42,11 +41,11 @@ public class LocalDatabaseAdapter extends DatabaseAdapter {
         return false;
     }
 
-    public String getClobField(ResultSet rs, String nameFeld) throws SQLException {
+    public String getClobField(ResultSet rs, String nameFeld) {
         return null;
     }
 
-    public byte[] getBlobField(ResultSet rs, String nameField, int maxLength) throws Exception {
+    public byte[] getBlobField(ResultSet rs, String nameField, int maxLength) {
         return new byte[0];
     }
 
@@ -106,15 +105,15 @@ public class LocalDatabaseAdapter extends DatabaseAdapter {
         return null;
     }
 
-    public void setLongVarbinary(PreparedStatement ps, int index, DbDataFieldData fieldData) throws SQLException {
+    public void setLongVarbinary(PreparedStatement ps, int index, DbDataFieldData fieldData) {
 
     }
 
-    public void setLongVarchar(PreparedStatement ps, int index, DbDataFieldData fieldData) throws SQLException {
+    public void setLongVarchar(PreparedStatement ps, int index, DbDataFieldData fieldData) {
 
     }
 
-    public String getClobField(ResultSet rs, String nameFeld, int maxLength) throws SQLException {
+    public String getClobField(ResultSet rs, String nameFeld, int maxLength) {
         return null;
     }
 

@@ -79,8 +79,7 @@ public class PostgreeSqlAdapter extends DatabaseAdapter {
         return true;
     }
 
-    public String getClobField(ResultSet rs, String nameField)
-        throws SQLException {
+    public String getClobField(ResultSet rs, String nameField) {
         return getClobField(rs, nameField, 20000);
     }
 
@@ -325,8 +324,9 @@ DEFERRABLE INITIALLY DEFERRED
             //TODO rewrite init of def as in createTable
 //                if (!val.equalsIgnoreCase("null"))
 //                    val = "'"+val+"'";
-            if (DatabaseManager.checkDefaultTimestamp(val))
+            if (DatabaseManager.checkDefaultTimestamp(val)) {
                 val = "current_timestamp";
+            }
 
             sql += (" DEFAULT " + val);
         }
@@ -509,39 +509,56 @@ DEFERRABLE INITIALLY DEFERRED
         }
     }
 
-    public void setLongVarbinary(PreparedStatement ps, int index, DbDataFieldData fieldData)
-        throws SQLException {
-        ps.setNull(index, Types.LONGVARBINARY);
-    }
-
-    public void setLongVarchar(PreparedStatement ps, int index, DbDataFieldData fieldData)
-        throws SQLException {
-        ps.setNull(index, Types.LONGVARCHAR);
-    }
-
-    public byte[] getBlobField(ResultSet rs, String nameField, int maxLength) throws Exception {
-        Blob blob = rs.getBlob(nameField);
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        int count;
-        byte buffer[] = new byte[1024];
-
-        InputStream inputStream = blob.getBinaryStream();
-        while ((count = inputStream.read(buffer)) >= 0) {
-            outputStream.write(buffer, 0, count);
-            outputStream.flush();
+    public void setLongVarbinary(PreparedStatement ps, int index, DbDataFieldData fieldData) {
+        try {
+            ps.setNull(index, Types.LONGVARBINARY);
         }
-        outputStream.close();
-        return outputStream.toByteArray();
+        catch (SQLException e) {
+            throw new DbRevisionException(e);
+        }
     }
 
-    public String getClobField(ResultSet rs, String nameField, int maxLength)
-        throws SQLException {
-        CLOB clob = ((OracleResultSet) rs).getCLOB(nameField);
+    public void setLongVarchar(PreparedStatement ps, int index, DbDataFieldData fieldData) {
+        try {
+            ps.setNull(index, Types.LONGVARCHAR);
+        }
+        catch (SQLException e) {
+            throw new DbRevisionException(e);
+        }
+    }
 
-        if (clob == null)
-            return null;
+    public byte[] getBlobField(ResultSet rs, String nameField, int maxLength) {
+        try {
+            Blob blob = rs.getBlob(nameField);
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            int count;
+            byte buffer[] = new byte[1024];
 
-        return clob.getSubString(1, maxLength);
+            InputStream inputStream = blob.getBinaryStream();
+            while ((count = inputStream.read(buffer)) >= 0) {
+                outputStream.write(buffer, 0, count);
+                outputStream.flush();
+            }
+            outputStream.close();
+            return outputStream.toByteArray();
+        }
+        catch (Exception e) {
+            throw new DbRevisionException(e);
+        }
+    }
+
+    public String getClobField(ResultSet rs, String nameField, int maxLength) {
+        try {
+            CLOB clob = ((OracleResultSet) rs).getCLOB(nameField);
+
+            if (clob == null)
+                return null;
+
+            return clob.getSubString(1, maxLength);
+        }
+        catch (SQLException e) {
+            throw new DbRevisionException(e);
+        }
     }
 
     public String getStream(ResultSet rs, String nameField, int maxLength) throws SQLException, IOException {
