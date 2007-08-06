@@ -1,4 +1,4 @@
-package org.riverock.dbrevision.db.factory;
+package org.riverock.dbrevision.db.impl;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
