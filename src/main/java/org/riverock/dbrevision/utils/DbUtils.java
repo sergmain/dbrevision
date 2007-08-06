@@ -92,7 +92,7 @@ public class DbUtils {
             return null;
         }
         catch (SQLException e) {
-            System.out.println("error getting long value fron sql '" + sql + "', " + e.getMessage());
+            log.error("error getting long value from sql:\n" + sql, e);
             throw e;
         }
         finally {
@@ -146,7 +146,7 @@ public class DbUtils {
             catch (Throwable e1) {
                 log.error("Error while output parameters: " + e1.toString());
             }
-            log.error("SQLException, "+ e.getMessage());
+            log.error("SQLException", e);
             throw e;
         }
         finally {

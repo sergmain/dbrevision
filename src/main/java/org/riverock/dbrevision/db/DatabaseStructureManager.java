@@ -136,11 +136,11 @@ public class DatabaseStructureManager {
         }
         catch (SQLException exc) {
             if (!adapter.testExceptionTableExists(exc)) {
-                System.out.println("sql " + sql);
-                System.out.println("code " + exc.getErrorCode());
-                System.out.println("state " + exc.getSQLState());
-                System.out.println("message " + exc.getMessage());
-                System.out.println("string " + exc.toString());
+                log.error("sql " + sql);
+                log.error("code " + exc.getErrorCode());
+                log.error("state " + exc.getSQLState());
+                log.error("message " + exc.getMessage());
+                log.error("string " + exc.toString());
             }
             throw new DbRevisionException(exc);
         }
@@ -420,11 +420,11 @@ public class DatabaseStructureManager {
             ResultSetMetaData meta = rs.getMetaData();
 
             if (table.getFields().size() != meta.getColumnCount()) {
-                System.out.println("table " + table.getName());
-                System.out.println("count field " + table.getFields().size());
-                System.out.println("meta count field " + meta.getColumnCount());
+                log.fatal("table " + table.getName());
+                log.fatal("count field " + table.getFields().size());
+                log.fatal("meta count field " + meta.getColumnCount());
                 for (DbField field : table.getFields()) {
-                    System.out.println("\tfield " + field.getName());
+                    log.fatal("\tfield " + field.getName());
                 }
 
                 throw new DbRevisionException("Count for field in ResultSet not equals in DbTable");
@@ -523,7 +523,9 @@ public class DatabaseStructureManager {
                             bytes = null;
                             break;
                         default:
-                            System.out.println("Unknown field type. Field '" + field.getName() + "' type '" + field.getJavaStringType() + "'");
+                            String es = "Unknown field type. Field '" + field.getName() + "' type '" + field.getJavaStringType() + "'";
+                            log.error(es);
+                            System.out.println(es);
                     }
                     record.getFieldData().add(fieldData);
                 }
@@ -720,7 +722,9 @@ public class DatabaseStructureManager {
 
                         default:
                             field.setJavaStringType("unknown. schema: " + schemaPattern + ", table: " + tablePattern + ", field: " + field.getName() + ", javaType: " + field.getJavaType());
-                            System.out.println("unknown. schema: " + schemaPattern + ", table: " + tablePattern + ", field " + field.getName() + ", javaType: " + field.getJavaType());
+                            String es = "unknown. schema: " + schemaPattern + ", table: " + tablePattern + ", field " + field.getName() + ", javaType: " + field.getJavaType();
+                            log.error(es);
+                            System.out.println(es);
                     }
                 }
 
