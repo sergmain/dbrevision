@@ -13,11 +13,11 @@ import java.util.List;
 public interface ManagerDao {
     List<RevisionBean> getRevisions(Database adapter);
 
-    RevisionBean getRevision(Database adapter, String moduleName, String versionName);
+    RevisionBean getRevision(Database database, String moduleName, String versionName);
 
-    void checkDbRevisionTableExist(Database adapter);
+    void checkDbRevisionTableExist(Database database);
 
-    void makrCurrentVersion(Database adapter, String moduleName, String versionName, String patchName);
+    void makrCurrentVersion(Database database, String moduleName, String versionName, String patchName);
 
-
+    RevisionBean getRevision(Database database, String moduleName);
 }

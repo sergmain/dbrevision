@@ -26,6 +26,7 @@
 package org.riverock.dbrevision.manager.patch;
 
 import java.sql.Statement;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,77 +53,79 @@ import org.riverock.dbrevision.utils.Utils;
 public final class PatchService {
     private static Logger log = Logger.getLogger(PatchService.class);
 
-    public static final String CUSTOM_SQL_TYPE="CUSTOM_SQL";
-    public static final String CUSTOM_CLASS_ACTION_TYPE="CUSTOM_CLASS_ACTION";
-    public static final String CREATE_SEQUENCE_TYPE="CREATE_SEQUENCE";
-    public static final String CREATE_TABLE_TYPE="CREATE_TABLE";
-    public static final String ADD_TABLE_COLUMN_TYPE="ADD_TABLE_COLUMN";
-    public static final String DROP_TABLE_COLUMN_TYPE="DROP_TABLE_COLUMN";
-    public static final String ADD_PRIMARY_KEY_TYPE="ADD_PRIMARY_KEY";
-    public static final String ADD_FOREIGN_KEY_TYPE="ADD_FOREIGN_KEY";
-    public static final String DROP_PRIMARY_KEY_TYPE="DROP_PRIMARY_KEY";
-    public static final String DROP_FOREIGN_KEY_TYPE="DROP_FOREIGN_KEY";
-    public static final String DROP_TABLE_TYPE="DROP_TABLE";
-    public static final String DROP_SEQUENCE_TYPE="DROP_SEQUENCE";
-    public static final String DELETE_BEFORE_FK_TYPE="DELETE_BEFORE_FK";
-    public static final String COPY_COLUMN_TYPE="COPY_COLUMN";
-    public static final String CLONE_COLUMN_TYPE="CLONE_COLUMN";
-    public static final String COPY_TABLE_TYPE="COPY_TABLE";
+    static final String CUSTOM_SQL_TYPE = "CUSTOM_SQL";
+    static final String CUSTOM_CLASS_ACTION_TYPE = "CUSTOM_CLASS_ACTION";
+    static final String CREATE_SEQUENCE_TYPE = "CREATE_SEQUENCE";
+    static final String CREATE_TABLE_TYPE = "CREATE_TABLE";
+    static final String ADD_TABLE_COLUMN_TYPE = "ADD_TABLE_COLUMN";
+    static final String DROP_TABLE_COLUMN_TYPE = "DROP_TABLE_COLUMN";
+    static final String ADD_PRIMARY_KEY_TYPE = "ADD_PRIMARY_KEY";
+    static final String ADD_FOREIGN_KEY_TYPE = "ADD_FOREIGN_KEY";
+    static final String DROP_PRIMARY_KEY_TYPE = "DROP_PRIMARY_KEY";
+    static final String DROP_FOREIGN_KEY_TYPE = "DROP_FOREIGN_KEY";
+    static final String DROP_TABLE_TYPE = "DROP_TABLE";
+    static final String DROP_SEQUENCE_TYPE = "DROP_SEQUENCE";
+    static final String DELETE_BEFORE_FK_TYPE = "DELETE_BEFORE_FK";
+    static final String COPY_COLUMN_TYPE = "COPY_COLUMN";
+    static final String CLONE_COLUMN_TYPE = "CLONE_COLUMN";
+    static final String COPY_TABLE_TYPE = "COPY_TABLE";
 
     private static enum ActionTypes {
-        UNKNOWN_TYPE_VALUE,
-        CUSTOM_SQL_TYPE_VALUE,
-        CUSTOM_CLASS_ACTION_TYPE_VALUE,
-        CREATE_SEQUENCE_TYPE_VALUE,
-        CREATE_TABLE_TYPE_VALUE,
-        ADD_TABLE_COLUMN_TYPE_VALUE,
-        DROP_TABLE_COLUMN_TYPE_VALUE,
-        ADD_PRIMARY_KEY_TYPE_VALUE,
-        ADD_FOREIGN_KEY_TYPE_VALUE,
-        DROP_PRIMARY_KEY_TYPE_VALUE,
-        DROP_FOREIGN_KEY_TYPE_VALUE,
-        DROP_TABLE_TYPE_VALUE,
-        DROP_SEQUENCE_TYPE_VALUE,
-        DELETE_BEFORE_FK_TYPE_VALUE,
-        COPY_COLUMN_TYPE_VALUE,
-        CLONE_COLUMN_TYPE_VALUE,
-        COPY_TABLE_TYPE_VALUE
+        SQL,
+        CUSTOM_CLASS,
+        ADD_TABLE_FIELD,
+
+        CREATE_SEQUENCE,
+        CREATE_TABLE,
+        DROP_TABLE_COLUMN,
+        ADD_PRIMARY_KEY,
+        ADD_FOREIGN_KEY,
+        DROP_PRIMARY_KEY,
+        DROP_FOREIGN_KEY,
+        DROP_TABLE,
+        DROP_SEQUENCE,
+        DELETE_BEFORE_FK,
+        COPY_COLUMN,
+        CLONE_COLUMN,
+        COPY_TABLE
     }
 
     private static Map<String, ActionTypes> actionTypes = new HashMap<String, ActionTypes>();
 
     static {
-        actionTypes.put(CUSTOM_SQL_TYPE, ActionTypes.CUSTOM_SQL_TYPE_VALUE);
-        actionTypes.put(CUSTOM_CLASS_ACTION_TYPE, ActionTypes.CUSTOM_CLASS_ACTION_TYPE_VALUE);
-        actionTypes.put(CREATE_SEQUENCE_TYPE, ActionTypes.CREATE_SEQUENCE_TYPE_VALUE);
-        actionTypes.put(CREATE_TABLE_TYPE, ActionTypes.CREATE_TABLE_TYPE_VALUE);
-        actionTypes.put(ADD_TABLE_COLUMN_TYPE, ActionTypes.ADD_TABLE_COLUMN_TYPE_VALUE);
-        actionTypes.put(DROP_TABLE_COLUMN_TYPE, ActionTypes.DROP_TABLE_COLUMN_TYPE_VALUE);
-        actionTypes.put(ADD_PRIMARY_KEY_TYPE, ActionTypes.ADD_PRIMARY_KEY_TYPE_VALUE);
-        actionTypes.put(ADD_FOREIGN_KEY_TYPE, ActionTypes.ADD_FOREIGN_KEY_TYPE_VALUE);
-        actionTypes.put(DROP_PRIMARY_KEY_TYPE, ActionTypes.DROP_PRIMARY_KEY_TYPE_VALUE);
-        actionTypes.put(DROP_FOREIGN_KEY_TYPE, ActionTypes.DROP_FOREIGN_KEY_TYPE_VALUE);
-        actionTypes.put(DROP_TABLE_TYPE, ActionTypes.DROP_TABLE_TYPE_VALUE);
-        actionTypes.put(DROP_SEQUENCE_TYPE, ActionTypes.DROP_SEQUENCE_TYPE_VALUE);
-        actionTypes.put(DELETE_BEFORE_FK_TYPE, ActionTypes.DELETE_BEFORE_FK_TYPE_VALUE);
-        actionTypes.put(COPY_COLUMN_TYPE, ActionTypes.COPY_COLUMN_TYPE_VALUE);
-        actionTypes.put(CLONE_COLUMN_TYPE, ActionTypes.CLONE_COLUMN_TYPE_VALUE);
-        actionTypes.put(COPY_TABLE_TYPE, ActionTypes.COPY_TABLE_TYPE_VALUE);
+        actionTypes.put(CustomClassAction.class.getName(), ActionTypes.SQL);
+        actionTypes.put(AddTableFieldAction.class.getName(), ActionTypes.ADD_TABLE_FIELD);
+        actionTypes.put(CustomClassAction.class.getName(), ActionTypes.CUSTOM_CLASS);
+
+        actionTypes.put(CREATE_SEQUENCE_TYPE, ActionTypes.CREATE_SEQUENCE);
+        actionTypes.put(CREATE_TABLE_TYPE, ActionTypes.CREATE_TABLE);
+        actionTypes.put(DROP_TABLE_COLUMN_TYPE, ActionTypes.DROP_TABLE_COLUMN);
+        actionTypes.put(ADD_PRIMARY_KEY_TYPE, ActionTypes.ADD_PRIMARY_KEY);
+        actionTypes.put(ADD_FOREIGN_KEY_TYPE, ActionTypes.ADD_FOREIGN_KEY);
+        actionTypes.put(DROP_PRIMARY_KEY_TYPE, ActionTypes.DROP_PRIMARY_KEY);
+        actionTypes.put(DROP_FOREIGN_KEY_TYPE, ActionTypes.DROP_FOREIGN_KEY);
+        actionTypes.put(DROP_TABLE_TYPE, ActionTypes.DROP_TABLE);
+        actionTypes.put(DROP_SEQUENCE_TYPE, ActionTypes.DROP_SEQUENCE);
+        actionTypes.put(DELETE_BEFORE_FK_TYPE, ActionTypes.DELETE_BEFORE_FK);
+        actionTypes.put(COPY_COLUMN_TYPE, ActionTypes.COPY_COLUMN);
+        actionTypes.put(CLONE_COLUMN_TYPE, ActionTypes.CLONE_COLUMN);
+        actionTypes.put(COPY_TABLE_TYPE, ActionTypes.COPY_TABLE);
     }
 
-    public static void processPatch(Database db_, Patch patch) {
-        if (patch==null) {
+    public static void processPatch(Database database, Patch patch) {
+        if (patch == null) {
             throw new NullPointerException("patch is null");
         }
         if (log.isInfoEnabled()) {
             log.info("process definition " + patch.getName());
         }
 
-        processTable(db_, patch);
-        processPrimaryKey(db_, patch);
-        processForeignKeys(db_, patch);
-        processSequences(db_, patch);
-        processAction(db_, patch);
+        validate(database, patch);
+        processTable(database, patch);
+        processPrimaryKey(database, patch);
+        processForeignKeys(database, patch);
+        processSequences(database, patch);
+        processAction(database, patch);
     }
 
     public static String getString(Action action, String nameParam, String defValue) {
@@ -149,8 +152,9 @@ public final class PatchService {
 
     public static Double getDouble(List<ActionParameter> actionList, String nameParam, double defValue) {
         Double value = getDouble(actionList, nameParam);
-        if (value == null)
+        if (value == null) {
             return defValue;
+        }
 
         return value;
     }
@@ -284,35 +288,68 @@ public final class PatchService {
 
     ////////////////////////
 
-    private static void processTable(Database db_, Patch patch) {
+    private static void validate(Database database, Patch patch) {
         log.debug("processTable ");
         if (patch == null) {
             return;
         }
 
-        for (Object o : patch.getActionOrTableDataOrTable()) {
-             if (o instanceof DbTable) {
-                 db_.createTable((DbTable)o);
-             }
+        for (Object o : patch.getActionOrCustomClassActionOrSqlAction()) {
+            if (o instanceof Validator) {
+                Validator obj = (Validator) o;
+                String className = obj.getClazz();
+                if (StringUtils.isBlank(className)) {
+                    throw new DbRevisionException("Patch: " + patch.getName() + ", class name is blank");
+                }
+
+                PatchStatus status;
+                try {
+                    Object object = Utils.createCustomObject(className);
+                    if (object == null) {
+                        throw new DbRevisionException("Class '" + className + "', object is null");
+                    }
+
+                    status = ((PatchValidator) object).validate(database);
+                }
+                catch (Exception e) {
+                    throw new DbRevisionException("Error process class '" + className + "'");
+                }
+                if (status!=null && status.getStatus()== PatchStatus.Status.ERROR) {
+                    throw new DbRevisionException("Error process class '" + className + "'");
+                }
+            }
         }
     }
 
-    private static void processPrimaryKey(Database db_, Patch patch) {
+    private static void processTable(Database database, Patch patch) {
+        log.debug("processTable ");
+        if (patch == null) {
+            return;
+        }
+
+        for (Object o : patch.getActionOrCustomClassActionOrSqlAction()) {
+            if (o instanceof DbTable) {
+                database.createTable((DbTable) o);
+            }
+        }
+    }
+
+    private static void processPrimaryKey(Database database, Patch patch) {
         log.debug("processPrimaryKey ");
         if (patch == null) {
             return;
         }
 
-        for (Object o : patch.getActionOrTableDataOrTable()) {
-             if (o instanceof DbPrimaryKey) {
-                DbPrimaryKey pk = (DbPrimaryKey)o;
+        for (Object o : patch.getActionOrCustomClassActionOrSqlAction()) {
+            if (o instanceof DbPrimaryKey) {
+                DbPrimaryKey pk = (DbPrimaryKey) o;
 
-                 if (!pk.getColumns().isEmpty()) {
-                     DbSchema schema = DatabaseManager.getDbStructure(db_);
-                     DbTable table = DatabaseManager.getTableFromStructure(schema, pk.getTableName());
-                     DatabaseManager.addPrimaryKey(db_, table, pk);
-                 }
-             }
+                if (!pk.getColumns().isEmpty()) {
+                    DbSchema schema = DatabaseManager.getDbStructure(database);
+                    DbTable table = DatabaseManager.getTableFromStructure(schema, pk.getTableName());
+                    DatabaseManager.addPrimaryKey(database, table, pk);
+                }
+            }
         }
     }
 
@@ -323,13 +360,13 @@ public final class PatchService {
         }
 
         List<DbForeignKey> keys = new ArrayList<DbForeignKey>();
-        for (Object o : patch.getActionOrTableDataOrTable()) {
-             if (o instanceof DbForeignKey) {
-                 keys.add((DbForeignKey)o);
+        for (Object o : patch.getActionOrCustomClassActionOrSqlAction()) {
+            if (o instanceof DbForeignKey) {
+                keys.add((DbForeignKey) o);
             }
         }
 
-        int p=0;
+        int p = 0;
         for (DbForeignKey key : keys) {
             if (StringUtils.isBlank(key.getFkName())) {
                 key.setFkName(key.getFkTableName() + p + "_fk");
@@ -344,10 +381,10 @@ public final class PatchService {
             return;
         }
 
-        for (Object o : patch.getActionOrTableDataOrTable()) {
-             if (o instanceof DbSequence) {
-                 db_.createSequence((DbSequence)o);
-             }
+        for (Object o : patch.getActionOrCustomClassActionOrSqlAction()) {
+            if (o instanceof DbSequence) {
+                db_.createSequence((DbSequence) o);
+            }
         }
     }
 
@@ -357,54 +394,48 @@ public final class PatchService {
             return;
         }
 
-        for (Object o : patch.getActionOrTableDataOrTable()) {
-             if (o instanceof Action) {
-                 Action action = (Action)o;
-                        try {
-                            ActionTypes type = actionTypes.get(action.getType());
-                            if (type==null) type=ActionTypes.UNKNOWN_TYPE_VALUE;
-                            switch (type) {
-                                case ADD_FOREIGN_KEY_TYPE_VALUE: {
+        for (Object o : patch.getActionOrCustomClassActionOrSqlAction()) {
+            ActionTypes type = actionTypes.get(o.getClass().getName());
+            if (type != null) {
+                switch (type) {
+                    case ADD_FOREIGN_KEY: {
 
-                                }
-                                break;
+                    }
+                    break;
 
-                                case ADD_PRIMARY_KEY_TYPE_VALUE: {
+                    case ADD_PRIMARY_KEY: {
 
-                                }
-                                break;
+                    }
+                    break;
 
-                                case ADD_TABLE_COLUMN_TYPE_VALUE: {
-                                    if (log.isDebugEnabled())
-                                        log.debug("process action ADD_TABLE_COLUMN_TYPE");
+                    case ADD_TABLE_FIELD: {
+                        if (log.isDebugEnabled()) {
+                            log.debug("process action ADD_TABLE_COLUMN_TYPE");
+                        }
+                        AddTableFieldAction obj = (AddTableFieldAction) o;
+                        DbField field = obj.getField();
+                        field.setJavaType(DatabaseManager.sqlTypesMapping(field.getDataType()));
 
-                                    DbField field = new DbField();
+                        DatabaseStructureManager.addColumn(db_, obj.getTableName(), field);
+                    }
+                    break;
 
-                                    field.setName(getString(action, "column_name"));
-                                    field.setJavaType(
-                                        DatabaseManager.sqlTypesMapping(getString(action, "column_type"))
-                                    );
-                                    field.setSize(getInteger(action, "column_size", 0));
-                                    field.setDecimalDigit(getInteger(action, "column_decimal_digit", 0));
-                                    field.setDefaultValue(getString(action, "column_default_value"));
-                                    field.setNullable(getInteger(action, "column_nullable", 0));
+                    case CLONE_COLUMN: {
 
-                                    DatabaseStructureManager.addColumn(db_, getString(action, "table_name"), field);
-                                }
-                                break;
+                    }
+                    break;
 
-                                case CLONE_COLUMN_TYPE_VALUE: {
+                    case COPY_COLUMN: {
 
-                                }
-                                break;
+                    }
+                    break;
 
-                                case COPY_COLUMN_TYPE_VALUE: {
-
-                                }
-                                break;
-
-                                case CREATE_SEQUENCE_TYPE_VALUE: {
-                                    DbSequence seq = new DbSequence();
+                    case CREATE_SEQUENCE: {
+                        DbSequence seq = new DbSequence();
+                        if (true) {
+                            throw new RuntimeException("not impleented");
+                        }
+/*
                                     seq.setCacheSize(getInteger(action, "sequence_cache_size", 0));
                                     seq.setIncrementBy(getInteger(action, "sequence_increment", 1));
                                     seq.setIsCycle(getBoolean(action, "sequence_is_cycle", false));
@@ -415,103 +446,117 @@ public final class PatchService {
                                     seq.setName(getString(action, "sequence_name"));
 
                                     db_.createSequence(seq);
-                                }
-                                break;
+*/
+                    }
+                    break;
 
-                                case CREATE_TABLE_TYPE_VALUE: {
+                    case CREATE_TABLE: {
 
-                                }
-                                break;
+                    }
+                    break;
 
-                                case CUSTOM_CLASS_ACTION_TYPE_VALUE: {
-                                    String className = getString(action, "class_name");
-                                    if (className == null)
-                                        throw new Exception("Patch - " + patch.getName() + ", action '" + CUSTOM_CLASS_ACTION_TYPE + "' must have parameter 'class_name'");
+                    case CUSTOM_CLASS: {
+                        CustomClassAction obj = (CustomClassAction) o;
+                        String className = obj.getClazz();
+                        if (className == null) {
+                            throw new DbRevisionException("Patch - " + patch.getName() + ", action '" + CUSTOM_CLASS_ACTION_TYPE + "' must have parameter 'class_name'");
+                        }
 
-                                    Object obj = Utils.createCustomObject(className);
-                                    if (obj == null)
-                                        throw new Exception("Patch - " + patch.getName() + ", action '" + CUSTOM_CLASS_ACTION_TYPE + "', obj is null");
+                        try {
+                            Object object = Utils.createCustomObject(className);
+                            if (object == null) {
+                                throw new DbRevisionException("Class '" + className + "', object is null");
+                            }
 
-                                    ((PatchAction) obj).process(db_, action);
-                                }
-                                break;
+                            ((PatchAction) object).process(db_);
+                        }
+                        catch (Exception e) {
+                            throw new DbRevisionException("Error process class '" + className + "'");
+                        }
+                    }
+                    break;
 
-                                case CUSTOM_SQL_TYPE_VALUE: {
-                                    String sql = getString(action, "sql");
-                                    if (log.isDebugEnabled()) {
-                                        log.debug("Action type " + action.getType());
-                                        log.debug("Custom sql " + sql);
-                                    }
-                                    Statement st = null;
-                                    try {
-                                        st = db_.getConnection().createStatement();
-                                        st.execute(sql);
-                                    }
-                                    catch (Exception e) {
-                                        log.error("Exception exceute statement " + sql, e);
-                                        throw e;
-                                    }
-                                    catch (Error e) {
-                                        log.error("Error exceute statement " + sql, e);
-                                        throw e;
-                                    }
-                                    finally {
-                                        DbUtils.close(st);
-                                        //noinspection UnusedAssignment
-                                        st = null;
-                                    }
-                                }
-                                break;
+                    case SQL: {
+                        SqlAction obj = (SqlAction) o;
+                        String sql = obj.getSql();
+                        if (log.isDebugEnabled()) {
+                            log.debug("Custom sql " + sql);
+                        }
+                        Statement st = null;
+                        try {
+                            st = db_.getConnection().createStatement();
+                            st.execute(sql);
+                        }
+                        catch (SQLException e) {
+                            log.error("SQL:\n" + sql);
+                            throw new DbRevisionException();
+                        }
+                        finally {
+                            DbUtils.close(st);
+                            //noinspection UnusedAssignment
+                            st = null;
+                        }
+                    }
+                    break;
 
-                                case DELETE_BEFORE_FK_TYPE_VALUE: {
+                    case DELETE_BEFORE_FK: {
 
-                                }
-                                break;
+                    }
+                    break;
 
-                                case DROP_FOREIGN_KEY_TYPE_VALUE: {
+                    case DROP_FOREIGN_KEY: {
 
-                                }
-                                break;
+                    }
+                    break;
 
-                                case DROP_PRIMARY_KEY_TYPE_VALUE: {
+                    case DROP_PRIMARY_KEY: {
 
-                                }
-                                break;
+                    }
+                    break;
 
-                                case DROP_TABLE_TYPE_VALUE: {
+                    case DROP_TABLE: {
+                        if (true) {
+                            throw new RuntimeException("not impleented");
+                        }
+/*
                                     String nameTable = getString(action, "name_table");
                                     if (nameTable != null) {
                                         db_.dropTable(nameTable);
                                         db_.getConnection().commit();
-                                    } else
+                                    }
+                                    else {
                                         log.error("Patch - " + patch.getName() + ", action '" + DROP_TABLE_TYPE + "' must have parameter 'name_table'");
+                                    }
+*/
+                    }
+                    break;
 
-                                }
-                                break;
+                    case DROP_TABLE_COLUMN: {
 
-                                case DROP_TABLE_COLUMN_TYPE_VALUE: {
+                    }
+                    break;
 
-                                }
-                                break;
-
-                                case DROP_SEQUENCE_TYPE_VALUE: {
+                    case DROP_SEQUENCE: {
+                        if (true) {
+                            throw new RuntimeException("not impleented");
+                        }
+/*
                                     String nameSeq = getString(action, "name_sequence");
                                     if (nameSeq != null) {
                                         db_.dropSequence(nameSeq);
-                                    } else
+                                    }
+                                    else {
                                         log.error("Patch - " + patch.getName() + ", action '" + DROP_TABLE_TYPE + "' must have parameter 'name_sequence'");
-                                }
-                                break;
-                                default:
-                                    String errorString = "Unknown type of action - " + action.getType();
-                                    log.error(errorString);
-                                    throw new Exception(errorString);
+                                    }
+*/
+                    }
+                    break;
+                    default:
+                        String errorString = "missed action type: " + type;
+                        log.error(errorString);
+                        throw new DbRevisionException(errorString);
 
-                            }
-                        }
-                        catch (Exception e) {
-                            throw new DbRevisionException(e);
-                        }
+                }
             }
         }
     }

@@ -49,12 +49,21 @@ public class Module implements Serializable {
             }
         }
     }
-    public void applay() {
-        for (Version version : versions) {
-            if (version.isComplete()) {
-                continue;
+    public void apply() {
+        if (versions.isEmpty()) {
+            return;
+        }
+        if (DbRevisionChecker.isModuleReleased(database, name)) { 
+            for (Version version : versions) {
+                if (version.isComplete()) {
+                    continue;
+                }
+                version.apply();
             }
-            version.applay();
+        }
+        else {
+            Version version = versions.get(versions.size()-1);
+            version.applyInitStructure();
         }
     }
 

@@ -26,13 +26,13 @@ import java.sql.Connection;
 public class ManagerDaoImpl implements ManagerDao {
     private static final String SELECT_REVISION_SQL = "select MODULE_NAME, CURRENT_VERSION, LAST_PATCH from "+ Constants.DB_REVISION_TABLE_NAME;
 
-    public List<RevisionBean> getRevisions(Database adapter) {
-        checkDbRevisionTableExist(adapter);
+    public List<RevisionBean> getRevisions(Database database) {
+        checkDbRevisionTableExist(database);
         List<RevisionBean> list = new ArrayList<RevisionBean>();
         ResultSet rs = null;
         PreparedStatement ps = null;
         try {
-            ps = adapter.getConnection().prepareStatement(SELECT_REVISION_SQL);
+            ps = database.getConnection().prepareStatement(SELECT_REVISION_SQL);
             rs = ps.executeQuery();
             while (rs.next()) {
                 RevisionBean bean = new RevisionBean();
@@ -58,12 +58,12 @@ public class ManagerDaoImpl implements ManagerDao {
         return list;
     }
 
-    public RevisionBean getRevision(Database adapter, String moduleName, String versionName) {
-        checkDbRevisionTableExist(adapter);
+    public RevisionBean getRevision(Database database, String moduleName, String versionName) {
+        checkDbRevisionTableExist(database);
         ResultSet rs = null;
         PreparedStatement ps = null;
         try {
-            ps = adapter.getConnection().prepareStatement(
+            ps = database.getConnection().prepareStatement(
                 "select MODULE_NAME, CURRENT_VERSION, LAST_PATCH from "+ Constants.DB_REVISION_TABLE_NAME + ' ' +
                     "where MODULE_NAME=? and CURRENT_VERSION=?"
             );
@@ -94,11 +94,11 @@ public class ManagerDaoImpl implements ManagerDao {
         }
     }
 
-    public void checkDbRevisionTableExist(Database adapter) {
+    public void checkDbRevisionTableExist(Database database) {
         try {
-            DatabaseMetaData metaData = adapter.getConnection().getMetaData();
+            DatabaseMetaData metaData = database.getConnection().getMetaData();
             String dbSchema = metaData.getUserName();
-            List<DbTable> list = DatabaseStructureManager.getTableList(adapter.getConnection(), dbSchema, Constants.DB_REVISION_TABLE_NAME);
+            List<DbTable> list = DatabaseStructureManager.getTableList(database.getConnection(), dbSchema, Constants.DB_REVISION_TABLE_NAME);
             if (list.isEmpty()) {
                 DbTable table = new DbTable();
                 table.setName(Constants.DB_REVISION_TABLE_NAME);
@@ -115,7 +115,7 @@ public class ManagerDaoImpl implements ManagerDao {
 
                 table.getForeignKeys().add()
 */
-                adapter.createTable(table);
+                database.createTable(table);
             }
         }
         catch (SQLException e) {
@@ -123,12 +123,12 @@ public class ManagerDaoImpl implements ManagerDao {
         }
     }
 
-    public void makrCurrentVersion(Database adapter, String moduleName, String versionName, String patchName) {
-        checkDbRevisionTableExist(adapter);
+    public void makrCurrentVersion(Database database, String moduleName, String versionName, String patchName) {
+        checkDbRevisionTableExist(database);
         ResultSet rs = null;
         PreparedStatement ps = null;
         try {
-            Connection conn = adapter.getConnection();
+            Connection conn = database.getConnection();
             DbUtils.runSQL(
                 conn,
                 "delete from "+Constants.DB_REVISION_TABLE_NAME + " where MODULE_NAME=? and CURRENT_VERSION=? ",
@@ -153,6 +153,41 @@ public class ManagerDaoImpl implements ManagerDao {
             ps.executeUpdate();
 
             conn.commit();
+        }
+        catch (SQLException e) {
+            throw new DbRevisionException(e);
+        }
+        finally {
+            DbUtils.close(rs, ps);
+            //noinspection UnusedAssignment
+            rs = null;
+            //noinspection UnusedAssignment
+            ps = null;
+        }
+    }
+
+    public RevisionBean getRevision(Database database, String moduleName) {
+        checkDbRevisionTableExist(database);
+        ResultSet rs = null;
+        PreparedStatement ps = null;
+        try {
+            ps = database.getConnection().prepareStatement(
+                "select MODULE_NAME, CURRENT_VERSION, LAST_PATCH from "+ Constants.DB_REVISION_TABLE_NAME + ' ' +
+                    "where MODULE_NAME=?"
+            );
+            ps.setString(1, moduleName);
+            rs = ps.executeQuery();
+            RevisionBean revision=null;
+            if (rs.next()) {
+                revision = new RevisionBean();
+                revision.setModuleName(rs.getString("MODULE_NAME"));
+                revision.setCurrentVerson(rs.getString("CURRENT_VERSION"));
+                revision.setLastPatch(rs.getString("LAST_PATCH"));
+                if (rs.wasNull()) {
+                    revision.setLastPatch(null);
+                }
+            }
+            return revision;
         }
         catch (SQLException e) {
             throw new DbRevisionException(e);

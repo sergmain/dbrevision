@@ -10,10 +10,10 @@ Getting started
 +------------------------------------------------------------------------+
 import org.riverock.dbrevision.db.DatabaseFactory;
 
-    List<String> list = DatabaseAdapterProvider.getSupportedFamilyCode();
+    List<String> list = DatabaseFactory.getSupportedFamilyCode();
 +------------------------------------------------------------------------+
 
- Create DatabaseAdapter for specific DB:
+ Create Database for specific DB:
 
 +------------------------------------------------------------------------+
 import java.sql.Connection;
@@ -23,7 +23,7 @@ import org.riverock.dbrevision.db.DatabaseFactory;
     Connection conn=null;
     ... init connection;
 
-    DatabaseAdapter db = DatabaseAdapterProvider.getInstance(conn, DatabaseAdapter.Family.MYSQL);
+    Database db = DatabaseFactory.getInstance(conn, Database.Family.MYSQL);
     
 +------------------------------------------------------------------------+
 
@@ -39,7 +39,7 @@ import org.riverock.dbrevision.db.DatabaseFactory;
     Connection conn=null;
     ... init connection;
 
-    DatabaseAdapter db = DatabaseAdapterProvider.getInstance(conn, DatabaseAdapter.Family.MYSQL);
+    Database db = DatabaseFactory.getInstance(conn, Database.Family.MYSQL);
     FileOutputStream fileOutputStream = new FileOutputStream("forum-portlet-schema.xml");
 
     DbStructureExport.export(db, fileOutputStream, true);
@@ -72,7 +72,7 @@ import org.riverock.dbrevision.utils.Utils;
     boolean isData;
     ... init isData. true - import with data, otherwise - w/o data
 
-    DatabaseAdapter db = DatabaseAdapterProvider.getInstance(conn, DatabaseAdapter.Family.MYSQL);
+    Database db = DatabaseFactory.getInstance(conn, Database.Family.MYSQL);
     DbStructureImport.importStructure(db, stream, isData);
 
 +------------------------------------------------------------------------+

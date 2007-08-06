@@ -9,5 +9,5 @@ import org.riverock.dbrevision.annotation.schema.db.Action;
  * Time: 14:45:29
  */
 public interface PatchValidator {
-    public PatchStatus validate(Database adapter, Action action) throws Exception;
+    public PatchStatus validate(Database adapter) throws Exception;
 }

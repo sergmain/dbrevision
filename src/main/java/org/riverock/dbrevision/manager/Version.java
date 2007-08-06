@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.Serializable;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,8 +13,10 @@ import javax.xml.bind.JAXBException;
 import org.apache.commons.lang.StringUtils;
 
 import org.riverock.dbrevision.Constants;
+import org.riverock.dbrevision.system.DbStructureImport;
 import org.riverock.dbrevision.annotation.schema.db.Patch;
 import org.riverock.dbrevision.annotation.schema.db.Patches;
+import org.riverock.dbrevision.annotation.schema.db.DbSchema;
 import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.exception.InitStructureFileNotFoundException;
 import org.riverock.dbrevision.exception.NoChildPatchFoundException;
@@ -21,6 +24,7 @@ import org.riverock.dbrevision.exception.PatchParseException;
 import org.riverock.dbrevision.exception.PatchPrepareException;
 import org.riverock.dbrevision.exception.TwoPatchesWithEmptyPreviousPatchException;
 import org.riverock.dbrevision.exception.VersionPathNotFoundException;
+import org.riverock.dbrevision.exception.FirstVersionWithPatchdException;
 import org.riverock.dbrevision.manager.patch.PatchService;
 import org.riverock.dbrevision.manager.patch.PatchSorter;
 import org.riverock.dbrevision.manager.dao.ManagerDaoFactory;
@@ -116,18 +120,48 @@ public class Version implements Serializable {
         }
     }
 
-    public void applay() {
+    public void applyInitStructure() {
         if (isComplete) {
             return;
         }
-        for (Patch patch : patches) {
-            if (patch.isProcessed()) {
-                continue;
-            }
-            PatchService.processPatch(database, patch);
-            ManagerDaoFactory.getManagerDao().makrCurrentVersion(database, modulePath.getName(), versionName, patch.getName());
+        if (!patches.isEmpty()) {
+            throw new FirstVersionWithPatchdException();
         }
+        DbSchema dbSchema;
+        try {
+            FileInputStream inputStream = new FileInputStream(initStructureFile);
+            dbSchema = Utils.getObjectFromXml(DbSchema.class, inputStream);
+        }
+        catch (JAXBException e) {
+            throw new PatchParseException("Init structure file: " + initStructureFile.getAbsolutePath(), e);
+        }
+        catch (FileNotFoundException e) {
+            throw new InitStructureFileNotFoundException(e);
+        }
+        DbStructureImport.importStructure(database, dbSchema, true);
         ManagerDaoFactory.getManagerDao().makrCurrentVersion(database, modulePath.getName(), versionName, null);
+        isComplete=true;
+    }
+
+    public void apply() {
+        if (isComplete) {
+            return;
+        }
+
+        if (DbRevisionChecker.isModuleReleased(database, modulePath.getName())) {
+            for (Patch patch : patches) {
+                if (patch.isProcessed()) {
+                    continue;
+                }
+                PatchService.processPatch(database, patch);
+                ManagerDaoFactory.getManagerDao().makrCurrentVersion(database, modulePath.getName(), versionName, patch.getName());
+            }
+            ManagerDaoFactory.getManagerDao().makrCurrentVersion(database, modulePath.getName(), versionName, null);
+        }
+        else {
+            applyInitStructure();
+        }
+        isComplete=true;
     }
 
     public void applayPatch(String patchName) {
