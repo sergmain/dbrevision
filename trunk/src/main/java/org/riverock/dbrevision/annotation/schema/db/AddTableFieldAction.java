@@ -26,9 +26,9 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
- *         &lt;element name="Data" type="{http://www.w3.org/2001/XMLSchema}string"/>
+ *         &lt;element name="Field" type="{http://dbrevision.sourceforge.net/xsd/dbrevision-structure.xsd}DbField"/>
  *       &lt;/sequence>
- *       &lt;attribute name="name" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
+ *       &lt;attribute name="tableName" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
  *     &lt;/restriction>
  *   &lt;/complexContent>
  * &lt;/complexType>
@@ -38,62 +38,62 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {
-    "data"
+    "field"
 })
-@XmlRootElement(name = "ActionParameter", namespace = "")
-public class ActionParameter {
+@XmlRootElement(name = "AddTableFieldAction", namespace = "")
+public class AddTableFieldAction {
 
-    @XmlElement(name = "Data", required = true)
-    protected String data;
+    @XmlElement(name = "Field", required = true)
+    protected DbField field;
     @XmlAttribute(required = true)
-    protected String name;
+    protected String tableName;
 
     /**
-     * Gets the value of the data property.
+     * Gets the value of the field property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link DbField }
+     *     
+     */
+    public DbField getField() {
+        return field;
+    }
+
+    /**
+     * Sets the value of the field property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link DbField }
+     *     
+     */
+    public void setField(DbField value) {
+        this.field = value;
+    }
+
+    /**
+     * Gets the value of the tableName property.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getData() {
-        return data;
+    public String getTableName() {
+        return tableName;
     }
 
     /**
-     * Sets the value of the data property.
+     * Sets the value of the tableName property.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setData(String value) {
-        this.data = value;
-    }
-
-    /**
-     * Gets the value of the name property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * Sets the value of the name property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setName(String value) {
-        this.name = value;
+    public void setTableName(String value) {
+        this.tableName = value;
     }
 
 }

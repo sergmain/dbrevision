@@ -31,12 +31,12 @@ public class TestPatchUnmarshaling extends TestCase {
         assertEquals("test_2_1", p.getName());
         assertEquals("test_1_1", p.getPreviousName());
 
-        assertEquals(2, p.getActionOrTableDataOrTable().size());
+        assertEquals(2, p.getActionOrCustomClassActionOrSqlAction().size());
 
-        assertTrue( p.getActionOrTableDataOrTable().get(0) instanceof DbPrimaryKey);
-        assertTrue( p.getActionOrTableDataOrTable().get(1) instanceof DbForeignKey);
+        assertTrue( p.getActionOrCustomClassActionOrSqlAction().get(0) instanceof DbPrimaryKey);
+        assertTrue( p.getActionOrCustomClassActionOrSqlAction().get(1) instanceof DbForeignKey);
 
-        DbPrimaryKey pk = (DbPrimaryKey)p.getActionOrTableDataOrTable().get(0);
+        DbPrimaryKey pk = (DbPrimaryKey)p.getActionOrCustomClassActionOrSqlAction().get(0);
         assertEquals(1, pk.getColumns().size());
 
         DbPrimaryKeyColumn col = pk.getColumns().get(0);
@@ -47,7 +47,7 @@ public class TestPatchUnmarshaling extends TestCase {
         assertEquals(1, col.getKeySeq());
         assertEquals("ID_TEST11_T11_PK", pk.getPkName());
 
-        DbForeignKey fk = (DbForeignKey)p.getActionOrTableDataOrTable().get(1);
+        DbForeignKey fk = (DbForeignKey)p.getActionOrCustomClassActionOrSqlAction().get(1);
         assertNotNull(fk.getDeleteRule());
         assertEquals(new Integer(0), fk.getDeleteRule().getRuleType());
         assertEquals("java.sql.DatabaseMetaData.importedKeyCascade", fk.getDeleteRule().getRuleName());
@@ -80,11 +80,11 @@ public class TestPatchUnmarshaling extends TestCase {
         assertEquals("webmill_init_def_v2", p.getName());
         assertNull(p.getPreviousName());
 
-        assertEquals(1, p.getActionOrTableDataOrTable().size());
+        assertEquals(1, p.getActionOrCustomClassActionOrSqlAction().size());
 
-        assertTrue( p.getActionOrTableDataOrTable().get(0) instanceof Action);
+        assertTrue( p.getActionOrCustomClassActionOrSqlAction().get(0) instanceof Action);
 
-        Action action = (Action)p.getActionOrTableDataOrTable().get(0);
+        Action action = (Action)p.getActionOrCustomClassActionOrSqlAction().get(0);
         assertEquals("CUSTOM_CLASS_ACTION", action.getType());
 
         assertEquals(1, action.getActionParameters().size());

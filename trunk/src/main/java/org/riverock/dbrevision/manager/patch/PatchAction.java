@@ -36,5 +36,5 @@ import org.riverock.dbrevision.db.Database;
  * $Id: PatchAction.java 1075 2006-11-24 18:08:42Z serg_main $
  */
 public interface PatchAction {
-    public PatchStatus process(Database adapter, Action action) throws Exception;
+    public PatchStatus process(Database adapter) throws Exception;
 }

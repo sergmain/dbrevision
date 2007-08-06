@@ -12,7 +12,11 @@ public class DbRevisionChecker {
 
     public static boolean isUpToDate(Database adapter, String moduleName, String versionName) {
         RevisionBean bean = ManagerDaoFactory.getManagerDao().getRevision(adapter, moduleName, versionName);
-        return !(bean==null);
+        return bean!=null;
     }
 
+    public static boolean isModuleReleased(Database adapter, String moduleName) {
+        RevisionBean bean = ManagerDaoFactory.getManagerDao().getRevision(adapter, moduleName);
+        return bean!=null;
+    }
 }

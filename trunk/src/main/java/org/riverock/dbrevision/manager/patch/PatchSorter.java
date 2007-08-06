@@ -22,6 +22,7 @@ public class PatchSorter {
         Patch firstPatch=null;
         List<Patch> list = new ArrayList<Patch>(patches.size());
         for (Patch patch : patches) {
+            patch.setProcessed(false);
             if (patch.getPreviousName()==null) {
                 if (firstPatch!=null) {
                     throw new TwoPatchesWithEmptyPreviousPatchException("Patch name #1: " +firstPatch.getName()+", patch name #2: " +patch.getName());

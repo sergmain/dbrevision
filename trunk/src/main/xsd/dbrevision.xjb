@@ -2,6 +2,14 @@
 <jaxb:bindings xmlns:jaxb="http://java.sun.com/xml/ns/jaxb" xmlns:xs="http://www.w3.org/2001/XMLSchema" version="1.0">
 
 
+    <jaxb:bindings schemaLocation="dbrevision.xsd" node="//xs:element[@name='Validator']//xs:element[@name='Class']">
+      <jaxb:property name="clazz"/>
+    </jaxb:bindings>
+
+    <jaxb:bindings schemaLocation="dbrevision.xsd" node="//xs:element[@name='CustomClassAction']//xs:element[@name='Class']">
+      <jaxb:property name="clazz"/>
+    </jaxb:bindings>
+
     <jaxb:bindings schemaLocation="dbrevision.xsd" node="//xs:element[@name='Patch']">
         <jaxb:bindings node=".//xs:attribute[@name='isProcessed']">
             <jaxb:property name="processed"/>

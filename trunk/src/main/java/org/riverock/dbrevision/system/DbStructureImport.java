@@ -53,7 +53,7 @@ import org.riverock.dbrevision.exception.DbRevisionException;
 public class DbStructureImport {
     private static Logger log = Logger.getLogger(DbStructureImport.class);
 
-    public static void importStructure(Database adapter, InputStream stream, boolean isData ) {
+    public static void importStructure(Database database, InputStream stream, boolean isData ) {
         log.debug("Unmarshal data from inputstream");
         DbSchema millSchema;
         try {
@@ -64,18 +64,16 @@ public class DbStructureImport {
             log.error(es, e);
             throw new DbRevisionException(es, e);
         }
-        importStructure(millSchema, adapter, isData);
+        importStructure(database, millSchema, isData);
     }
 
-    public static void importStructure(DbSchema millSchema, Database db_, boolean isData) {
+    public static void importStructure(Database database, DbSchema millSchema, boolean isData) {
         for (DbTable table : millSchema.getTables()) {
-            if (table.getName().toLowerCase().startsWith("tb_"))
-                continue;
 
             if (!DatabaseManager.isSkipTable(table.getName())) {
                 try {
                     log.debug("create table " + table.getName());
-                    db_.createTable(table);
+                    database.createTable(table);
                 }
                 catch (Exception e) {
                     String es = "Error create table ";
@@ -83,7 +81,7 @@ public class DbStructureImport {
                     throw new DbRevisionException(es, e);
                 }
                 if (isData) {
-                    DatabaseStructureManager.setDataTable(db_, table);
+                    DatabaseStructureManager.setDataTable(database, table);
                 }
             }
             else {
@@ -93,19 +91,19 @@ public class DbStructureImport {
         }
 
         for (DbView view : millSchema.getViews()) {
-            DatabaseManager.createWithReplaceAllView(db_, millSchema);
+            DatabaseManager.createWithReplaceAllView(database, millSchema);
             try {
                 log.debug("create view " + view.getName());
-                db_.createView(view);
+                database.createView(view);
             }
             catch (Exception e) {
-                if (db_.testExceptionViewExists(e)) {
+                if (database.testExceptionViewExists(e)) {
                     log.debug("view " + view.getName() + " already exists");
                     log.debug("drop view " + view.getName());
-                    DatabaseStructureManager.dropView(db_, view);
+                    DatabaseStructureManager.dropView(database, view);
                     log.debug("create view " + view.getName());
                     try {
-                        db_.createView(view);
+                        database.createView(view);
                     }
                     catch (Exception e1) {
                         String es = "Error create view - ";
@@ -120,12 +118,12 @@ public class DbStructureImport {
                 }
             }
         }
-        DatabaseManager.createWithReplaceAllView(db_, millSchema);
+        DatabaseManager.createWithReplaceAllView(database, millSchema);
 
         for (DbSequence seq : millSchema.getSequences()) {
             try {
                 log.debug("create sequence " + seq.getName());
-                db_.createSequence(seq);
+                database.createSequence(seq);
             }
             catch (Exception e) {
                 String es = "Error create sequence ";
