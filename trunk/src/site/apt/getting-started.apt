@@ -8,7 +8,7 @@ Getting started
  Get list of supported DB families:
 
 +------------------------------------------------------------------------+
-import org.riverock.dbrevision.db.DatabaseAdapterProvider;
+import org.riverock.dbrevision.db.DatabaseFactory;
 
     List<String> list = DatabaseAdapterProvider.getSupportedFamilyCode();
 +------------------------------------------------------------------------+
@@ -18,7 +18,7 @@ import org.riverock.dbrevision.db.DatabaseAdapterProvider;
 +------------------------------------------------------------------------+
 import java.sql.Connection;
 import org.riverock.dbrevision.db.Database;
-import org.riverock.dbrevision.db.DatabaseAdapterProvider;
+import org.riverock.dbrevision.db.DatabaseFactory;
 
     Connection conn=null;
     ... init connection;
@@ -34,7 +34,7 @@ import java.io.FileOutputStream;
 import java.sql.Connection;
 
 import org.riverock.dbrevision.db.Database;
-import org.riverock.dbrevision.db.DatabaseAdapterProvider;
+import org.riverock.dbrevision.db.DatabaseFactory;
 
     Connection conn=null;
     ... init connection;
@@ -54,9 +54,9 @@ import java.io.FileOutputStream;
 import java.sql.Connection;
 
 import org.riverock.dbrevision.db.Database;
-import org.riverock.dbrevision.db.DatabaseAdapterProvider;
+import org.riverock.dbrevision.db.DatabaseFactory;
 import org.riverock.dbrevision.db.Database;
-import org.riverock.dbrevision.db.DatabaseAdapterProvider;
+import org.riverock.dbrevision.db.DatabaseFactory;
 import org.riverock.dbrevision.system.DbStructureImport;
 import org.riverock.dbrevision.annotation.schema.db.DbSchema;
 import org.riverock.dbrevision.utils.Utils;

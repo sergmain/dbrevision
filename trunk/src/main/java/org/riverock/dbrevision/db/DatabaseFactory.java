@@ -48,8 +48,8 @@ import org.riverock.dbrevision.exception.DbRevisionException;
  *         Date: 04.07.2006
  *         Time: 12:03:41
  */
-public class DatabaseAdapterProvider {
-    private final static Logger log = Logger.getLogger(DatabaseAdapterProvider.class);
+public class DatabaseFactory {
+    private final static Logger log = Logger.getLogger(DatabaseFactory.class);
 
     private static Map<Database.Family, Class> familyClassMap = new HashMap<Database.Family, Class>();
     private static Map<String, Database.Family> familyCodeMap = new HashMap<String, Database.Family>();
