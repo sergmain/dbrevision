@@ -1,7 +1,7 @@
 package org.riverock.dbrevision.manager.dao;
 
 import org.riverock.dbrevision.manager.RevisionBean;
-import org.riverock.dbrevision.db.DatabaseAdapter;
+import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.db.DatabaseStructureManager;
 import org.riverock.dbrevision.annotation.schema.db.DbTable;
 import org.riverock.dbrevision.annotation.schema.db.DbField;
@@ -26,7 +26,7 @@ import java.sql.Connection;
 public class ManagerDaoImpl implements ManagerDao {
     private static final String SELECT_REVISION_SQL = "select MODULE_NAME, CURRENT_VERSION, LAST_PATCH from "+ Constants.DB_REVISION_TABLE_NAME;
 
-    public List<RevisionBean> getRevisions(DatabaseAdapter adapter) {
+    public List<RevisionBean> getRevisions(Database adapter) {
         checkDbRevisionTableExist(adapter);
         List<RevisionBean> list = new ArrayList<RevisionBean>();
         ResultSet rs = null;
@@ -58,7 +58,7 @@ public class ManagerDaoImpl implements ManagerDao {
         return list;
     }
 
-    public RevisionBean getRevision(DatabaseAdapter adapter, String moduleName, String versionName) {
+    public RevisionBean getRevision(Database adapter, String moduleName, String versionName) {
         checkDbRevisionTableExist(adapter);
         ResultSet rs = null;
         PreparedStatement ps = null;
@@ -94,7 +94,7 @@ public class ManagerDaoImpl implements ManagerDao {
         }
     }
 
-    public void checkDbRevisionTableExist(DatabaseAdapter adapter) {
+    public void checkDbRevisionTableExist(Database adapter) {
         try {
             DatabaseMetaData metaData = adapter.getConnection().getMetaData();
             String dbSchema = metaData.getUserName();
@@ -123,7 +123,7 @@ public class ManagerDaoImpl implements ManagerDao {
         }
     }
 
-    public void makrCurrentVersion(DatabaseAdapter adapter, String moduleName, String versionName, String patchName) {
+    public void makrCurrentVersion(Database adapter, String moduleName, String versionName, String patchName) {
         checkDbRevisionTableExist(adapter);
         ResultSet rs = null;
         PreparedStatement ps = null;

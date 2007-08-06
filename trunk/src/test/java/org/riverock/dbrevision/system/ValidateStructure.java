@@ -34,7 +34,7 @@ import org.riverock.dbrevision.annotation.schema.db.DbForeignKey;
 import org.riverock.dbrevision.annotation.schema.db.DbSchema;
 import org.riverock.dbrevision.annotation.schema.db.DbTable;
 import org.riverock.dbrevision.annotation.schema.db.DbView;
-import org.riverock.dbrevision.db.DatabaseAdapter;
+import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.db.DatabaseStructureManager;
 import org.riverock.dbrevision.utils.Utils;
@@ -51,7 +51,7 @@ public class ValidateStructure {
     public ValidateStructure() {
     }
 
-    private static void processAllView(DatabaseAdapter db_, DbSchema millSchema) throws Exception {
+    private static void processAllView(Database db_, DbSchema millSchema) throws Exception {
         for (DbView view : millSchema.getViews()) {
             DatabaseManager.createWithReplaceAllView(db_, millSchema);
             try {
@@ -79,7 +79,7 @@ public class ValidateStructure {
         DatabaseManager.createWithReplaceAllView(db_, millSchema);
     }
 
-    private static void processForeignKeys(DatabaseAdapter adapter, DbSchema millSchema) throws Exception {
+    private static void processForeignKeys(Database adapter, DbSchema millSchema) throws Exception {
         for (DbTable table : millSchema.getTables()) {
             if (!DatabaseManager.isSkipTable(table.getName())) {
                 System.out.println("Create foreign key for table " + table.getName());
@@ -98,7 +98,7 @@ public class ValidateStructure {
         }
     }
 
-    private static DbSchema validateStructure(DatabaseAdapter adapter, DbSchema millSchema) throws Exception {
+    private static DbSchema validateStructure(Database adapter, DbSchema millSchema) throws Exception {
         DbSchema schema = DatabaseManager.getDbStructure(adapter);
 
         String nameFile = "test-schema.xml";
@@ -182,7 +182,7 @@ public class ValidateStructure {
         FileInputStream stream = new FileInputStream("webmill-schema.xml");
         DbSchema millSchema = Utils.getObjectFromXml(DbSchema.class, stream);
 
-        DatabaseAdapter adapter=null;
+        Database adapter=null;
 //        validateStructure(millSchema, "ORACLE_MILL_TEST");
         validateStructure(adapter, millSchema);
 //        validateStructure(millSchema, "MYSQL");

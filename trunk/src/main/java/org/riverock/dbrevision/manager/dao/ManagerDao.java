@@ -1,7 +1,7 @@
 package org.riverock.dbrevision.manager.dao;
 
 import org.riverock.dbrevision.manager.RevisionBean;
-import org.riverock.dbrevision.db.DatabaseAdapter;
+import org.riverock.dbrevision.db.Database;
 
 import java.util.List;
 
@@ -11,13 +11,13 @@ import java.util.List;
  * Time: 13:12:11
  */
 public interface ManagerDao {
-    List<RevisionBean> getRevisions(DatabaseAdapter adapter);
+    List<RevisionBean> getRevisions(Database adapter);
 
-    RevisionBean getRevision(DatabaseAdapter adapter, String moduleName, String versionName);
+    RevisionBean getRevision(Database adapter, String moduleName, String versionName);
 
-    void checkDbRevisionTableExist(DatabaseAdapter adapter);
+    void checkDbRevisionTableExist(Database adapter);
 
-    void makrCurrentVersion(DatabaseAdapter adapter, String moduleName, String versionName, String patchName);
+    void makrCurrentVersion(Database adapter, String moduleName, String versionName, String patchName);
 
 
 }

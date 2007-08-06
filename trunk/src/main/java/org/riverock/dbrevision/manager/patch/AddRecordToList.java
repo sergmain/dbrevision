@@ -30,7 +30,7 @@ import java.sql.PreparedStatement;
 import org.apache.log4j.Logger;
 
 import org.riverock.dbrevision.annotation.schema.db.Action;
-import org.riverock.dbrevision.db.DatabaseAdapter;
+import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.exception.DbRevisionException;
 import org.riverock.dbrevision.utils.DbUtils;
 
@@ -45,7 +45,7 @@ import org.riverock.dbrevision.utils.DbUtils;
 public class AddRecordToList implements PatchAction {
     private static Logger log = Logger.getLogger(AddRecordToList.class);
 
-    public PatchStatus process(DatabaseAdapter adapter, Action action) {
+    public PatchStatus process(Database adapter, Action action) {
 
         PreparedStatement ps = null;
         try {

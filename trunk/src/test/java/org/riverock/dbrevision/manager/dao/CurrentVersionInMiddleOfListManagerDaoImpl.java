@@ -1,7 +1,7 @@
 package org.riverock.dbrevision.manager.dao;
 
 import org.riverock.dbrevision.manager.RevisionBean;
-import org.riverock.dbrevision.db.DatabaseAdapter;
+import org.riverock.dbrevision.db.Database;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +12,7 @@ import java.util.List;
  * Time: 14:10:12
  */
 public class CurrentVersionInMiddleOfListManagerDaoImpl implements ManagerDao {
-    public List<RevisionBean> getRevisions(DatabaseAdapter adapter) {
+    public List<RevisionBean> getRevisions(Database adapter) {
         List<RevisionBean> list = new ArrayList<RevisionBean>();
         RevisionBean bean = new RevisionBean();
         bean.setModuleName("webmill");
@@ -23,15 +23,15 @@ public class CurrentVersionInMiddleOfListManagerDaoImpl implements ManagerDao {
         return list;
     }
 
-    public RevisionBean getRevision(DatabaseAdapter adapter, String moduleNAme, String versionName) {
+    public RevisionBean getRevision(Database adapter, String moduleNAme, String versionName) {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
-    public void checkDbRevisionTableExist(DatabaseAdapter adapter) {
+    public void checkDbRevisionTableExist(Database adapter) {
         //To change body of implemented methods use File | Settings | File Templates.
     }
 
-    public void makrCurrentVersion(DatabaseAdapter databaseAdapter, String moduleName, String versionName, String patchName) {
+    public void makrCurrentVersion(Database database, String moduleName, String versionName, String patchName) {
         //To change body of implemented methods use File | Settings | File Templates.
     }
 }

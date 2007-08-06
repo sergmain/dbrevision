@@ -66,7 +66,7 @@ public class DatabaseStructureManager {
      * @param adapter db adapter
      * @param fk list of foreign keys
      */
-    public static void createForeignKey(DatabaseAdapter adapter, DbForeignKey fk) {
+    public static void createForeignKey(Database adapter, DbForeignKey fk) {
         if (fk == null) {
             return;
         }
@@ -157,7 +157,7 @@ public class DatabaseStructureManager {
      * @param tableName table name
      * @param field column descriptor
      */
-    public static void addColumn(DatabaseAdapter adapter, String tableName, DbField field) {
+    public static void addColumn(Database adapter, String tableName, DbField field) {
         DbTable table = new DbTable();
         table.setName(tableName);
         adapter.addColumn(table, field);
@@ -170,7 +170,7 @@ public class DatabaseStructureManager {
      * @param table table definition
      * @param field field to drop
      */
-    public static void dropColumn(DatabaseAdapter adapter, DbTable table, DbField field) {
+    public static void dropColumn(Database adapter, DbTable table, DbField field) {
         if (table == null ||
             table.getName() == null || table.getName().length() == 0
             )
@@ -196,7 +196,7 @@ public class DatabaseStructureManager {
         }
     }
 
-    public static void dropView(DatabaseAdapter adapter, DbView view) {
+    public static void dropView(Database adapter, DbView view) {
         if (view == null ||
             view.getName() == null || view.getName().length() == 0
             )
@@ -217,7 +217,7 @@ public class DatabaseStructureManager {
         }
     }
 
-    public static void setDataTable(DatabaseAdapter adapter, DbTable table) {
+    public static void setDataTable(Database adapter, DbTable table) {
         if (table == null || table.getData() == null || table.getData().getRecords().isEmpty()) {
             log.debug("Table is empty");
             return;
@@ -346,7 +346,7 @@ public class DatabaseStructureManager {
                                 break;
 
                             case Types.BLOB:
-                                if (adapter.getFamily()== DatabaseAdapter.Family.MYSQL) {
+                                if (adapter.getFamily()== Database.Family.MYSQL) {
                                     byte[] bytes = Base64.decodeBase64(fieldData.getStringData().getBytes());
 
                                     byte[] fileBytes = new byte[]{};
@@ -406,7 +406,7 @@ public class DatabaseStructureManager {
      * @param table table for get data
      * @return DbDataTable
      */
-    public static DbDataTable getDataTable(DatabaseAdapter adapter, DbTable table) {
+    public static DbDataTable getDataTable(Database adapter, DbTable table) {
         DbDataTable tableData = new DbDataTable();
 
         PreparedStatement ps = null;
@@ -593,7 +593,7 @@ public class DatabaseStructureManager {
      * @param tablePattern String
      * @return ArrayList
      */
-    public static List<DbField> getFieldsList(DatabaseAdapter adapter, String schemaPattern, String tablePattern) {
+    public static List<DbField> getFieldsList(Database adapter, String schemaPattern, String tablePattern) {
         List<DbField> v = new ArrayList<DbField>();
         DatabaseMetaData db = null;
         ResultSet metaField = null;
@@ -695,7 +695,7 @@ public class DatabaseStructureManager {
                         case Types.BIT:
                             // Work around with MySql JDBC driver bug: TINYINT(1)==BIT
                             // always process as TINYINT
-                            if (adapter.getFamily()== DatabaseAdapter.Family.MYSQL) {
+                            if (adapter.getFamily()== Database.Family.MYSQL) {
                                 field.setDataType("tinyint");
                                 field.setJavaType(Types.TINYINT);
                                 field.setJavaStringType("java.sql.Types.TINYINT");
@@ -762,7 +762,7 @@ public class DatabaseStructureManager {
         return v;
     }
 
-    public static List<DbIndex> getIndexes(DatabaseAdapter adapter, String schemaName, String tableName) {
+    public static List<DbIndex> getIndexes(Database adapter, String schemaName, String tableName) {
         List<DbIndex> v = new ArrayList<DbIndex>();
         try {
             DatabaseMetaData db = adapter.getConnection().getMetaData();
@@ -842,7 +842,7 @@ public class DatabaseStructureManager {
      * @param schemaName name of schema
      * @return List<DbForeignKey>
      */
-    public static List<DbForeignKey> getForeignKeys(DatabaseAdapter adapter, String schemaName, String tableName) {
+    public static List<DbForeignKey> getForeignKeys(Database adapter, String schemaName, String tableName) {
         List<DbForeignKey> v = new ArrayList<DbForeignKey>();
         try {
             DatabaseMetaData db = adapter.getConnection().getMetaData();
@@ -1046,7 +1046,7 @@ public class DatabaseStructureManager {
         return index;
     }
 
-    public static DbPrimaryKey getPrimaryKey(DatabaseAdapter adapter, String schemaPattern, String tablePattern) {
+    public static DbPrimaryKey getPrimaryKey(Database adapter, String schemaPattern, String tablePattern) {
 
         if (log.isDebugEnabled()) {
             log.debug("Get data from getPrimaryKeys");
@@ -1125,7 +1125,7 @@ public class DatabaseStructureManager {
         return pk;
     }
 
-    public static void setDefaultValueTimestamp(DatabaseAdapter adapter, DbTable originTable, DbField originField) {
+    public static void setDefaultValueTimestamp(Database adapter, DbTable originTable, DbField originField) {
         DbField tempField = DatabaseManager.cloneDescriptionField(originField);
         tempField.setName(tempField.getName() + '1');
         adapter.addColumn(originTable, tempField);

@@ -42,15 +42,15 @@ import org.riverock.dbrevision.annotation.schema.db.DbForeignKey;
 import org.riverock.dbrevision.annotation.schema.db.DbSequence;
 import org.riverock.dbrevision.annotation.schema.db.DbTable;
 import org.riverock.dbrevision.annotation.schema.db.DbView;
-import org.riverock.dbrevision.db.DatabaseAdapter;
+import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.exception.DbRevisionException;
 import org.riverock.dbrevision.utils.DbUtils;
 
 /**
- * $Id: MaxDBAdapter.java 1141 2006-12-14 14:43:29Z serg_main $
+ * $Id: MaxDBDatabase.java 1141 2006-12-14 14:43:29Z serg_main $
  */
-public class MaxDBAdapter extends DatabaseAdapter {
+public class MaxDBDatabase extends Database {
 
     public int getMaxLengthStringField() {
         return 2000;
@@ -235,7 +235,7 @@ public class MaxDBAdapter extends DatabaseAdapter {
         return Family.MAXDB;
     }
 
-    public MaxDBAdapter(Connection conn) {
+    public MaxDBDatabase(Connection conn) {
         super(conn);
     }
 }

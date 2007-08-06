@@ -33,7 +33,7 @@ import org.riverock.dbrevision.annotation.schema.db.DbSchema;
 import org.riverock.dbrevision.annotation.schema.db.DbSequence;
 import org.riverock.dbrevision.annotation.schema.db.DbTable;
 import org.riverock.dbrevision.annotation.schema.db.DbView;
-import org.riverock.dbrevision.db.DatabaseAdapter;
+import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.db.DatabaseStructureManager;
 import org.riverock.dbrevision.utils.Utils;
@@ -53,7 +53,7 @@ import org.riverock.dbrevision.exception.DbRevisionException;
 public class DbStructureImport {
     private static Logger log = Logger.getLogger(DbStructureImport.class);
 
-    public static void importStructure(DatabaseAdapter adapter, InputStream stream, boolean isData ) {
+    public static void importStructure(Database adapter, InputStream stream, boolean isData ) {
         log.debug("Unmarshal data from inputstream");
         DbSchema millSchema;
         try {
@@ -67,7 +67,7 @@ public class DbStructureImport {
         importStructure(millSchema, adapter, isData);
     }
 
-    public static void importStructure(DbSchema millSchema, DatabaseAdapter db_, boolean isData) {
+    public static void importStructure(DbSchema millSchema, Database db_, boolean isData) {
         for (DbTable table : millSchema.getTables()) {
             if (table.getName().toLowerCase().startsWith("tb_"))
                 continue;

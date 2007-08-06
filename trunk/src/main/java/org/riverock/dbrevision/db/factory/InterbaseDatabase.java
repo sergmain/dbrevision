@@ -25,9 +25,6 @@
  */
 package org.riverock.dbrevision.db.factory;
 
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
@@ -37,52 +34,54 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Collections;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import org.riverock.dbrevision.annotation.schema.db.DbDataFieldData;
 import org.riverock.dbrevision.annotation.schema.db.DbField;
 import org.riverock.dbrevision.annotation.schema.db.DbForeignKey;
 import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKey;
-import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKeyColumn;
 import org.riverock.dbrevision.annotation.schema.db.DbSequence;
 import org.riverock.dbrevision.annotation.schema.db.DbTable;
 import org.riverock.dbrevision.annotation.schema.db.DbView;
-import org.riverock.dbrevision.db.DatabaseAdapter;
+import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKeyColumn;
+import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.db.DatabaseManager;
+import org.riverock.dbrevision.db.DbPkComparator;
 import org.riverock.dbrevision.exception.DbRevisionException;
 import org.riverock.dbrevision.utils.DbUtils;
-import org.riverock.dbrevision.utils.Utils;
 
 /**
- * IBM DB2 connection
+ * InterBase database connect 
  * $Author: serg_main $
  *
- * $Id: DB2Adapter.java 1141 2006-12-14 14:43:29Z serg_main $
+ * $Id: InterbaseDatabase.java 1141 2006-12-14 14:43:29Z serg_main $
  *
  */
 @SuppressWarnings({"UnusedAssignment"})
-public class DB2Adapter extends DatabaseAdapter {
-    private static Logger log = Logger.getLogger(DB2Adapter.class);
+public class InterbaseDatabase extends Database {
+    private static Logger log = Logger.getLogger( InterbaseDatabase.class );
 
     /**
      * get family for this adapter
      * @return family
      */
     public Family getFamily() {
-        return Family.DB2;
+        return Family.INTERBASE;
     }
 
-    public DB2Adapter(Connection conn) {
+    public InterbaseDatabase(Connection conn) {
         super(conn);
     }
 
     public int getMaxLengthStringField() {
-        return 2000;
+        return 4000;
     }
 
     public boolean isBatchUpdate() {
-        return true;
+        return false;
     }
 
     public boolean isNeedUpdateBracket() {
@@ -98,31 +97,15 @@ public class DB2Adapter extends DatabaseAdapter {
     }
 
     public byte[] getBlobField(ResultSet rs, String nameField, int maxLength) {
-        try {
-            Blob blob = rs.getBlob(nameField);
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            int count;
-            byte buffer[] = new byte[1024];
-
-            InputStream inputStream = blob.getBinaryStream();
-            while ((count = inputStream.read(buffer)) >= 0) {
-                outputStream.write(buffer, 0, count);
-                outputStream.flush();
-            }
-            outputStream.close();
-            return outputStream.toByteArray();
-        }
-        catch (Exception e) {
-            throw new DbRevisionException(e);
-        }
+        return null;
     }
 
     public void createTable(DbTable table) {
-        if (table == null || table.getFields().isEmpty()) {
+        if (table == null || table.getFields().isEmpty() ) {
             return;
         }
 
-        String sql = "create table \"" + table.getName() + "\" " +
+        String sql = "create table " + table.getName() + "\n" +
             "(";
 
         boolean isFirst = true;
@@ -133,12 +116,20 @@ public class DB2Adapter extends DatabaseAdapter {
             else
                 isFirst = !isFirst;
 
-            sql += " \"" + field.getName() + "\"";
+            sql += "\n" + field.getName();
             switch (field.getJavaType()) {
 
                 case Types.NUMERIC:
                 case Types.DECIMAL:
-                    sql += " DECIMAL(" + (field.getSize()==null || field.getSize() > 31 ? 31 : field.getSize()) + ',' + field.getDecimalDigit() + ")";
+                    if (field.getDecimalDigit()!=0) {
+                        sql += " DECIMAL(" + (field.getSize()==null || field.getSize() > 38 ? 38 : field.getSize()) + ',' + field.getDecimalDigit() + ")";
+                    }
+                    else {
+                        if (field.getSize() == 1)
+                            sql += " SMALLINT";
+                        else
+                            sql += " DOUBLE PRECISION";
+                    }
                     break;
 
                 case Types.INTEGER:
@@ -159,14 +150,16 @@ public class DB2Adapter extends DatabaseAdapter {
 
                 case Types.TIMESTAMP:
                 case Types.DATE:
-                    sql += " TIMESTAMP";
+                    sql += " DATETIME";
                     break;
 
                 case Types.LONGVARCHAR:
+                    // Oracle 'long' fields type
                     sql += " VARCHAR(10)";
                     break;
 
                 case Types.LONGVARBINARY:
+                    // Oracle 'long raw' fields type
                     sql += " LONGVARBINARY";
                     break;
 
@@ -178,61 +171,60 @@ public class DB2Adapter extends DatabaseAdapter {
             if (field.getDefaultValue() != null) {
                 String val = field.getDefaultValue().trim();
 
-//                if (!val.equalsIgnoreCase("null"))
-//                    val = "'"+val+"'";
-                if (DatabaseManager.checkDefaultTimestamp(val))
-                    val = "CURRENT TIMESTAMP";
+                // TODO rewrite. check only if type is 'date' 
+                if (DatabaseManager.checkDefaultTimestamp(val)) {
+                    val = "current_timestamp";
+                }
 
                 sql += (" DEFAULT " + val);
             }
 
-            if (field.getNullable() == DatabaseMetaData.columnNoNulls) {
+            if (field.getNullable()==DatabaseMetaData.columnNoNulls) {
                 sql += " NOT NULL ";
             }
         }
-
-        if (table.getPrimaryKey() != null && table.getPrimaryKey().getColumns().size() > 0) {
+        if (table.getPrimaryKey() != null && table.getPrimaryKey().getColumns().size() != 0) {
             DbPrimaryKey pk = table.getPrimaryKey();
 
-            sql += ", CONSTRAINT " + pk.getPkName() + " PRIMARY KEY ( ";
+            //            constraintDefinition:
+//            [ CONSTRAINT name ]
+//            UNIQUE ( column [,column...] ) |
+//            PRIMARY KEY ( column [,column...] ) |
 
-            int seq = Integer.MIN_VALUE;
+            sql += ",\nCONSTRAINT " + pk.getPkName() + " PRIMARY KEY (\n";
+
+            Collections.sort(pk.getColumns(), DbPkComparator.getInstance());
             isFirst = true;
-            for (DbPrimaryKeyColumn primaryKeyColumnType : pk.getColumns()) {
-                DbPrimaryKeyColumn column = primaryKeyColumnType;
-                int seqTemp = Integer.MAX_VALUE;
-                for (DbPrimaryKeyColumn columnTemp : pk.getColumns()) {
-                    if (seq < columnTemp.getKeySeq() && columnTemp.getKeySeq() < seqTemp) {
-                        seqTemp = columnTemp.getKeySeq();
-                        column = columnTemp;
-                    }
-                }
-                seq = column.getKeySeq();
-
-                if (!isFirst)
+            for (DbPrimaryKeyColumn column : pk.getColumns()) {
+                if (!isFirst) {
                     sql += ",";
-                else
+                }
+                else {
                     isFirst = !isFirst;
+                }
 
                 sql += column.getColumnName();
             }
-            sql += " )";
+            sql += "\n)";
         }
+        sql += "\n)";
 
-        sql += " )";
-
-        Statement ps = null;
+        Statement st = null;
         try {
-            ps = this.getConnection().createStatement();
-            ps.executeUpdate(sql);
-            this.getConnection().commit();
+            st = this.getConnection().createStatement();
+            st.execute(sql);
+            int count = st.getUpdateCount();
+            if (log.isDebugEnabled()) {
+                log.debug("count of processed records " + count);
+            }
         }
         catch (SQLException e) {
+            log.error("SQL:\n"+sql);
             throw new DbRevisionException(e);
         }
         finally {
-            DbUtils.close(ps);
-            ps = null;
+            DbUtils.close(st);
+            st = null;
         }
 
     }
@@ -241,29 +233,31 @@ public class DB2Adapter extends DatabaseAdapter {
     }
 
     public void dropTable(DbTable table) {
-        if (table == null)
-            return;
-
         dropTable(table.getName());
     }
 
     public void dropTable(String nameTable) {
-        if (nameTable == null || nameTable.trim().length() == 0)
+        if (nameTable == null) {
             return;
+        }
 
         String sql = "drop table " + nameTable;
 
-        Statement ps = null;
+        Statement st = null;
         try {
-            ps = this.getConnection().createStatement();
-            ps.executeUpdate(sql);
+            st = this.getConnection().createStatement();
+            st.execute(sql);
+            int count = st.getUpdateCount();
+            if (log.isDebugEnabled())
+                log.debug("count of deleted object " + count);
         }
         catch (SQLException e) {
+            log.error("Error drop table " + nameTable, e);
             throw new DbRevisionException(e);
         }
         finally {
-            DbUtils.close(ps);
-            ps = null;
+            DbUtils.close(st);
+            st = null;
         }
     }
 
@@ -292,15 +286,164 @@ public class DB2Adapter extends DatabaseAdapter {
     }
 
     public void addColumn(DbTable table, DbField field) {
+        String sql = "alter table " + table.getName() + " add " + field.getName() + " ";
+
+        switch (field.getJavaType()) {
+
+            case Types.NUMERIC:
+            case Types.DECIMAL:
+                sql += " DOUBLE PRECISION";
+                break;
+
+            case Types.INTEGER:
+                sql += " INTEGER";
+                break;
+
+            case Types.DOUBLE:
+                sql += " DOUBLE";
+                break;
+
+            case Types.CHAR:
+                sql += " VARCHAR(1)";
+                break;
+
+            case Types.VARCHAR:
+                sql += (" VARCHAR(" + field.getSize() + ") ");
+                break;
+
+            case Types.TIMESTAMP:
+            case Types.DATE:
+                sql += " DATETIME";
+                break;
+
+            case Types.LONGVARCHAR:
+                // Oracle 'long' fields type
+                sql += " VARCHAR(10)";
+                break;
+
+            case Types.LONGVARBINARY:
+                // Oracle 'long raw' fields type
+                sql += " LONGVARBINARY";
+                break;
+
+            default:
+                field.setJavaStringType("unknown field type field - " + field.getName() + " javaType - " + field.getJavaType());
+                System.out.println("unknown field type field - " + field.getName() + " javaType - " + field.getJavaType());
+        }
+
+        if (field.getDefaultValue() != null) {
+            String val = field.getDefaultValue().trim();
+
+            //TODO rewrite init of def as in createTable
+//                if (!val.equalsIgnoreCase("null"))
+//                    val = "'"+val+"'";
+            if (DatabaseManager.checkDefaultTimestamp(val))
+                val = "current_timestamp";
+
+            sql += (" DEFAULT " + val);
+        }
+
+        if (field.getNullable() == DatabaseMetaData.columnNoNulls) {
+            sql += " NOT NULL ";
+        }
+
+        if (log.isDebugEnabled())
+            log.debug("Interbase addColumn sql - \n" + sql);
+
+        Statement ps = null;
+        try {
+            ps = this.getConnection().createStatement();
+            ps.executeUpdate(sql);
+            this.getConnection().commit();
+        }
+        catch (SQLException e) {
+            throw new DbRevisionException(e);
+        }
+        finally {
+            DbUtils.close(ps);
+            ps = null;
+        }
     }
 
     public String getOnDeleteSetNull() {
-        return null;
+        return "ON DELETE NO ACTION";
     }
 
     public String getDefaultTimestampValue() {
-        return "CURRENT TIMESTAMP";
+        return "current_timestamp";
     }
+
+/*
+ALTER TABLE table
+{ [ ALTER COLUMN column_name
+    { new_data_type [ ( precision [ , scale ] ) ]
+        [ COLLATE < collation_name > ]
+        [ NULL | NOT NULL ]
+        | {ADD | DROP } ROWGUIDCOL }
+    ]
+    | ADD
+        { [ < column_definition > ]
+        |  column_name AS computed_column_expression
+        } [ ,...n ]
+    | [ WITH CHECK | WITH NOCHECK ] ADD
+        { < table_constraint > } [ ,...n ]
+    | DROP
+        { [ CONSTRAINT ] constraint_name
+            | COLUMN column } [ ,...n ]
+    | { CHECK | NOCHECK } CONSTRAINT
+        { ALL | constraint_name [ ,...n ] }
+    | { ENABLE | DISABLE } TRIGGER
+        { ALL | trigger_name [ ,...n ] }
+}
+
+< column_definition > ::=
+    { column_name data_type }
+    [ [ DEFAULT constant_expression ] [ WITH VALUES ]
+    | [ IDENTITY [ (seed , increment ) [ NOT FOR REPLICATION ] ] ]
+        ]
+    [ ROWGUIDCOL ]
+    [ COLLATE < collation_name > ]
+    [ < column_constraint > ] [ ...n ]
+
+< column_constraint > ::=
+    [ CONSTRAINT constraint_name ]
+    { [ NULL | NOT NULL ]
+        | [ { PRIMARY KEY | UNIQUE }
+            [ CLUSTERED | NONCLUSTERED ]
+            [ WITH FILLFACTOR = fillfactor ]
+            [ ON { filegroup | DEFAULT } ]
+            ]
+        | [ [ FOREIGN KEY ]
+            REFERENCES ref_table [ ( ref_column ) ]
+            [ ON DELETE { CASCADE | NO ACTION } ]
+            [ ON UPDATE { CASCADE | NO ACTION } ]
+            [ NOT FOR REPLICATION ]
+            ]
+        | CHECK [ NOT FOR REPLICATION ]
+            ( logical_expression )
+    }
+
+< table_constraint > ::=
+    [ CONSTRAINT constraint_name ]
+    { [ { PRIMARY KEY | UNIQUE }
+        [ CLUSTERED | NONCLUSTERED ]
+        { ( column [ ,...n ] ) }
+        [ WITH FILLFACTOR = fillfactor ]
+        [ ON {filegroup | DEFAULT } ]
+        ]
+        |    FOREIGN KEY
+            [ ( column [ ,...n ] ) ]
+            REFERENCES ref_table [ ( ref_column [ ,...n ] ) ]
+            [ ON DELETE { CASCADE | NO ACTION } ]
+            [ ON UPDATE { CASCADE | NO ACTION } ]
+            [ NOT FOR REPLICATION ]
+        | DEFAULT constant_expression
+            [ FOR column ] [ WITH VALUES ]
+        |    CHECK [ NOT FOR REPLICATION ]
+            ( search_conditions )
+    }
+
+*/
 
     public List<DbView> getViewList(String schemaPattern, String tablePattern) {
         return DatabaseManager.getViewList(getConnection(), schemaPattern, tablePattern);
@@ -323,9 +466,7 @@ public class DB2Adapter extends DatabaseAdapter {
 
         String sql_ =
             "CREATE VIEW " + view.getName() +
-            " AS " +
-            Utils.replaceStringArray(view.getText(),
-                new String[][]{{"||", "+"}, {"\n", " "}}).trim();
+            " AS " + StringUtils.replace(view.getText(), "||", "+");
 
         Statement ps = null;
         try {
@@ -378,10 +519,8 @@ public class DB2Adapter extends DatabaseAdapter {
 */
 
     public boolean testExceptionTableNotFound(Exception e) {
-        if (e instanceof SQLException) {
-            if (((SQLException) e).getErrorCode() == -204)
-                return true;
-        }
+        if (((SQLException) e).getErrorCode() == 208)
+            return true;
         return false;
     }
 
@@ -406,7 +545,7 @@ public class DB2Adapter extends DatabaseAdapter {
 
     public boolean testExceptionTableExists(Exception e) {
         if (e instanceof SQLException) {
-            if (((SQLException) e).getErrorCode() == -601)
+            if (((SQLException) e).getErrorCode() == 335544351)
                 return true;
         }
         return false;
@@ -414,7 +553,7 @@ public class DB2Adapter extends DatabaseAdapter {
 
     public boolean testExceptionViewExists(Exception e) {
         if (e instanceof SQLException) {
-            if (((SQLException) e).getErrorCode() == -601)
+            if (((SQLException) e).getErrorCode() == 2714)
                 return true;
         }
         return false;

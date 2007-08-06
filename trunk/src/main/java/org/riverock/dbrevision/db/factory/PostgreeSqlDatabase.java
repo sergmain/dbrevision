@@ -41,7 +41,7 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import oracle.jdbc.OracleResultSet;
+import oracle.jdbc.driver.OracleResultSet;
 import oracle.sql.CLOB;
 
 import org.riverock.dbrevision.annotation.schema.db.DbDataFieldData;
@@ -52,19 +52,16 @@ import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKeyColumn;
 import org.riverock.dbrevision.annotation.schema.db.DbSequence;
 import org.riverock.dbrevision.annotation.schema.db.DbTable;
 import org.riverock.dbrevision.annotation.schema.db.DbView;
-import org.riverock.dbrevision.db.DatabaseAdapter;
+import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.exception.DbRevisionException;
 import org.riverock.dbrevision.utils.DbUtils;
 
 /**
- * Класс OracleAdapter прденазначен для коннекта к оракловской базе данных.
- * <p/>
- * $Id: OracleAdapter.java 1141 2006-12-14 14:43:29Z serg_main $
+ * $Id: PostgreeSqlDatabase.java 1141 2006-12-14 14:43:29Z serg_main $
  */
-@SuppressWarnings({"UnusedAssignment"})
-public class OracleAdapter extends DatabaseAdapter {
-    private final static Logger log = Logger.getLogger(OracleAdapter.class);
+public class PostgreeSqlDatabase extends Database {
+    private static Logger log = Logger.getLogger(PostgreeSqlDatabase.class);
 
     public int getMaxLengthStringField() {
         return 4000;
@@ -90,7 +87,7 @@ public class OracleAdapter extends DatabaseAdapter {
         if (table == null || table.getFields().isEmpty())
             return;
 
-        String sql = "create table " + table.getName() + " \n" +
+        String sql = "create table \"" + table.getName() + "\"\n" +
             "(";
 
         boolean isFirst = true;
@@ -102,28 +99,15 @@ public class OracleAdapter extends DatabaseAdapter {
                 isFirst = !isFirst;
 
             sql += "\n\"" + field.getName() + "\"";
-            int fieldType = field.getJavaType();
-            switch (fieldType) {
-                case Types.BIT:
-                    sql += " NUMBER(1,0)";
-                    break;
-
-                case Types.TINYINT:
-                    sql += " NUMBER(4,0)";
-                    break;
-
-                case Types.BIGINT:
-                    sql += " NUMBER(38,0)";
-                    break;
-
+            switch (field.getJavaType()) {
                 case Types.DECIMAL:
                 case Types.DOUBLE:
                 case Types.NUMERIC:
                 case Types.INTEGER:
-                    if (field.getDecimalDigit() == null || field.getDecimalDigit() == 0)
+                    if (field.getDecimalDigit()==0)
                         sql += " NUMBER";
                     else
-                        sql += " NUMBER(" + (field.getSize()==null || field.getSize()>38?38:field.getSize()) + "," + field.getDecimalDigit() + ")";
+                        sql += " NUMBER(" + (field.getSize()==null || field.getSize()>31?31:field.getSize()) + "," + field.getDecimalDigit() + ")";
                     break;
 
                 case Types.CHAR:
@@ -143,18 +127,11 @@ public class OracleAdapter extends DatabaseAdapter {
                     break;
 
                 case Types.LONGVARCHAR:
-                    // Oracle 'long' fields type
                     sql += " LONGVARCHAR";
                     break;
 
                 case Types.LONGVARBINARY:
-                    // Oracle 'long raw' fields type
                     sql += " LONGVARBINARY";
-                    break;
-
-                case Types.BLOB:
-                    // Oracle 'long raw' fields type
-                    sql += " BLOB";
                     break;
 
                 default:
@@ -165,20 +142,11 @@ public class OracleAdapter extends DatabaseAdapter {
             if (field.getDefaultValue() != null) {
                 String val = field.getDefaultValue().trim();
 
-                switch (fieldType) {
-                    case Types.CHAR:
-                    case Types.VARCHAR:
-                        if (!val.equalsIgnoreCase("null")) {
-                            val = "'" + val + "'";
-                        }
-                        break;
-                    case Types.DATE:
-                    case Types.TIMESTAMP:
-                        if (DatabaseManager.checkDefaultTimestamp(val)) {
-                            val = getDefaultTimestampValue();
-                        }
-                        break;
-                }
+                //TODO rewrite init of def as in createTable
+
+                if (DatabaseManager.checkDefaultTimestamp(val))
+                    val = "SYSDATE";
+
                 sql += (" DEFAULT " + val);
             }
 
@@ -189,7 +157,7 @@ public class OracleAdapter extends DatabaseAdapter {
         if (table.getPrimaryKey() != null && !table.getPrimaryKey().getColumns().isEmpty()) {
             DbPrimaryKey pk = table.getPrimaryKey();
 
-            //            constraintDefinition:
+//            constraintDefinition:
 //            [ CONSTRAINT name ]
 //            UNIQUE ( column [,column...] ) |
 //            PRIMARY KEY ( column [,column...] ) |
@@ -198,8 +166,7 @@ public class OracleAdapter extends DatabaseAdapter {
 
             int seq = Integer.MIN_VALUE;
             isFirst = true;
-            for (DbPrimaryKeyColumn keyColumn : pk.getColumns()) {
-                DbPrimaryKeyColumn column = keyColumn;
+            for (DbPrimaryKeyColumn column : pk.getColumns()) {
                 int seqTemp = Integer.MAX_VALUE;
                 for (DbPrimaryKeyColumn columnTemp : pk.getColumns()) {
                     if (seq < columnTemp.getKeySeq() && columnTemp.getKeySeq() < seqTemp) {
@@ -237,27 +204,25 @@ public class OracleAdapter extends DatabaseAdapter {
         }
         finally {
             DbUtils.close(ps);
-            ps = null;
         }
-
     }
 
     public void createForeignKey(DbTable view) {
-        
     }
 
-    /**
-     * ALTER TABLE a_test_1<br>
-     * ADD CONSTRAINT a_test_1_fk FOREIGN KEY (id, id_test)&<br>
-     * REFERENCES a_test (id_test,id_lang) ON DELETE SET NULL<br>
-     * /<br>
-       <br>
-     * ALTER TABLE a_test_1<br>
-     * ADD CONSTRAINT a_test_1_fk2 FOREIGN KEY (text1, id_text)<br>
-     * REFERENCES a_test_2 (text2,text_id) ON DELETE CASCADE<br>
-     * DEFERRABLE INITIALLY DEFERRED<br>
-     /
+    /*
+ALTER TABLE a_test_1
+ADD CONSTRAINT a_test_1_fk FOREIGN KEY (id, id_test)
+REFERENCES a_test (id_test,id_lang) ON DELETE SET NULL
+/
+
+ALTER TABLE a_test_1
+ADD CONSTRAINT a_test_1_fk2 FOREIGN KEY (text1, id_text)
+REFERENCES a_test_2 (text2,text_id) ON DELETE CASCADE
+DEFERRABLE INITIALLY DEFERRED
+/
     */
+
     public void dropTable(DbTable table) {
         dropTable(table.getName());
     }
@@ -278,6 +243,7 @@ public class OracleAdapter extends DatabaseAdapter {
         }
         finally {
             DbUtils.close(ps);
+            //noinspection UnusedAssignment
             ps = null;
         }
     }
@@ -297,11 +263,12 @@ public class OracleAdapter extends DatabaseAdapter {
         }
         finally {
             DbUtils.close(ps);
+            //noinspection UnusedAssignment
             ps = null;
         }
     }
 
-    public void dropConstraint(DbForeignKey impPk){
+    public void dropConstraint(DbForeignKey impPk) {
         throw new DbRevisionException("not implemented");
     }
 
@@ -311,16 +278,15 @@ public class OracleAdapter extends DatabaseAdapter {
 
         String sql = "alter table " + table.getName() + " add ( " + field.getName() + " ";
 
-        int fieldType = field.getJavaType();
-        switch (fieldType) {
+        switch (field.getJavaType()) {
             case Types.DECIMAL:
             case Types.DOUBLE:
             case Types.NUMERIC:
             case Types.INTEGER:
-                if (field.getDecimalDigit() == null || field.getDecimalDigit() == 0)
+                if (field.getDecimalDigit() == 0)
                     sql += " NUMBER";
                 else
-                    sql += " NUMBER(" + (field.getSize()==null || field.getSize()>38?38:field.getSize()) + "," + field.getDecimalDigit() + ")";
+                    sql += " NUMBER(" + (field.getSize()==null || field.getSize()>31?31:field.getSize()) + "," + field.getDecimalDigit() + ")";
                 break;
 
             case Types.CHAR:
@@ -340,12 +306,10 @@ public class OracleAdapter extends DatabaseAdapter {
                 break;
 
             case Types.LONGVARCHAR:
-                // Oracle 'long' fields type
                 sql += " LONGVARCHAR";
                 break;
 
             case Types.LONGVARBINARY:
-                // Oracle 'long raw' fields type
                 sql += " LONGVARBINARY";
                 break;
 
@@ -357,19 +321,11 @@ public class OracleAdapter extends DatabaseAdapter {
         if (field.getDefaultValue() != null) {
             String val = field.getDefaultValue().trim();
 
-            switch (fieldType) {
-                case Types.CHAR:
-                case Types.VARCHAR:
-                    if (!val.equalsIgnoreCase("null")) {
-                        val = "'" + val + "'";
-                    }
-                    break;
-                case Types.DATE:
-                case Types.TIMESTAMP:
-                    if (DatabaseManager.checkDefaultTimestamp(val)) {
-                        val = "SYSDATE";
-                    }
-                    break;
+            //TODO rewrite init of def as in createTable
+//                if (!val.equalsIgnoreCase("null"))
+//                    val = "'"+val+"'";
+            if (DatabaseManager.checkDefaultTimestamp(val)) {
+                val = "current_timestamp";
             }
 
             sql += (" DEFAULT " + val);
@@ -380,9 +336,8 @@ public class OracleAdapter extends DatabaseAdapter {
         }
         sql += ")";
 
-        if (log.isDebugEnabled()) {
-            log.debug("Oracle addColumn sql - " + sql);
-        }
+        if (log.isDebugEnabled())
+            log.debug("addColumn sql - " + sql);
 
         Statement ps = null;
         try {
@@ -395,6 +350,7 @@ public class OracleAdapter extends DatabaseAdapter {
         }
         finally {
             DbUtils.close(ps);
+            //noinspection UnusedAssignment
             ps = null;
         }
     }
@@ -444,7 +400,9 @@ public class OracleAdapter extends DatabaseAdapter {
             throw new DbRevisionException(e);
         } finally {
             DbUtils.close(rs, ps);
+            //noinspection UnusedAssignment
             rs = null;
+            //noinspection UnusedAssignment
             ps = null;
         }
         if (v.size() > 0)
@@ -465,23 +423,24 @@ public class OracleAdapter extends DatabaseAdapter {
             rs = ps.executeQuery();
 
             if (rs.next()) {
-                if (log.isDebugEnabled()) {
+                if (log.isDebugEnabled())
                     log.debug("Found text of view " + view.getSchema() + "." + view.getName());
-                }
 
                 return getStream(rs, "TEXT", 0x10000);
             }
-            return null;
-
-        } catch (SQLException e) {
+        }
+        catch (SQLException e) {
             throw new DbRevisionException(e);
         } catch (IOException e) {
             throw new DbRevisionException(e);
         } finally {
             DbUtils.close(rs, ps);
+            //noinspection UnusedAssignment
             rs = null;
+            //noinspection UnusedAssignment
             ps = null;
         }
+        return null;
     }
 
     public void createView(DbView view) {
@@ -499,9 +458,9 @@ public class OracleAdapter extends DatabaseAdapter {
         }
         catch (SQLException e) {
             throw new DbRevisionException(e);
-        } finally {
+        }
+        finally {
             DbUtils.close(ps);
-            ps = null;
         }
     }
 
@@ -532,7 +491,7 @@ public class OracleAdapter extends DatabaseAdapter {
                 "INCREMENT BY " + seq.getIncrementBy() + " " +
                 "MINVALUE " + seq.getMinValue() + " " +
                 "MAXVALUE " + seq.getMaxValue() + " " +
-                (seq.getCacheSize() == 0 ? "NOCACHE" : "CACHE " + seq.getCacheSize()) + " " +
+                (seq.getCacheSize()==null || seq.getCacheSize()==0 ? "NOCACHE" : "CACHE " + seq.getCacheSize()) + " " +
                 (Boolean.TRUE.equals(seq.isIsCycle()) ? "CYCLE" : "NOCYCLE") + " " +
                 (Boolean.TRUE.equals(seq.isIsOrder()) ? "ORDER" : "") + " ";
 
@@ -547,7 +506,6 @@ public class OracleAdapter extends DatabaseAdapter {
         }
         finally {
             DbUtils.close(ps);
-            ps = null;
         }
     }
 
@@ -611,8 +569,7 @@ public class OracleAdapter extends DatabaseAdapter {
         byte[] buffer = new byte[maxLength];
 
         // length of bytes read
-        int length = 0;
-
+        int length;
         String ret = "";
         boolean flag = false;
         // Fetch data
@@ -633,7 +590,6 @@ public class OracleAdapter extends DatabaseAdapter {
             log.warn("error close of stream", e);
         }
 
-
         if (flag)
             return ret;
         else
@@ -641,11 +597,13 @@ public class OracleAdapter extends DatabaseAdapter {
     }
 
     public boolean testExceptionTableNotFound(Exception e) {
-        if (e == null) {
+        if (e == null)
             return false;
-        }
 
-        return (e instanceof SQLException) && (e.toString().indexOf("ORA-00942") != -1);
+        if ((e instanceof SQLException) &&
+            (e.toString().indexOf("ORA-00942") != -1))
+            return true;
+        return false;
     }
 
     public boolean testExceptionIndexUniqueKey(Exception e, String index) {
@@ -665,44 +623,54 @@ public class OracleAdapter extends DatabaseAdapter {
         if (e == null)
             return false;
 
-        return (e instanceof SQLException) && ((e.toString().indexOf("ORA-00001") != -1));
+        if ((e instanceof SQLException) && ((e.toString().indexOf("ORA-00001") != -1)))
+            return true;
 
+        return false;
     }
 
     public boolean testExceptionTableExists(Exception e) {
         if (e == null)
             return false;
 
-        return (e instanceof SQLException) &&
-            (e.toString().indexOf("ORA-00955") != -1);
+        if ((e instanceof SQLException) &&
+            (e.toString().indexOf("ORA-00955") != -1))
+            return true;
 
+        return false;
     }
 
     public boolean testExceptionViewExists(Exception e) {
         if (e == null)
             return false;
 
-        return (e instanceof SQLException) &&
-            (e.toString().indexOf("ORA-00955") != -1);
+        if ((e instanceof SQLException) &&
+            (e.toString().indexOf("ORA-00955") != -1))
+            return true;
 
+        return false;
     }
 
     public boolean testExceptionSequenceExists(Exception e) {
         if (e == null)
             return false;
 
-        return (e instanceof SQLException) &&
-            (e.toString().indexOf("ORA-00955") != -1);
+        if ((e instanceof SQLException) &&
+            (e.toString().indexOf("ORA-00955") != -1))
+            return true;
 
+        return false;
     }
 
     public boolean testExceptionConstraintExists(Exception e) {
         if (e == null)
             return false;
 
-        return (e instanceof SQLException) &&
-            (e.toString().indexOf("ORA-02275") != -1);
+        if ((e instanceof SQLException) &&
+            (e.toString().indexOf("ORA-02275") != -1))
+            return true;
 
+        return false;
     }
 
     /**
@@ -713,7 +681,7 @@ public class OracleAdapter extends DatabaseAdapter {
         return Family.ORACLE;
     }
 
-    public OracleAdapter(Connection conn) {
+    public PostgreeSqlDatabase(Connection conn) {
         super(conn);
     }
 

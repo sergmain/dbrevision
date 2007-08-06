@@ -11,7 +11,7 @@ import org.riverock.dbrevision.annotation.schema.db.DbForeignKey;
 import org.riverock.dbrevision.annotation.schema.db.DbSequence;
 import org.riverock.dbrevision.annotation.schema.db.DbTable;
 import org.riverock.dbrevision.annotation.schema.db.DbView;
-import org.riverock.dbrevision.db.DatabaseAdapter;
+import org.riverock.dbrevision.db.Database;
 
 /**
  * Created by IntelliJ IDEA.
@@ -20,8 +20,8 @@ import org.riverock.dbrevision.db.DatabaseAdapter;
  * Time: 21:05:32
  * To change this template use File | Settings | File Templates.
  */
-public class LocalDatabaseAdapter extends DatabaseAdapter {
-    public LocalDatabaseAdapter(Connection conn) {
+public class LocalDatabase extends Database {
+    public LocalDatabase(Connection conn) {
         super(conn);
     }
 

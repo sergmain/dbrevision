@@ -1,12 +1,9 @@
 package org.riverock.dbrevision.manager;
 
-import org.riverock.dbrevision.db.DatabaseAdapter;
+import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.exception.FirstVersionWithPatchdException;
 import org.riverock.dbrevision.exception.ModulePathNotFoundException;
 import org.riverock.dbrevision.exception.CurrentVersionNotDefinedException;
-import org.riverock.dbrevision.annotation.schema.db.Patch;
-import org.riverock.dbrevision.manager.patch.PatchService;
-import org.riverock.dbrevision.manager.dao.ManagerDaoFactory;
 
 import java.io.File;
 import java.io.Serializable;
@@ -22,7 +19,7 @@ public class Module implements Serializable {
 
     private List<Version> versions=new ArrayList<Version>();
 
-    private DatabaseAdapter databaseAdapter=null;
+    private Database database =null;
 
     private String description=null;
 
@@ -32,8 +29,8 @@ public class Module implements Serializable {
 
     private boolean isComplete=false;
 
-    public Module(DatabaseAdapter databaseAdapter, File dbRevisionPath, ModuleConfig moduleConfig) {
-        this.databaseAdapter = databaseAdapter;
+    public Module(Database database, File dbRevisionPath, ModuleConfig moduleConfig) {
+        this.database = database;
         this.description = moduleConfig.getDescription();
         this.name = moduleConfig.getName();
 
@@ -42,7 +39,7 @@ public class Module implements Serializable {
             throw new ModulePathNotFoundException("Module path not found: " + modulePath.getAbsolutePath() );
         }
         for (String versionName : moduleConfig.getVersions()) {
-            Version version = new Version(databaseAdapter, modulePath, versionName);
+            Version version = new Version(database, modulePath, versionName);
             versions.add(version);
         }
         if (versions.size()>0) {
