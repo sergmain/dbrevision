@@ -1,7 +1,7 @@
 package org.riverock.dbrevision.manager;
 
 import junit.framework.TestCase;
-import org.riverock.dbrevision.db.factory.LocalDatabaseAdapter;
+import org.riverock.dbrevision.db.factory.LocalDatabase;
 import org.riverock.dbrevision.exception.*;
 import org.riverock.dbrevision.manager.dao.InitManagerDaoFactory;
 
@@ -32,7 +32,7 @@ public class TestDbRevisionManager extends TestCase {
         }
         assertTrue(isCorrect);
         isCorrect=false;
-        LocalDatabaseAdapter localDatabaseAdapter = new LocalDatabaseAdapter(null);
+        LocalDatabase localDatabaseAdapter = new LocalDatabase(null);
         try {
             new DbRevisionManager(localDatabaseAdapter, null);
         }
@@ -65,7 +65,7 @@ public class TestDbRevisionManager extends TestCase {
      */
     public void testConfig_0() throws Exception {
         String path = DBREVISION_CONFIGS+File.separatorChar+"config-0";
-        LocalDatabaseAdapter localDatabaseAdapter = new LocalDatabaseAdapter(null);
+        LocalDatabase localDatabaseAdapter = new LocalDatabase(null);
         boolean isCorrect=false;
         try {
            new DbRevisionManager(localDatabaseAdapter, path);
@@ -83,7 +83,7 @@ public class TestDbRevisionManager extends TestCase {
      */
     public void testConfig_1() throws Exception {
         String path = DBREVISION_CONFIGS+File.separatorChar+"config-1";
-        LocalDatabaseAdapter localDatabaseAdapter = new LocalDatabaseAdapter(null);
+        LocalDatabase localDatabaseAdapter = new LocalDatabase(null);
         boolean isCorrect=false;
         try {
            new DbRevisionManager(localDatabaseAdapter, path);
@@ -101,7 +101,7 @@ public class TestDbRevisionManager extends TestCase {
      */
     public void testConfig_2() throws Exception {
         String path = DBREVISION_CONFIGS+File.separatorChar+"config-2";
-        LocalDatabaseAdapter localDatabaseAdapter = new LocalDatabaseAdapter(null);
+        LocalDatabase localDatabaseAdapter = new LocalDatabase(null);
         boolean isCorrect=false;
         try {
            new DbRevisionManager(localDatabaseAdapter, path);
@@ -119,7 +119,7 @@ public class TestDbRevisionManager extends TestCase {
      */
     public void testConfig_3() throws Exception {
         String path = DBREVISION_CONFIGS+File.separatorChar+"config-3";
-        LocalDatabaseAdapter localDatabaseAdapter = new LocalDatabaseAdapter(null);
+        LocalDatabase localDatabaseAdapter = new LocalDatabase(null);
         boolean isCorrect=false;
         try {
            new DbRevisionManager(localDatabaseAdapter, path);
@@ -137,7 +137,7 @@ public class TestDbRevisionManager extends TestCase {
      */
     public void testConfig_4() throws Exception {
         String path = DBREVISION_CONFIGS+File.separatorChar+"config-4";
-        LocalDatabaseAdapter localDatabaseAdapter = new LocalDatabaseAdapter(null);
+        LocalDatabase localDatabaseAdapter = new LocalDatabase(null);
         boolean isCorrect=false;
         try {
            new DbRevisionManager(localDatabaseAdapter, path);
@@ -158,7 +158,7 @@ public class TestDbRevisionManager extends TestCase {
         InitManagerDaoFactory.initNotExistedModule();
 
         String path = DBREVISION_CONFIGS+File.separatorChar+"config-5";
-        LocalDatabaseAdapter localDatabaseAdapter = new LocalDatabaseAdapter(null);
+        LocalDatabase localDatabaseAdapter = new LocalDatabase(null);
         boolean isCorrect=false;
         try {
             new DbRevisionManager(localDatabaseAdapter, path);
@@ -179,7 +179,7 @@ public class TestDbRevisionManager extends TestCase {
         InitManagerDaoFactory.initNotExistedVersionModule();
 
         String path = DBREVISION_CONFIGS+File.separatorChar+"config-5";
-        LocalDatabaseAdapter localDatabaseAdapter = new LocalDatabaseAdapter(null);
+        LocalDatabase localDatabaseAdapter = new LocalDatabase(null);
         boolean isCorrect=false;
         try {
             new DbRevisionManager(localDatabaseAdapter, path);
@@ -200,7 +200,7 @@ public class TestDbRevisionManager extends TestCase {
         InitManagerDaoFactory.initCurrentVersionInMiddleOfList();
 
         String path = DBREVISION_CONFIGS+File.separatorChar+"config-valid";
-        LocalDatabaseAdapter localDatabaseAdapter = new LocalDatabaseAdapter(null);
+        LocalDatabase localDatabaseAdapter = new LocalDatabase(null);
         DbRevisionManager manager = new DbRevisionManager(localDatabaseAdapter, path);
 
         List<Module> modules = manager.getModules();
@@ -242,7 +242,7 @@ public class TestDbRevisionManager extends TestCase {
     public void testConfigValid_5() throws Exception {
 
         String path = DBREVISION_CONFIGS+File.separatorChar+"config-valid-1";
-        LocalDatabaseAdapter localDatabaseAdapter = new LocalDatabaseAdapter(null);
+        LocalDatabase localDatabaseAdapter = new LocalDatabase(null);
         DbRevisionManager manager = new DbRevisionManager(localDatabaseAdapter, path);
 
         List<Module> modules = manager.getModules();

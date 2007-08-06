@@ -1,6 +1,6 @@
 package org.riverock.dbrevision.manager.patch;
 
-import org.riverock.dbrevision.db.DatabaseAdapter;
+import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.annotation.schema.db.Action;
 
 /**
@@ -9,5 +9,5 @@ import org.riverock.dbrevision.annotation.schema.db.Action;
  * Time: 14:45:29
  */
 public interface PatchValidator {
-    public PatchStatus validate(DatabaseAdapter adapter, Action action) throws Exception;
+    public PatchStatus validate(Database adapter, Action action) throws Exception;
 }

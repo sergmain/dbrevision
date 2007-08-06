@@ -2,7 +2,7 @@ package org.riverock.dbrevision.manager;
 
 import org.riverock.dbrevision.Constants;
 import org.riverock.dbrevision.annotation.schema.db.Patch;
-import org.riverock.dbrevision.db.DatabaseAdapter;
+import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.exception.ConfigFileNotFoundException;
 import org.riverock.dbrevision.exception.CurrentVersionCodeNotFoundException;
 import org.riverock.dbrevision.exception.DbRevisionPathNotFoundException;
@@ -32,16 +32,16 @@ public class DbRevisionManager {
 
     private List<Module> modules = new ArrayList<Module>();
 
-    private DatabaseAdapter databaseAdapter;
+    private Database database;
 
-    public DbRevisionManager(DatabaseAdapter databaseAdapter, String dbRevisionPath) {
-        if (databaseAdapter==null) {
-            throw new IllegalArgumentException("DatabaseAdapter is null");
+    public DbRevisionManager(Database database, String dbRevisionPath) {
+        if (database ==null) {
+            throw new IllegalArgumentException("Database is null");
         }
         if (dbRevisionPath==null) {
             throw new IllegalArgumentException("dbRevisionPath is null");
         }
-        this.databaseAdapter = databaseAdapter;
+        this.database = database;
         this.path = new File(dbRevisionPath);
         if (!path.exists()) {
             throw new DbRevisionPathNotFoundException("DbRevision path not found: " + path.getAbsolutePath());
@@ -77,7 +77,7 @@ public class DbRevisionManager {
             throw new ConfigFileNotFoundException(e);
         }
         for (ModuleConfig moduleConfig : config.getModuleConfigs()) {
-            modules.add( new Module(databaseAdapter, path, moduleConfig) );
+            modules.add( new Module(database, path, moduleConfig) );
         }
     }
 
@@ -86,7 +86,7 @@ public class DbRevisionManager {
     }
 
     private void prepareCurrentVersions() {
-        List<RevisionBean> revisionBeans = ManagerDaoFactory.getManagerDao().getRevisions(databaseAdapter);
+        List<RevisionBean> revisionBeans = ManagerDaoFactory.getManagerDao().getRevisions(database);
         for (RevisionBean revisionBean : revisionBeans) {
             Module module = getModule(revisionBean.getModuleName());
             if (module!=null) {

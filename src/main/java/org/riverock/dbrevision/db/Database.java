@@ -38,15 +38,15 @@ import org.riverock.dbrevision.annotation.schema.db.DbTable;
 import org.riverock.dbrevision.annotation.schema.db.DbView;
 
 /**
- * DatabaseAdapter
+ * Database
  *
  * $Revision: 1141 $ $Date: 2006-12-14 17:43:29 +0300 (Чт, 14 дек 2006) $
  */
-public abstract class DatabaseAdapter {
+public abstract class Database {
     private Connection conn = null;
 
     /**
-     * DatabaseAdapter family
+     * Database family
      */
     public enum Family {
         ORACLE, MYSQL, DB2, SQLSERVER, HYPERSONIC, MAXDB, INTERBASE, POSTGREES
@@ -57,7 +57,7 @@ public abstract class DatabaseAdapter {
      *
      * @param conn connection
      */
-    public DatabaseAdapter(Connection conn) {
+    public Database(Connection conn) {
         this.conn = conn;
     }
 

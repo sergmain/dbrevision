@@ -35,7 +35,7 @@ import org.apache.log4j.Logger;
 import org.apache.commons.lang.StringUtils;
 
 import org.riverock.dbrevision.annotation.schema.db.*;
-import org.riverock.dbrevision.db.DatabaseAdapter;
+import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.db.DatabaseStructureManager;
 import org.riverock.dbrevision.exception.DbRevisionException;
@@ -110,7 +110,7 @@ public final class PatchService {
         actionTypes.put(COPY_TABLE_TYPE, ActionTypes.COPY_TABLE_TYPE_VALUE);
     }
 
-    public static void processPatch(DatabaseAdapter db_, Patch patch) {
+    public static void processPatch(Database db_, Patch patch) {
         if (patch==null) {
             throw new NullPointerException("patch is null");
         }
@@ -284,7 +284,7 @@ public final class PatchService {
 
     ////////////////////////
 
-    private static void processTable(DatabaseAdapter db_, Patch patch) {
+    private static void processTable(Database db_, Patch patch) {
         log.debug("processTable ");
         if (patch == null) {
             return;
@@ -297,7 +297,7 @@ public final class PatchService {
         }
     }
 
-    private static void processPrimaryKey(DatabaseAdapter db_, Patch patch) {
+    private static void processPrimaryKey(Database db_, Patch patch) {
         log.debug("processPrimaryKey ");
         if (patch == null) {
             return;
@@ -316,7 +316,7 @@ public final class PatchService {
         }
     }
 
-    private static void processForeignKeys(DatabaseAdapter adapter, Patch patch) {
+    private static void processForeignKeys(Database adapter, Patch patch) {
         log.debug("processForeignKeys ");
         if (patch == null) {
             return;
@@ -338,7 +338,7 @@ public final class PatchService {
         }
     }
 
-    private static void processSequences(DatabaseAdapter db_, Patch patch) {
+    private static void processSequences(Database db_, Patch patch) {
         log.debug("processSequences ");
         if (patch == null) {
             return;
@@ -351,7 +351,7 @@ public final class PatchService {
         }
     }
 
-    private static void processAction(DatabaseAdapter db_, Patch patch) {
+    private static void processAction(Database db_, Patch patch) {
         log.debug("processAction ");
         if (patch == null) {
             return;

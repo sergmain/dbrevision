@@ -14,7 +14,7 @@ import org.apache.commons.lang.StringUtils;
 import org.riverock.dbrevision.Constants;
 import org.riverock.dbrevision.annotation.schema.db.Patch;
 import org.riverock.dbrevision.annotation.schema.db.Patches;
-import org.riverock.dbrevision.db.DatabaseAdapter;
+import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.exception.InitStructureFileNotFoundException;
 import org.riverock.dbrevision.exception.NoChildPatchFoundException;
 import org.riverock.dbrevision.exception.PatchParseException;
@@ -38,7 +38,7 @@ public class Version implements Serializable {
 
     List<Patch> patches=null;
 
-    private DatabaseAdapter databaseAdapter=null;
+    private Database database =null;
 
     private boolean isComplete = false;
 
@@ -52,8 +52,8 @@ public class Version implements Serializable {
     
     private File modulePath=null;
 
-    public Version(DatabaseAdapter databaseAdapter, File modulePath, String versionName) {
-        this.databaseAdapter = databaseAdapter;
+    public Version(Database database, File modulePath, String versionName) {
+        this.database = database;
         this.modulePath = modulePath;
         this.versionName = versionName;
         this.versionPath = new File(modulePath, this.versionName);
@@ -124,10 +124,10 @@ public class Version implements Serializable {
             if (patch.isProcessed()) {
                 continue;
             }
-            PatchService.processPatch(databaseAdapter, patch);
-            ManagerDaoFactory.getManagerDao().makrCurrentVersion(databaseAdapter, modulePath.getName(), versionName, patch.getName());
+            PatchService.processPatch(database, patch);
+            ManagerDaoFactory.getManagerDao().makrCurrentVersion(database, modulePath.getName(), versionName, patch.getName());
         }
-        ManagerDaoFactory.getManagerDao().makrCurrentVersion(databaseAdapter, modulePath.getName(), versionName, null);
+        ManagerDaoFactory.getManagerDao().makrCurrentVersion(database, modulePath.getName(), versionName, null);
     }
 
     public void applayPatch(String patchName) {
@@ -143,8 +143,8 @@ public class Version implements Serializable {
         }
         
         if (firstNotProcessed!=null && firstNotProcessed.getName().equals(patchName)) {
-            PatchService.processPatch(databaseAdapter, firstNotProcessed);
-            ManagerDaoFactory.getManagerDao().makrCurrentVersion(databaseAdapter, modulePath.getName(), versionName, firstNotProcessed.getName());
+            PatchService.processPatch(database, firstNotProcessed);
+            ManagerDaoFactory.getManagerDao().makrCurrentVersion(database, modulePath.getName(), versionName, firstNotProcessed.getName());
         }
     }
 

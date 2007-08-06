@@ -29,7 +29,7 @@ import java.io.OutputStream;
 
 import org.riverock.dbrevision.annotation.schema.db.DbSchema;
 import org.riverock.dbrevision.annotation.schema.db.DbTable;
-import org.riverock.dbrevision.db.DatabaseAdapter;
+import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.db.DatabaseStructureManager;
 import org.riverock.dbrevision.exception.DbRevisionException;
@@ -46,11 +46,11 @@ import org.riverock.dbrevision.utils.Utils;
  */
 public class DbStructureExport {
 
-    public static void export(DatabaseAdapter adapter, OutputStream outputStream, boolean isData) {
+    public static void export(Database adapter, OutputStream outputStream, boolean isData) {
         export(adapter, outputStream, isData, true);
     }
 
-    public static void export(DatabaseAdapter adapter, OutputStream outputStream, boolean isData, boolean isOnlyCurrent) {
+    public static void export(Database adapter, OutputStream outputStream, boolean isData, boolean isOnlyCurrent) {
         try {
             DbSchema schema = DatabaseManager.getDbStructure(adapter, isOnlyCurrent);
             if (isData) {

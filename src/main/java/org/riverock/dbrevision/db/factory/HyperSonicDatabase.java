@@ -36,13 +36,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-
-import org.hsqldb.Trace;
 
 import org.riverock.dbrevision.annotation.schema.db.DbDataFieldData;
 import org.riverock.dbrevision.annotation.schema.db.DbField;
@@ -52,36 +49,36 @@ import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKeyColumn;
 import org.riverock.dbrevision.annotation.schema.db.DbSequence;
 import org.riverock.dbrevision.annotation.schema.db.DbTable;
 import org.riverock.dbrevision.annotation.schema.db.DbView;
-import org.riverock.dbrevision.db.DatabaseAdapter;
+import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.db.DatabaseManager;
-import org.riverock.dbrevision.db.DbPkComparator;
 import org.riverock.dbrevision.exception.DbRevisionException;
 import org.riverock.dbrevision.utils.DbUtils;
 
 /**
- * Microsoft adapter
+ *
  * $Author: serg_main $
- * <p/>
- * $Id: SqlServerAdapter.java 1141 2006-12-14 14:43:29Z serg_main $
+ *
+ * $Id: HyperSonicDatabase.java 1141 2006-12-14 14:43:29Z serg_main $
+ *
  */
 @SuppressWarnings({"UnusedAssignment"})
-public class SqlServerAdapter extends DatabaseAdapter {
-    private static Logger log = Logger.getLogger(SqlServerAdapter.class);
+public class HyperSonicDatabase extends Database {
+    private static Logger log = Logger.getLogger( HyperSonicDatabase.class );
 
     /**
      * get family for this adapter
      * @return family
      */
     public Family getFamily() {
-        return Family.SQLSERVER;
+        return Family.HYPERSONIC;
     }
 
-    public SqlServerAdapter(Connection conn) {
+    public HyperSonicDatabase(Connection conn) {
         super(conn);
     }
 
     public int getMaxLengthStringField() {
-        return 4000;
+        return 1000000;
     }
 
     public boolean isBatchUpdate() {
@@ -89,7 +86,7 @@ public class SqlServerAdapter extends DatabaseAdapter {
     }
 
     public boolean isNeedUpdateBracket() {
-        return false;
+        return true;
     }
 
     public boolean isByteArrayInUtf8() {
@@ -121,7 +118,7 @@ public class SqlServerAdapter extends DatabaseAdapter {
     }
 
     public void createTable(DbTable table) {
-        if (table == null || table.getFields().isEmpty() ) {
+        if (table == null || table.getFields().isEmpty()) {
             return;
         }
 
@@ -137,87 +134,60 @@ public class SqlServerAdapter extends DatabaseAdapter {
                 isFirst = !isFirst;
 
             sql += "\n\"" + field.getName() + "\"";
-            int javaType = field.getJavaType();
-            switch (javaType) {
-
-                case Types.BIT:
-                    sql += " DECIMAL(1,0)";
-                    break;
-
-                case Types.TINYINT:
-                    sql += " DECIMAL(4,0)";
-                    break;
-
-                case Types.BIGINT:
-                    sql += " DECIMAL(38,0)";
-                    break;
+            int fieldType = field.getJavaType();
+            switch (fieldType) {
 
                 case Types.NUMERIC:
                 case Types.DECIMAL:
-                    Integer digit = field.getDecimalDigit();
-                    if (digit==null) digit=0;
-                    sql += " DECIMAL(" + (field.getSize()==null || field.getSize() > 38 ? 38 : field.getSize()) + ',' + digit + ")";
+                    sql += " DECIMAL";
                     break;
 
                 case Types.INTEGER:
                     sql += " INTEGER";
                     break;
 
-                case Types.SMALLINT:
-                    sql += " SMALLINT";
-                    break;
-
                 case Types.DOUBLE:
                     sql += " DOUBLE";
                     break;
 
-                case Types.FLOAT:
-                    sql += " FLOAT";
-                    break;
-
                 case Types.CHAR:
-                    sql += " VARCHAR(1)";
-                    break;
-
                 case Types.VARCHAR:
-                    sql += " VARCHAR(" + field.getSize() + ")";
+                    sql += " VARCHAR";
                     break;
 
-                case Types.TIMESTAMP:
                 case Types.DATE:
-                    sql += " DATETIME";
+                case Types.TIMESTAMP:
+                    sql += " TIMESTAMP";
                     break;
 
-                case Types.BLOB:
-                    sql += " IMAGE"; // Image type not compatible with hibernated blob
+                case Types.LONGVARCHAR:
+                    // Oracle 'long' fields type
+                    sql += " LONGVARCHAR";
+                    break;
 
-                        break;
-//                case Types.LONGVARCHAR:
-//                    sql += " VARCHAR(10)";
-//                    break;
-
-//                case Types.LONGVARBINARY:
-//                    sql += " LONGVARBINARY";
-//                    break;
+                case Types.LONGVARBINARY:
+                    // Oracle 'long raw' fields type
+                    sql += " LONGVARBINARY";
+                    break;
 
                 default:
-                    field.setJavaStringType("unknown field type field - " + field.getName() + " javaType - " + javaType);
-                    System.out.println("unknown field type field - " + field.getName() + " javaType - " + javaType);
+                    field.setJavaStringType("unknown field type field - " + field.getName() + " javaType - " + field.getJavaType());
+                    System.out.println("unknown field type field - " + field.getName() + " javaType - " + field.getJavaType());
             }
 
             if (field.getDefaultValue() != null) {
                 String val = field.getDefaultValue().trim();
 
                 if (StringUtils.isNotBlank(val)) {
-                    switch (javaType) {
+                    switch (fieldType) {
                         case Types.CHAR:
                         case Types.VARCHAR:
                             val = "'" + val + "'";
                             break;
                         case Types.TIMESTAMP:
                         case Types.DATE:
-                            if (DatabaseManager.checkDefaultTimestamp(val))
-                                val = "CURRENT_TIMESTAMP";
+//                            if (DatabaseManager.checkDefaultTimestamp(val))
+//                                val = "'CURRENT_TIMESTAMP'";
 
                             break;
                         default:
@@ -230,25 +200,30 @@ public class SqlServerAdapter extends DatabaseAdapter {
                 sql += " NOT NULL ";
             }
         }
-        if (table.getPrimaryKey() != null && table.getPrimaryKey().getColumns().size() != 0) {
+        if (table.getPrimaryKey() != null && table.getPrimaryKey().getColumns().size() > 0) {
             DbPrimaryKey pk = table.getPrimaryKey();
 
-            String namePk = pk.getPkName();
-
-//            constraintDefinition:
+            //            constraintDefinition:
 //            [ CONSTRAINT name ]
 //            UNIQUE ( column [,column...] ) |
 //            PRIMARY KEY ( column [,column...] ) |
 
-            sql += ",\nCONSTRAINT " + namePk + " PRIMARY KEY (\n";
+            sql += ",\nCONSTRAINT " + pk.getPkName() + " PRIMARY KEY (\n";
 
-            List<DbPrimaryKeyColumn> list = pk.getColumns();
-            Collections.sort(list, DbPkComparator.getInstance());
-
+            int seq = Integer.MIN_VALUE;
             isFirst = true;
-            for (DbPrimaryKeyColumn column : list) {
+            for (DbPrimaryKeyColumn column : pk.getColumns()) {
+                int seqTemp = Integer.MAX_VALUE;
+                for (DbPrimaryKeyColumn columnTemp : pk.getColumns()) {
+                    if (seq < columnTemp.getKeySeq() && columnTemp.getKeySeq() < seqTemp) {
+                        seqTemp = columnTemp.getKeySeq();
+                        column = columnTemp;
+                    }
+                }
+                seq = column.getKeySeq();
+
                 if (!isFirst)
-                    sql += ',';
+                    sql += ",";
                 else
                     isFirst = !isFirst;
 
@@ -258,21 +233,17 @@ public class SqlServerAdapter extends DatabaseAdapter {
         }
         sql += "\n)";
 
-        Statement st = null;
+        Statement ps = null;
         try {
-            st = this.getConnection().createStatement();
-            st.execute(sql);
-            int count = st.getUpdateCount();
-            if (log.isDebugEnabled()) {
-                log.debug("count of processed records " + count);
-            }
+            ps = this.getConnection().createStatement();
+            ps.execute(sql);
         }
         catch (SQLException e) {
             throw new DbRevisionException(e);
         }
         finally {
-            DbUtils.close(st);
-            st = null;
+            DbUtils.close(ps);
+            ps = null;
         }
 
     }
@@ -285,27 +256,21 @@ public class SqlServerAdapter extends DatabaseAdapter {
     }
 
     public void dropTable(String nameTable) {
-        if (nameTable == null)
+        if (nameTable == null) {
             return;
-
-        String sql = "drop table " + nameTable;
-
-        Statement st = null;
+        }
+        String sql = "drop table \"" + nameTable + "\"\n";
+        PreparedStatement ps = null;
         try {
-            st = this.getConnection().createStatement();
-            st.execute(sql);
-            int count = st.getUpdateCount();
-            if (log.isDebugEnabled()) {
-                log.debug("count of deleted object " + count);
-            }
+            ps = this.getConnection().prepareStatement(sql);
+            ps.executeUpdate();
         }
         catch (SQLException e) {
-            log.error("Error drop table " + nameTable, e);
             throw new DbRevisionException(e);
         }
         finally {
-            DbUtils.close(st);
-            st = null;
+            DbUtils.close(ps);
+            ps = null;
         }
     }
 
@@ -313,9 +278,8 @@ public class SqlServerAdapter extends DatabaseAdapter {
     }
 
     public void dropConstraint(DbForeignKey impPk) {
-        if (impPk == null) {
+        if (impPk == null)
             return;
-        }
 
         String sql = "ALTER TABLE " + impPk.getPkTableName() + " DROP CONSTRAINT " + impPk.getPkName();
 
@@ -334,25 +298,11 @@ public class SqlServerAdapter extends DatabaseAdapter {
     }
 
     public void addColumn(DbTable table, DbField field) {
-        String sql = "alter table \"" + table.getName() + "\" add " + field.getName() + " ";
+        String sql = "alter table \"" + table.getName() + "\" add column " + field.getName() + " ";
 
         int fieldType = field.getJavaType();
         switch (fieldType) {
 
-            case Types.BIT:
-                sql += " BIT";
-                break;
-
-            case Types.TINYINT:
-                sql += " TINYINT";
-                break;
-
-            case Types.BIGINT:
-                sql += " BIGINT";
-                break;
-
-                // Todo if number before point ==1 and number after point ==0
-                // set type to bit
             case Types.NUMERIC:
             case Types.DECIMAL:
                 sql += " DECIMAL";
@@ -367,64 +317,64 @@ public class SqlServerAdapter extends DatabaseAdapter {
                 break;
 
             case Types.CHAR:
-                sql += " VARCHAR(1)";
-                break;
-
             case Types.VARCHAR:
-                sql += " VARCHAR(" + field.getSize() + ")";
+                sql += " VARCHAR";
                 break;
 
             case Types.TIMESTAMP:
             case Types.DATE:
-                sql += " DATETIME";
+                sql += " TIMESTAMP";
                 break;
 
             case Types.LONGVARCHAR:
-                sql += " VARCHAR(10)";
+                // Oracle 'long' fields type
+                sql += " LONGVARCHAR";
                 break;
 
             case Types.LONGVARBINARY:
+                // Oracle 'long raw' fields type
                 sql += " LONGVARBINARY";
                 break;
 
             default:
-                field.setJavaStringType("unknown field type field - " + field.getName() + " javaType - " + field.getJavaType());
-                System.out.println("unknown field type field - " + field.getName() + " javaType - " + field.getJavaType());
+                String errorString = "unknown field type field - " + field.getName() + " javaType - " + field.getJavaType();
+                log.error(errorString);
+                throw new DbRevisionException(errorString);
         }
 
         if (field.getDefaultValue() != null) {
             String val = field.getDefaultValue().trim();
 
-            switch (fieldType) {
-                case Types.CHAR:
-                case Types.VARCHAR:
-                    if (!val.equalsIgnoreCase("null")) {
+            if (StringUtils.isNotBlank(val)) {
+                switch (fieldType) {
+                    case Types.CHAR:
+                    case Types.VARCHAR:
                         val = "'" + val + "'";
-                    }
-                    break;
-                case Types.DATE:
-                case Types.TIMESTAMP:
-                    if (DatabaseManager.checkDefaultTimestamp(val)) {
-                        val = getDefaultTimestampValue();
-                    }
-                    break;
+                        break;
+                    case Types.TIMESTAMP:
+                    case Types.DATE:
+//                            if (DatabaseManager.checkDefaultTimestamp(val))
+//                                val = "'CURRENT_TIMESTAMP'";
+
+                        break;
+                    default:
+                }
+                sql += (" DEFAULT " + val);
             }
-            sql += (" DEFAULT " + val);
         }
 
         if (field.getNullable() == DatabaseMetaData.columnNoNulls) {
             sql += " NOT NULL ";
         }
 
-        if (log.isDebugEnabled()) {
-            log.debug("MSSQL addColumn sql - \n" + sql);
-        }
 
-        Statement ps = null;
+        if (log.isDebugEnabled())
+            log.debug("addColumn sql - \n" + sql);
+
+        PreparedStatement ps = null;
         try {
-            ps = this.getConnection().createStatement();
-            ps.executeUpdate(sql);
-            this.getConnection().commit();
+            ps = this.getConnection().prepareStatement(sql);
+            ps.executeUpdate();
         }
         catch (SQLException e) {
             throw new DbRevisionException(e);
@@ -436,84 +386,12 @@ public class SqlServerAdapter extends DatabaseAdapter {
     }
 
     public String getOnDeleteSetNull() {
-        return "ON DELETE NO ACTION";
+        return "";
     }
 
     public String getDefaultTimestampValue() {
         return "current_timestamp";
     }
-
-/*
-ALTER TABLE table
-{ [ ALTER COLUMN column_name
-    { new_data_type [ ( precision [ , scale ] ) ]
-        [ COLLATE < collation_name > ]
-        [ NULL | NOT NULL ]
-        | {ADD | DROP } ROWGUIDCOL }
-    ]
-    | ADD
-        { [ < column_definition > ]
-        |  column_name AS computed_column_expression
-        } [ ,...n ]
-    | [ WITH CHECK | WITH NOCHECK ] ADD
-        { < table_constraint > } [ ,...n ]
-    | DROP
-        { [ CONSTRAINT ] constraint_name
-            | COLUMN column } [ ,...n ]
-    | { CHECK | NOCHECK } CONSTRAINT
-        { ALL | constraint_name [ ,...n ] }
-    | { ENABLE | DISABLE } TRIGGER
-        { ALL | trigger_name [ ,...n ] }
-}
-
-< column_definition > ::=
-    { column_name data_type }
-    [ [ DEFAULT constant_expression ] [ WITH VALUES ]
-    | [ IDENTITY [ (seed , increment ) [ NOT FOR REPLICATION ] ] ]
-        ]
-    [ ROWGUIDCOL ]
-    [ COLLATE < collation_name > ]
-    [ < column_constraint > ] [ ...n ]
-
-< column_constraint > ::=
-    [ CONSTRAINT constraint_name ]
-    { [ NULL | NOT NULL ]
-        | [ { PRIMARY KEY | UNIQUE }
-            [ CLUSTERED | NONCLUSTERED ]
-            [ WITH FILLFACTOR = fillfactor ]
-            [ ON { filegroup | DEFAULT } ]
-            ]
-        | [ [ FOREIGN KEY ]
-            REFERENCES ref_table [ ( ref_column ) ]
-            [ ON DELETE { CASCADE | NO ACTION } ]
-            [ ON UPDATE { CASCADE | NO ACTION } ]
-            [ NOT FOR REPLICATION ]
-            ]
-        | CHECK [ NOT FOR REPLICATION ]
-            ( logical_expression )
-    }
-
-< table_constraint > ::=
-    [ CONSTRAINT constraint_name ]
-    { [ { PRIMARY KEY | UNIQUE }
-        [ CLUSTERED | NONCLUSTERED ]
-        { ( column [ ,...n ] ) }
-        [ WITH FILLFACTOR = fillfactor ]
-        [ ON {filegroup | DEFAULT } ]
-        ]
-        |    FOREIGN KEY
-            [ ( column [ ,...n ] ) ]
-            REFERENCES ref_table [ ( ref_column [ ,...n ] ) ]
-            [ ON DELETE { CASCADE | NO ACTION } ]
-            [ ON UPDATE { CASCADE | NO ACTION } ]
-            [ NOT FOR REPLICATION ]
-        | DEFAULT constant_expression
-            [ FOR column ] [ WITH VALUES ]
-        |    CHECK [ NOT FOR REPLICATION ]
-            ( search_conditions )
-    }
-
-*/
 
     public List<DbView> getViewList(String schemaPattern, String tablePattern) {
         return DatabaseManager.getViewList(getConnection(), schemaPattern, tablePattern);
@@ -534,21 +412,15 @@ ALTER TABLE table
         )
             return;
 
-        String sql_ =
-            "CREATE VIEW " + view.getName() +
-            " AS " + StringUtils.replace(view.getText(), "||", "+");
-
-        Statement ps = null;
+        String sql_ = "create VIEW " + view.getName() + " as " + view.getText();
+        PreparedStatement ps = null;
         try {
-            ps = this.getConnection().createStatement();
-            ps.execute(sql_);
+            ps = this.getConnection().prepareStatement(sql_);
+            ps.executeUpdate();
         }
         catch (SQLException e) {
-            String errorString = "Error create view. Error code " + e.getErrorCode() + "\n" + sql_;
-            log.error(errorString, e);
-            throw new DbRevisionException(errorString, e);
-        }
-        finally {
+            throw new DbRevisionException(e);
+        } finally {
             DbUtils.close(ps);
             ps = null;
         }
@@ -559,7 +431,7 @@ ALTER TABLE table
 
     public void setLongVarbinary(PreparedStatement ps, int index, DbDataFieldData fieldData) {
         try {
-            ps.setNull(index, Types.VARCHAR);
+            ps.setNull(index, Types.LONGVARBINARY);
         }
         catch (SQLException e) {
             throw new DbRevisionException(e);
@@ -568,7 +440,7 @@ ALTER TABLE table
 
     public void setLongVarchar(PreparedStatement ps, int index, DbDataFieldData fieldData) {
         try {
-            ps.setString(index, "");
+            ps.setNull(index, Types.LONGVARCHAR);
         }
         catch (SQLException e) {
             throw new DbRevisionException(e);
@@ -589,36 +461,56 @@ ALTER TABLE table
 */
 
     public boolean testExceptionTableNotFound(Exception e) {
+        if (e == null)
+            return false;
+
         if (e instanceof SQLException) {
-//        return ((SQLException) e).getErrorCode() == 208;
-            return ((SQLException) e).getErrorCode() == -(Trace.TABLE_NOT_FOUND);
+            if (((SQLException) e).getErrorCode() == -(org.hsqldb.Trace.TABLE_NOT_FOUND))
+                return true;
         }
         return false;
     }
 
     public boolean testExceptionIndexUniqueKey(Exception e, String index) {
+        if (e == null)
+            return false;
+
         if (e instanceof SQLException) {
-            if (((SQLException) e).getErrorCode() == -(Trace.VIOLATION_OF_UNIQUE_INDEX))
+            if (((SQLException) e).getErrorCode() == -(org.hsqldb.Trace.VIOLATION_OF_UNIQUE_INDEX) &&
+                (e.toString().indexOf(index) != -1))
                 return true;
         }
         return false;
     }
 
     public boolean testExceptionIndexUniqueKey(Exception e) {
+        if (e == null)
+            return false;
+
+        if (e instanceof SQLException) {
+            if (((SQLException) e).getErrorCode() == -(org.hsqldb.Trace.VIOLATION_OF_UNIQUE_INDEX))
+                return true;
+        }
         return false;
     }
 
     public boolean testExceptionTableExists(Exception e) {
+        if (e == null)
+            return false;
+
         if (e instanceof SQLException) {
-            if (((SQLException) e).getErrorCode() == 2714)
+            if (((SQLException) e).getErrorCode() == -(org.hsqldb.Trace.TABLE_ALREADY_EXISTS))
                 return true;
         }
         return false;
     }
 
     public boolean testExceptionViewExists(Exception e) {
+        if (e == null)
+            return false;
+
         if (e instanceof SQLException) {
-            if (((SQLException) e).getErrorCode() == 2714)
+            if (((SQLException) e).getErrorCode() == -(org.hsqldb.Trace.VIEW_ALREADY_EXISTS))
                 return true;
         }
         return false;
@@ -629,6 +521,9 @@ ALTER TABLE table
     }
 
     public boolean testExceptionConstraintExists(Exception e) {
+        if (e == null)
+            return false;
+
         if (e instanceof SQLException) {
             if (((SQLException) e).getErrorCode() == -(org.hsqldb.Trace.CONSTRAINT_ALREADY_EXISTS))
                 return true;

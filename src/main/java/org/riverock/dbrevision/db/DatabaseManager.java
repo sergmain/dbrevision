@@ -62,7 +62,7 @@ public final class DatabaseManager {
 
     private static final String DEFAULT_DATE_VALUES[] = {"sysdate", "current_timestamp", "current_time", "current_date"};
 
-    public static void addPrimaryKey(final DatabaseAdapter db_, final DbTable table, final DbPrimaryKey pk) {
+    public static void addPrimaryKey(final Database db_, final DbTable table, final DbPrimaryKey pk) {
         if (table == null) {
             String s = "Add primary key failed - table object is null";
             System.out.println(s);
@@ -95,7 +95,7 @@ public final class DatabaseManager {
     }
 
     public static void copyData(
-        final DatabaseAdapter db_, final DbTable fieldsList, final String sourceTable, final String targetTableName
+        final Database db_, final DbTable fieldsList, final String sourceTable, final String targetTableName
     ) {
         if (fieldsList == null || sourceTable == null || targetTableName == null) {
             if (log.isInfoEnabled()) {
@@ -144,7 +144,7 @@ public final class DatabaseManager {
     }
 
     public static void copyFieldData(
-        final DatabaseAdapter db_, final DbTable table, final DbField sourceField, final DbField targetField
+        final Database db_, final DbTable table, final DbField sourceField, final DbField targetField
     ) {
         if (table == null || sourceField == null || targetField == null) {
             if (log.isInfoEnabled()) {
@@ -177,7 +177,7 @@ public final class DatabaseManager {
         }
     }
 
-    public static void duplicateTable(final DatabaseAdapter db_, final DbTable srcTable, final String targetTableName) {
+    public static void duplicateTable(final Database db_, final DbTable srcTable, final String targetTableName) {
         if (srcTable == null) {
             log.error("duplicate table failed, source table object is null");
             return;
@@ -376,11 +376,11 @@ public final class DatabaseManager {
         return false;
     }
 
-    public static DbSchema getDbStructure(DatabaseAdapter adapter) {
+    public static DbSchema getDbStructure(Database adapter) {
         return getDbStructure(adapter, true);
     }
 
-    public static DbSchema getDbStructure(DatabaseAdapter adapter, boolean isOnlyCurrent) {
+    public static DbSchema getDbStructure(Database adapter, boolean isOnlyCurrent) {
         DbSchema schema = new DbSchema();
 
         String dbSchema;
@@ -418,7 +418,7 @@ public final class DatabaseManager {
         return schema;
     }
 
-    public static void createWithReplaceAllView(final DatabaseAdapter adapter, final DbSchema millSchema) {
+    public static void createWithReplaceAllView(final Database adapter, final DbSchema millSchema) {
         boolean[] idx = new boolean[millSchema.getViews().size()];
         for (int i = 0; i < idx.length; i++) {
             idx[i] = false;
@@ -765,7 +765,7 @@ public final class DatabaseManager {
         return rule;
     }
 
-    public static List<Long> getLongValueList(final DatabaseAdapter db, final String sql, final Object[] params, final int[] types) {
+    public static List<Long> getLongValueList(final Database db, final String sql, final Object[] params, final int[] types) {
 
         Statement stmt = null;
         PreparedStatement pstm;
@@ -812,7 +812,7 @@ public final class DatabaseManager {
         }
     }
 
-    public static List<Long> getIdByList(final DatabaseAdapter adapter, final String sql, final Object[] param) {
+    public static List<Long> getIdByList(final Database adapter, final String sql, final Object[] param) {
         Statement stmt = null;
         PreparedStatement pstm;
         ResultSet rs = null;
