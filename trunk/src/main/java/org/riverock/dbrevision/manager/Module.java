@@ -9,6 +9,7 @@ import org.riverock.dbrevision.manager.patch.PatchService;
 import org.riverock.dbrevision.manager.dao.ManagerDaoFactory;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,7 +18,7 @@ import java.util.List;
  * Date: 28.07.2007
  * Time: 20:03:59
  */
-public class Module {
+public class Module implements Serializable {
 
     private List<Version> versions=new ArrayList<Version>();
 
@@ -105,5 +106,9 @@ public class Module {
 
     public void setComplete(boolean complete) {
         isComplete = complete;
+    }
+
+    public String toString() {
+        return "["+name+";"+description+";["+versions+"]]";
     }
 }

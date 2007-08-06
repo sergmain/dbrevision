@@ -3,6 +3,7 @@ package org.riverock.dbrevision.manager;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,7 +31,7 @@ import org.riverock.dbrevision.utils.Utils;
  * Date: 28.07.2007
  * Time: 20:04:13
  */
-public class Version {
+public class Version implements Serializable {
 
     private Version previousVersion=null;
     private Version nextVersion=null;
@@ -198,4 +199,7 @@ public class Version {
         this.nextVersion = nextVersion;
     }
 
+    public String toString() {
+        return "["+versionName+";"+isComplete+"]";
+    }
 }
