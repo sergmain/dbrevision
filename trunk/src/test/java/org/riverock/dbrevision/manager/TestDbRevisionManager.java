@@ -1,7 +1,7 @@
 package org.riverock.dbrevision.manager;
 
 import junit.framework.TestCase;
-import org.riverock.dbrevision.db.factory.LocalDatabase;
+import org.riverock.dbrevision.db.impl.LocalDatabase;
 import org.riverock.dbrevision.exception.*;
 import org.riverock.dbrevision.manager.dao.InitManagerDaoFactory;
 

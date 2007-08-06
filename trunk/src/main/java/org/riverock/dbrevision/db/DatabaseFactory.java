@@ -34,13 +34,13 @@ import java.util.ArrayList;
 
 import org.apache.log4j.Logger;
 
-import org.riverock.dbrevision.db.factory.HyperSonicDatabase;
-import org.riverock.dbrevision.db.factory.DB2Database;
-import org.riverock.dbrevision.db.factory.SqlServerDatabase;
-import org.riverock.dbrevision.db.factory.MySqlDatabase;
-import org.riverock.dbrevision.db.factory.OracleDatabase;
-import org.riverock.dbrevision.db.factory.PostgreeSqlDatabase;
-import org.riverock.dbrevision.db.factory.MaxDBDatabase;
+import org.riverock.dbrevision.db.impl.HyperSonicDatabase;
+import org.riverock.dbrevision.db.impl.DB2Database;
+import org.riverock.dbrevision.db.impl.SqlServerDatabase;
+import org.riverock.dbrevision.db.impl.MySqlDatabase;
+import org.riverock.dbrevision.db.impl.OracleDatabase;
+import org.riverock.dbrevision.db.impl.PostgreeSqlDatabase;
+import org.riverock.dbrevision.db.impl.MaxDBDatabase;
 import org.riverock.dbrevision.exception.DbRevisionException;
 
 /**
