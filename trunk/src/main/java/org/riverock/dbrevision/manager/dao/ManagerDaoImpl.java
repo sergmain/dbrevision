@@ -131,9 +131,9 @@ public class ManagerDaoImpl implements ManagerDao {
             Connection conn = database.getConnection();
             DbUtils.runSQL(
                 conn,
-                "delete from "+Constants.DB_REVISION_TABLE_NAME + " where MODULE_NAME=? and CURRENT_VERSION=? ",
-                new Object[]{moduleName, versionName},
-                new int[] {Types.VARCHAR,  Types.VARCHAR}
+                "delete from "+Constants.DB_REVISION_TABLE_NAME + " where MODULE_NAME=?",
+                new Object[]{moduleName},
+                new int[] {Types.VARCHAR}
             );
 
             ps = conn.prepareStatement(

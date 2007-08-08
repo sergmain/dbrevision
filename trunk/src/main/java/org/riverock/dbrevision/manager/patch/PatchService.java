@@ -459,7 +459,7 @@ public final class PatchService {
                         CustomClassAction obj = (CustomClassAction) o;
                         String className = obj.getClazz();
                         if (className == null) {
-                            throw new DbRevisionException("Patch - " + patch.getName() + ", action '" + CUSTOM_CLASS_ACTION_TYPE + "' must have parameter 'class_name'");
+                            throw new DbRevisionException("Patch - " + patch.getName() + ", action '" + CUSTOM_CLASS_ACTION_TYPE + "', class name is null");
                         }
 
                         try {
@@ -471,7 +471,7 @@ public final class PatchService {
                             ((PatchAction) object).process(db_);
                         }
                         catch (Exception e) {
-                            throw new DbRevisionException("Error process class '" + className + "'");
+                            throw new DbRevisionException("Error process class '" + className + "'", e);
                         }
                     }
                     break;
@@ -489,7 +489,7 @@ public final class PatchService {
                         }
                         catch (SQLException e) {
                             log.error("SQL:\n" + sql);
-                            throw new DbRevisionException();
+                            throw new DbRevisionException(e);
                         }
                         finally {
                             DbUtils.close(st);

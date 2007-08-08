@@ -191,11 +191,11 @@ public class TestDbRevisionManager extends TestCase {
     }
 
     /**
-     * test not correted data in DB
+     * test correted data in DB
      *
      * @throws Exception on error
      */
-    public void testConfigValid_5_currentVersionInMiddleOfList() throws Exception {
+    public void testConfigValid_currentVersionInMiddleOfList() throws Exception {
 
         InitManagerDaoFactory.initCurrentVersionInMiddleOfList();
 
@@ -220,6 +220,10 @@ public class TestDbRevisionManager extends TestCase {
         assertEquals("5.8.0", module.getLastVersion().getVersionName());
         assertEquals("5.7.0", module.getFirstVersion().getVersionName());
 
+        assertNotNull(currentVersion.getPreviousVersion());
+        assertNotNull(currentVersion.getNextVersion());
+        assertEquals("5.7.1", currentVersion.getPreviousVersion().getVersionName());
+        assertEquals("5.8.0", currentVersion.getNextVersion().getVersionName());
 
         Version v = currentVersion;
         while (v!=null) {
@@ -230,16 +234,53 @@ public class TestDbRevisionManager extends TestCase {
         v = currentVersion.getNextVersion();
         while (v!=null) {
             assertFalse(v.isComplete());
-            v = v.getPreviousVersion();
+            v = v.getNextVersion();
         }
     }
 
     /**
-     * test not correted data in DB
+     * test correted data in DB
      *
      * @throws Exception on error
      */
-    public void testConfigValid_5() throws Exception {
+    public void testConfigValid_lastVersion() throws Exception {
+
+        InitManagerDaoFactory.initCurrentVersionIsLast();
+
+        String path = DBREVISION_CONFIGS+File.separatorChar+"config-valid";
+        LocalDatabase localDatabaseAdapter = new LocalDatabase(null);
+        DbRevisionManager manager = new DbRevisionManager(localDatabaseAdapter, path);
+
+        List<Module> modules = manager.getModules();
+        assertNotNull(modules);
+        assertEquals(1, modules.size());
+
+        Module module = modules.get(0);
+        assertNotNull(module);
+        assertTrue(module.isComplete());
+
+        List<Version> versions = module.getVersions();
+        assertNotNull(versions);
+        assertEquals(4, versions.size());
+
+        Version currentVersion = module.getCurrentVersion();
+        assertNotNull(currentVersion);
+        assertEquals("5.8.0", currentVersion.getVersionName());
+        assertEquals("5.7.2", currentVersion.getPreviousVersion().getVersionName());
+        assertEquals("5.8.0", module.getLastVersion().getVersionName());
+        assertEquals("5.7.0", module.getFirstVersion().getVersionName());
+
+        for (Version version : versions) {
+            assertTrue(version.isComplete());
+        }
+    }
+
+    /**
+     * test correted data in DB
+     *
+     * @throws Exception on error
+     */
+    public void testConfigValid_1() throws Exception {
 
         String path = DBREVISION_CONFIGS+File.separatorChar+"config-valid-1";
         LocalDatabase localDatabaseAdapter = new LocalDatabase(null);

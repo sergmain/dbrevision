@@ -3,20 +3,21 @@ package org.riverock.dbrevision.manager;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
-import java.io.Serializable;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.JAXBException;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 
 import org.riverock.dbrevision.Constants;
-import org.riverock.dbrevision.system.DbStructureImport;
+import org.riverock.dbrevision.annotation.schema.db.DbSchema;
 import org.riverock.dbrevision.annotation.schema.db.Patch;
 import org.riverock.dbrevision.annotation.schema.db.Patches;
-import org.riverock.dbrevision.annotation.schema.db.DbSchema;
 import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.exception.InitStructureFileNotFoundException;
 import org.riverock.dbrevision.exception.NoChildPatchFoundException;
@@ -24,10 +25,10 @@ import org.riverock.dbrevision.exception.PatchParseException;
 import org.riverock.dbrevision.exception.PatchPrepareException;
 import org.riverock.dbrevision.exception.TwoPatchesWithEmptyPreviousPatchException;
 import org.riverock.dbrevision.exception.VersionPathNotFoundException;
-import org.riverock.dbrevision.exception.FirstVersionWithPatchdException;
+import org.riverock.dbrevision.manager.dao.ManagerDaoFactory;
 import org.riverock.dbrevision.manager.patch.PatchService;
 import org.riverock.dbrevision.manager.patch.PatchSorter;
-import org.riverock.dbrevision.manager.dao.ManagerDaoFactory;
+import org.riverock.dbrevision.system.DbStructureImport;
 import org.riverock.dbrevision.utils.Utils;
 
 /**
@@ -36,13 +37,14 @@ import org.riverock.dbrevision.utils.Utils;
  * Time: 20:04:13
  */
 public class Version implements Serializable {
+    private final static Logger log = Logger.getLogger(Version.class);
 
     private Version previousVersion=null;
     private Version nextVersion=null;
 
     List<Patch> patches=null;
 
-    private Database database =null;
+    Database database =null;
 
     private boolean isComplete = false;
 
@@ -87,15 +89,28 @@ public class Version implements Serializable {
         List<Patch> list = new ArrayList<Patch>();
         try {
             for (File file : files) {
-                FileInputStream fis = new FileInputStream(file);
+                FileInputStream inputStream=null;
                 Patches patches;
                 try {
-                    patches = Utils.getObjectFromXml(Patches.class, fis);
+                    inputStream = new FileInputStream(file);
+                    try {
+                        patches = Utils.getObjectFromXml(Patches.class, inputStream);
+                    }
+                    catch (JAXBException e) {
+                        throw new PatchParseException("Patch file: " + file.getAbsolutePath(), e);
+                    }
+                    list.addAll(patches.getPatches());
                 }
-                catch (JAXBException e) {
-                    throw new PatchParseException("Patch file: " + file.getAbsolutePath(), e);
+                finally {
+                    if (inputStream!=null) {
+                        try {
+                            inputStream.close();
+                        }
+                        catch (IOException e1) {
+                            log.error("Error close input stream", e1);
+                        }
+                    }
                 }
-                list.addAll(patches.getPatches());
             }
             try {
                 patches = PatchSorter.sort(list);
@@ -124,12 +139,10 @@ public class Version implements Serializable {
         if (isComplete) {
             return;
         }
-        if (!patches.isEmpty()) {
-            throw new FirstVersionWithPatchdException();
-        }
         DbSchema dbSchema;
+        FileInputStream inputStream=null;
         try {
-            FileInputStream inputStream = new FileInputStream(initStructureFile);
+            inputStream = new FileInputStream(initStructureFile);
             dbSchema = Utils.getObjectFromXml(DbSchema.class, inputStream);
         }
         catch (JAXBException e) {
@@ -137,6 +150,16 @@ public class Version implements Serializable {
         }
         catch (FileNotFoundException e) {
             throw new InitStructureFileNotFoundException(e);
+        }
+        finally {
+            if (inputStream!=null) {
+                try {
+                    inputStream.close();
+                }
+                catch (IOException e1) {
+                    log.error("Error close input stream", e1);
+                }
+            }
         }
         DbStructureImport.importStructure(database, dbSchema, true);
         ManagerDaoFactory.getManagerDao().makrCurrentVersion(database, modulePath.getName(), versionName, null);

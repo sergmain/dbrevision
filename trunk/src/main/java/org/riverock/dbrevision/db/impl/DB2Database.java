@@ -73,6 +73,9 @@ public class DB2Database extends Database {
         return Family.DB2;
     }
 
+    public void setBlobField(String tableName, String fieldName, byte[] bytes, String whereQuery, Object[] objects, int[] fieldTyped) {
+    }
+
     public DB2Database(Connection conn) {
         super(conn);
     }

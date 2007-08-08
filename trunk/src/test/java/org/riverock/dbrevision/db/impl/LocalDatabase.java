@@ -29,6 +29,10 @@ public class LocalDatabase extends Database {
         return null;
     }
 
+    public void setBlobField(String tableName, String fieldName, byte[] bytes, String whereQuery, Object[] objects, int[] fieldTyped) {
+        //To change body of implemented methods use File | Settings | File Templates.
+    }
+
     public boolean isBatchUpdate() {
         return false;
     }

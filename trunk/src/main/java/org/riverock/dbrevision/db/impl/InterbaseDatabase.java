@@ -72,6 +72,10 @@ public class InterbaseDatabase extends Database {
         return Family.INTERBASE;
     }
 
+    public void setBlobField(String tableName, String fieldName, byte[] bytes, String whereQuery, Object[] objects, int[] fieldTyped) {
+        
+    }
+
     public InterbaseDatabase(Connection conn) {
         super(conn);
     }
