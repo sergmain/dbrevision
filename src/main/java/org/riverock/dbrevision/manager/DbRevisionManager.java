@@ -14,10 +14,12 @@ import org.riverock.dbrevision.manager.dao.ManagerDaoFactory;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 
 /**
  * User: SergeMaslyukov
@@ -25,6 +27,7 @@ import org.apache.commons.lang.StringUtils;
  * Time: 20:01:14
  */
 public class DbRevisionManager {
+    private final static Logger log = Logger.getLogger(DbRevisionManager.class);
 
     private File path=null;
     
@@ -53,6 +56,27 @@ public class DbRevisionManager {
         processConfigFile();
         prepareCurrentVersions();
     }
+    
+    protected void finalize() throws Throwable {
+        if (modules!=null) {
+            for (Module module : modules) {
+                module.database=null;
+                if (module.versions!=null) {
+                    for (Version version : module.versions) {
+                        version.setPreviousVersion(null);
+                        version.setNextVersion(null);
+                        version.database=null;
+                        if (version.patches!=null) {
+                            version.patches.clear();
+                        }
+                    }
+                    module.versions.clear();
+                }
+            }
+            modules.clear();
+        }
+        super.finalize();
+    }
 
     /**
      * get module by name
@@ -71,10 +95,23 @@ public class DbRevisionManager {
 
     private void processConfigFile() {
         Config config;
+        FileInputStream inputStream=null;
         try {
-            config = ConfigParserFactory.getConfigParser().parse( new FileInputStream(configFile) );
-        } catch (FileNotFoundException e) {
+            inputStream = new FileInputStream(configFile);
+            config = ConfigParserFactory.getConfigParser().parse(inputStream);
+        }
+        catch (FileNotFoundException e) {
             throw new ConfigFileNotFoundException(e);
+        }
+        finally {
+            if (inputStream!=null) {
+                try {
+                    inputStream.close();
+                }
+                catch (IOException e1) {
+                    log.error("Error close input stream", e1);
+                }
+            }
         }
         for (ModuleConfig moduleConfig : config.getModuleConfigs()) {
             modules.add( new Module(database, path, moduleConfig) );
@@ -99,6 +136,15 @@ public class DbRevisionManager {
     }
 
     private void markCurrentVersion(Module module, RevisionBean revisionBean) {
+        Version prevVersion = null;
+        for (Version version : module.getVersions()) {
+            version.setPreviousVersion(prevVersion);
+            if (prevVersion!=null) {
+                prevVersion.setNextVersion(version);
+            }
+            prevVersion = version;
+        }
+
         boolean isFound = false;
         for (Version version : module.getVersions()) {
             if (version.getVersionName().equals(revisionBean.getCurrentVerson())) {
@@ -128,7 +174,7 @@ public class DbRevisionManager {
             v = version;  
         }
         else if (StringUtils.isBlank(revisionBean.getLastPatch())) {
-                throw new DbRevisionException("Invalid value of lastPatch in database. Module: " + revisionBean.getModuleName()+", version: " + revisionBean.getCurrentVerson());
+            v = version;    
         }
         else {
             if (version.getPatches().get(version.getPatches().size()-1).getName().equals(revisionBean.getLastPatch())) {

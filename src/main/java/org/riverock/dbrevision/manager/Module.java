@@ -17,9 +17,9 @@ import java.util.List;
  */
 public class Module implements Serializable {
 
-    private List<Version> versions=new ArrayList<Version>();
+    List<Version> versions=new ArrayList<Version>();
 
-    private Database database =null;
+    Database database =null;
 
     private String description=null;
 

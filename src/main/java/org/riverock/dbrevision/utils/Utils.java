@@ -39,6 +39,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.log4j.Logger;
 
+import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
+
 /**
  * Common utils
  *
@@ -180,6 +182,21 @@ public class Utils {
      * @throws JAXBException
      */
     public static byte[] getXml(final Object obj, final String rootElement, final String encoding) throws JAXBException {
+        return getXml(obj, rootElement, encoding, false, null);
+    }
+
+
+    /**
+     *
+     * @param obj
+     * @param rootElement
+     * @param encoding
+     * @param isIndent
+     * @param namespacePrefixMappers
+     * @return
+     * @throws JAXBException
+     */
+    public static byte[] getXml(final Object obj, final String rootElement, final String encoding, boolean isIndent, NamespacePrefixMapper[] namespacePrefixMappers) throws JAXBException {
         if (log.isDebugEnabled()) {
             log.debug("getXml(). Object to marshaling " + obj);
             log.debug("getXml(). rootElement " + rootElement);
@@ -191,9 +208,10 @@ public class Utils {
             log.debug("ByteArrayOutputStream object - " + fos);
         }
 
-        writeMarshalToOutputStream(obj, encoding, rootElement, fos);
+        writeMarshalToOutputStream(obj, encoding, rootElement, fos, isIndent, namespacePrefixMappers);
         return fos.toByteArray();
     }
+
 
     /**
      * 
@@ -203,10 +221,20 @@ public class Utils {
      * @param fos
      * @throws JAXBException
      */
-    public static void writeMarshalToOutputStream(Object obj, String encoding, String rootElement, OutputStream fos) throws JAXBException {
+    public static void writeMarshalToOutputStream(
+        Object obj, String encoding, String rootElement, OutputStream fos,
+        boolean isIndent, NamespacePrefixMapper[] namespacePrefixMappers) throws JAXBException {
+
         JAXBContext jaxbContext = JAXBContext.newInstance ( obj.getClass().getPackage().getName() );
         Marshaller marshaller = jaxbContext.createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_ENCODING, encoding);
+        marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, isIndent);
+
+        if (namespacePrefixMappers!=null) {
+            for (NamespacePrefixMapper namespacePrefixMapper : namespacePrefixMappers) {
+                marshaller.setProperty( "com.sun.xml.bind.namespacePrefixMapper", namespacePrefixMapper );
+            }
+        }
 
         if (rootElement != null && rootElement.trim().length() > 0) {
             // http://weblogs.java.net/blog/kohsuke/archive/2005/10/101_ways_to_mar.html
@@ -237,7 +265,7 @@ public class Utils {
      * @throws JAXBException
      */
     public static void writeToFile(final Object obj, final String fileName, final String encoding) throws FileNotFoundException, JAXBException {
-        writeMarshalToOutputStream(obj, encoding, null, new FileOutputStream(fileName) );
+        writeMarshalToOutputStream(obj, encoding, null, new FileOutputStream(fileName), false, null );
     }
 
     /**
@@ -248,7 +276,7 @@ public class Utils {
      * @throws JAXBException
      */
     public static void writeObjectAsXml(final Object obj, OutputStream outputStream, final String encoding) throws JAXBException {
-        writeMarshalToOutputStream(obj, encoding, null, outputStream );
+        writeMarshalToOutputStream(obj, encoding, null, outputStream, false, null );
     }
 
     /**
@@ -260,7 +288,7 @@ public class Utils {
      * @throws JAXBException
      */
     public static void writeObjectAsXml(final Object obj, OutputStream outputStream, String rootElement, final String encoding) throws JAXBException {
-        writeMarshalToOutputStream(obj, encoding, rootElement, outputStream );
+        writeMarshalToOutputStream(obj, encoding, rootElement, outputStream, false, null );
     }
 
     /**

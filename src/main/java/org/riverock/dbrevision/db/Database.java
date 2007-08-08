@@ -76,6 +76,12 @@ public abstract class Database {
      */
     public abstract Family getFamily();
 
+    abstract public void setBlobField(
+        String tableName, String fieldName, byte[] bytes,
+        String whereQuery,
+        Object[] objects, int[] fieldTyped
+    );
+
     /**
      * Is this db support batch update?
      *

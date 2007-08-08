@@ -22,4 +22,8 @@ public class InitManagerDaoFactory {
         ManagerDaoFactory.setManagerDao(new CurrentVersionInMiddleOfListManagerDaoImpl());
     }
 
+    public static void initCurrentVersionIsLast() {
+        ManagerDaoFactory.setManagerDao(new CurrentVersionIsLastManagerDaoImpl());
+    }
+
 }

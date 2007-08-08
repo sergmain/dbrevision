@@ -235,6 +235,10 @@ public class MaxDBDatabase extends Database {
         return Family.MAXDB;
     }
 
+    public void setBlobField(String tableName, String fieldName, byte[] bytes, String whereQuery, Object[] objects, int[] fieldTyped) {
+        //To change body of implemented methods use File | Settings | File Templates.
+    }
+
     public MaxDBDatabase(Connection conn) {
         super(conn);
     }

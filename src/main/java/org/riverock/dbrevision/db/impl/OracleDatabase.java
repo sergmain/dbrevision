@@ -28,6 +28,7 @@ package org.riverock.dbrevision.db.impl;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -641,11 +642,7 @@ public class OracleDatabase extends Database {
     }
 
     public boolean testExceptionTableNotFound(Exception e) {
-        if (e == null) {
-            return false;
-        }
-
-        return (e instanceof SQLException) && (e.toString().indexOf("ORA-00942") != -1);
+        return e != null && (e instanceof SQLException) && (e.toString().indexOf("ORA-00942") != -1);
     }
 
     public boolean testExceptionIndexUniqueKey(Exception e, String index) {
@@ -662,47 +659,23 @@ public class OracleDatabase extends Database {
     }
 
     public boolean testExceptionIndexUniqueKey(Exception e) {
-        if (e == null)
-            return false;
-
-        return (e instanceof SQLException) && ((e.toString().indexOf("ORA-00001") != -1));
-
+        return e != null && (e instanceof SQLException) && ((e.toString().indexOf("ORA-00001") != -1));
     }
 
     public boolean testExceptionTableExists(Exception e) {
-        if (e == null)
-            return false;
-
-        return (e instanceof SQLException) &&
-            (e.toString().indexOf("ORA-00955") != -1);
-
+        return e != null && (e instanceof SQLException) && (e.toString().indexOf("ORA-00955") != -1);
     }
 
     public boolean testExceptionViewExists(Exception e) {
-        if (e == null)
-            return false;
-
-        return (e instanceof SQLException) &&
-            (e.toString().indexOf("ORA-00955") != -1);
-
+        return e != null && (e instanceof SQLException) && (e.toString().indexOf("ORA-00955") != -1);
     }
 
     public boolean testExceptionSequenceExists(Exception e) {
-        if (e == null)
-            return false;
-
-        return (e instanceof SQLException) &&
-            (e.toString().indexOf("ORA-00955") != -1);
-
+        return e != null && (e instanceof SQLException) && (e.toString().indexOf("ORA-00955") != -1);
     }
 
     public boolean testExceptionConstraintExists(Exception e) {
-        if (e == null)
-            return false;
-
-        return (e instanceof SQLException) &&
-            (e.toString().indexOf("ORA-02275") != -1);
-
+        return e != null && (e instanceof SQLException) && (e.toString().indexOf("ORA-02275") != -1);
     }
 
     /**
@@ -711,6 +684,45 @@ public class OracleDatabase extends Database {
      */
     public Family getFamily() {
         return Family.ORACLE;
+    }
+
+    public void setBlobField(String tableName, String fieldName, byte[] bytes, String whereQuery, Object[] objects, int[] fieldTyped) {
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            ps = getConnection().prepareStatement(
+                "select "+fieldName+" from "+tableName+" where "+ whereQuery + " for update"
+            );
+            for (int i=0; i<objects.length; i++) {
+                if (objects[i]!=null) {
+                    ps.setObject(i, objects[i], fieldTyped[i]);
+                }
+                else {
+                    ps.setNull(i, fieldTyped[i]);
+                }
+            }
+            rs = ps.executeQuery();
+
+            if (rs.next()) {
+                Blob mapBlob = rs.getBlob(fieldName);
+                OutputStream blobOutputStream = mapBlob.setBinaryStream(0L);
+                blobOutputStream.write(bytes);
+                blobOutputStream.flush();
+                blobOutputStream.close();
+                blobOutputStream=null;
+            }
+        }
+        catch (SQLException e) {
+            throw new DbRevisionException(e);
+        }
+        catch (IOException e) {
+            throw new DbRevisionException(e);
+        }
+        finally {
+            DbUtils.close(rs, ps);
+            rs=null;
+            ps=null;
+        }
     }
 
     public OracleDatabase(Connection conn) {

@@ -37,6 +37,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.codec.binary.Base64;
@@ -53,6 +54,7 @@ import org.riverock.dbrevision.annotation.schema.db.DbTable;
 import org.riverock.dbrevision.annotation.schema.db.DbView;
 import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.db.DatabaseManager;
+import org.riverock.dbrevision.db.DbPkComparator;
 import org.riverock.dbrevision.exception.DbRevisionException;
 import org.riverock.dbrevision.utils.DbUtils;
 
@@ -73,6 +75,35 @@ public final class MySqlDatabase extends Database {
      */
     public Family getFamily() {
         return Family.MYSQL;
+    }
+
+    public void setBlobField(String tableName, String fieldName, byte[] bytes, String whereQuery, Object[] objects, int[] fieldTyped) {
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            ps = getConnection().prepareStatement(
+                "update "+tableName+" set "+fieldName+"=? where "+ whereQuery
+            );
+            int idx=1;
+            ps.setBinaryStream(idx++, new ByteArrayInputStream(bytes), bytes.length);
+            for (int i=0; i<objects.length; i++) {
+                if (objects[i]!=null) {
+                    ps.setObject(idx++, objects[i], fieldTyped[i]);
+                }
+                else {
+                    ps.setNull(idx++, fieldTyped[i]);
+                }
+            }
+            ps.executeUpdate();
+        }
+        catch (SQLException e) {
+            throw new DbRevisionException(e);
+        }
+        finally {
+            DbUtils.close(rs, ps);
+            rs=null;
+            ps=null;
+        }
     }
 
     public MySqlDatabase(Connection conn) {
@@ -241,25 +272,17 @@ public final class MySqlDatabase extends Database {
             // in MySQL all primary keys named as 'PRIMARY'
             sql += ",\n PRIMARY KEY (\n";
 
-            int seq = Integer.MIN_VALUE;
             isFirst = true;
+            Collections.sort(pk.getColumns(), DbPkComparator.getInstance());
             for (DbPrimaryKeyColumn c : pk.getColumns()) {
-                DbPrimaryKeyColumn column = c;
-                int seqTemp = Integer.MAX_VALUE;
-                for (DbPrimaryKeyColumn columnTemp : pk.getColumns()) {
-                    if (seq < columnTemp.getKeySeq() && columnTemp.getKeySeq() < seqTemp) {
-                        seqTemp = columnTemp.getKeySeq();
-                        column = columnTemp;
-                    }
-                }
-                seq = column.getKeySeq();
-
-                if (!isFirst)
+                if (!isFirst) {
                     sql += ",";
-                else
-                    isFirst = !isFirst;
+                }
+                else {
+                    isFirst = false;
+                }
 
-                sql += column.getColumnName();
+                sql += c.getColumnName();
             }
             sql += "\n)";
         }
