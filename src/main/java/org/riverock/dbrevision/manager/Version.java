@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.sql.SQLException;
 
 import javax.xml.bind.JAXBException;
 
@@ -135,7 +136,7 @@ public class Version implements Serializable {
         }
     }
 
-    public void applyInitStructure() {
+    public void applyInitStructure() throws SQLException {
         if (isComplete) {
             return;
         }
@@ -163,10 +164,12 @@ public class Version implements Serializable {
         }
         DbStructureImport.importStructure(database, dbSchema, true);
         ManagerDaoFactory.getManagerDao().makrCurrentVersion(database, modulePath.getName(), versionName, null);
+database.getConnection().commit();
         isComplete=true;
+
     }
 
-    public void apply() {
+    public void apply() throws SQLException {
         if (isComplete) {
             return;
         }
@@ -178,16 +181,19 @@ public class Version implements Serializable {
                 }
                 PatchService.processPatch(database, patch);
                 ManagerDaoFactory.getManagerDao().makrCurrentVersion(database, modulePath.getName(), versionName, patch.getName());
+database.getConnection().commit();
             }
             ManagerDaoFactory.getManagerDao().makrCurrentVersion(database, modulePath.getName(), versionName, null);
+database.getConnection().commit();
         }
         else {
             applyInitStructure();
+
         }
         isComplete=true;
     }
 
-    public void applayPatch(String patchName) {
+    public void applayPatch(String patchName) throws SQLException {
         if (isComplete || StringUtils.isBlank(patchName)) {
             return;
         }
@@ -202,6 +208,7 @@ public class Version implements Serializable {
         if (firstNotProcessed!=null && firstNotProcessed.getName().equals(patchName)) {
             PatchService.processPatch(database, firstNotProcessed);
             ManagerDaoFactory.getManagerDao().makrCurrentVersion(database, modulePath.getName(), versionName, firstNotProcessed.getName());
+database.getConnection().commit();
         }
     }
 
