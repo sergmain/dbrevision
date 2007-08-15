@@ -26,6 +26,7 @@ import org.riverock.dbrevision.exception.PatchParseException;
 import org.riverock.dbrevision.exception.PatchPrepareException;
 import org.riverock.dbrevision.exception.TwoPatchesWithEmptyPreviousPatchException;
 import org.riverock.dbrevision.exception.VersionPathNotFoundException;
+import org.riverock.dbrevision.exception.DbRevisionException;
 import org.riverock.dbrevision.manager.dao.ManagerDaoFactory;
 import org.riverock.dbrevision.manager.patch.PatchService;
 import org.riverock.dbrevision.manager.patch.PatchSorter;
@@ -136,7 +137,7 @@ public class Version implements Serializable {
         }
     }
 
-    public void applyInitStructure() throws SQLException {
+    public void applyInitStructure() {
         if (isComplete) {
             return;
         }
@@ -164,12 +165,17 @@ public class Version implements Serializable {
         }
         DbStructureImport.importStructure(database, dbSchema, true);
         ManagerDaoFactory.getManagerDao().makrCurrentVersion(database, modulePath.getName(), versionName, null);
-database.getConnection().commit();
+        try {
+            database.getConnection().commit();
+        }
+        catch (SQLException e) {
+            throw new DbRevisionException(e);
+        }
         isComplete=true;
 
     }
 
-    public void apply() throws SQLException {
+    public void apply() {
         if (isComplete) {
             return;
         }
@@ -181,10 +187,20 @@ database.getConnection().commit();
                 }
                 PatchService.processPatch(database, patch);
                 ManagerDaoFactory.getManagerDao().makrCurrentVersion(database, modulePath.getName(), versionName, patch.getName());
-database.getConnection().commit();
+                try {
+                    database.getConnection().commit();
+                }
+                catch (SQLException e) {
+                    throw new DbRevisionException(e);
+                }
             }
             ManagerDaoFactory.getManagerDao().makrCurrentVersion(database, modulePath.getName(), versionName, null);
-database.getConnection().commit();
+            try {
+                database.getConnection().commit();
+            }
+            catch (SQLException e) {
+                throw new DbRevisionException(e);
+            }
         }
         else {
             applyInitStructure();
