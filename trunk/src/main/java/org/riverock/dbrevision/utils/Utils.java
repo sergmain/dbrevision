@@ -291,6 +291,10 @@ public class Utils {
         writeMarshalToOutputStream(obj, encoding, rootElement, outputStream, false, null );
     }
 
+    public static <T> T getObjectFromXml(final Class<T> classType, final String str) throws JAXBException {
+        return getObjectFromXml(classType, new StreamSource(new StringReader(str)), null);
+    }
+
     /**
      *
      * @param classType
@@ -299,16 +303,22 @@ public class Utils {
      * @throws javax.xml.bind.JAXBException on error
      */
     public static <T> T getObjectFromXml(final Class<T> classType, InputStream is) throws JAXBException {
-        try {
-            JAXBContext jaxbContext = JAXBContext.newInstance ( classType.getPackage().getName() );
-            Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-            Source inSrc = new StreamSource(is);
-            return unmarshaller.unmarshal(inSrc, classType).getValue();
+        return getObjectFromXml(classType, new StreamSource(is), null);
+    }
+
+    public static <T> T getObjectFromXml(final Class<T> classType, InputStream is, ValidationEventHandler handler) throws JAXBException {
+        return getObjectFromXml(classType, new StreamSource(is), handler);
+    }
+
+    public static <T> T getObjectFromXml(final Class<T> classType, Source inSrc, ValidationEventHandler handler) throws JAXBException {
+        JAXBContext jaxbContext = JAXBContext.newInstance ( classType.getPackage().getName() );
+        Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+
+        if (handler!=null) {
+            unmarshaller.setEventHandler(handler);
         }
-        catch (JAXBException e) {
-            log.error("Error get object from xml string\n", e);
-            throw e;
-        }
+
+        return unmarshaller.unmarshal(inSrc, classType).getValue();
     }
 
     /**
