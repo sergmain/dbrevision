@@ -583,6 +583,9 @@ public final class DatabaseManager {
         else if ("DECIMAL".equals(type)) {
             return Types.DECIMAL;
         }
+        else if ("NUMBER".equals(type)) {
+            return Types.DECIMAL;
+        }
         else if ("CHAR".equals(type)) {
             return Types.CHAR;
         }

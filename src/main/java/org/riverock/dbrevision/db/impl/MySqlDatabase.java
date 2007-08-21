@@ -400,6 +400,7 @@ public final class MySqlDatabase extends Database {
 
             case Types.BLOB:
                 sql += " LONGBLOB";
+                break;
             
             default:
                 field.setJavaStringType("unknown field type field - " + field.getName() + " javaType - " + field.getJavaType());

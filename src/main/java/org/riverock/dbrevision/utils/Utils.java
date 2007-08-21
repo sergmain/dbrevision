@@ -197,16 +197,20 @@ public class Utils {
      * @throws JAXBException
      */
     public static byte[] getXml(final Object obj, final String rootElement, final String encoding, boolean isIndent, NamespacePrefixMapper[] namespacePrefixMappers) throws JAXBException {
+/*
         if (log.isDebugEnabled()) {
             log.debug("getXml(). Object to marshaling " + obj);
             log.debug("getXml(). rootElement " + rootElement);
             log.debug("getXml(). encoding " + encoding);
         }
+*/
         ByteArrayOutputStream fos = new ByteArrayOutputStream(1000);
 
+/*
         if (log.isDebugEnabled()) {
             log.debug("ByteArrayOutputStream object - " + fos);
         }
+*/
 
         writeMarshalToOutputStream(obj, encoding, rootElement, fos, isIndent, namespacePrefixMappers);
         return fos.toByteArray();
