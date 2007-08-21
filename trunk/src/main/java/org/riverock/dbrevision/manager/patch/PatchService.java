@@ -414,9 +414,30 @@ public final class PatchService {
                         }
                         AddTableFieldAction obj = (AddTableFieldAction) o;
                         DbField field = obj.getField();
-                        field.setJavaType(DatabaseManager.sqlTypesMapping(field.getDataType()));
+                        int fieldType = DatabaseManager.sqlTypesMapping(field.getDataType());
+                        if (log.isDebugEnabled()) {
+                            log.debug("field.getDataType(): " + field.getDataType() +", fieldType: " + fieldType);
+                        }
+                        field.setJavaType(fieldType);
 
-                        DatabaseStructureManager.addColumn(db_, obj.getTableName(), field);
+                        try {
+                            DatabaseStructureManager.addColumn(db_, obj.getTableName(), field);
+                        }
+                        catch (Throwable e) {
+                            log.error("Error add column");
+                            log.error("  table name; " + obj.getTableName());
+                            log.error("  applType; "+ obj.getField().getApplType());
+                            log.error("  comment; "+ obj.getField().getComment());
+                            log.error("  dataType: "+ obj.getField().getDataType());
+                            log.error("  decimalDigit: "+ obj.getField().getDecimalDigit());
+                            log.error("  defaultValue: "+ obj.getField().getDefaultValue());
+                            log.error("  JavaStringType: "+ obj.getField().getJavaStringType());
+                            log.error("  JavaType; "+ obj.getField().getJavaType());
+                            log.error("  name: "+ obj.getField().getName());
+                            log.error("  nullable: "+ obj.getField().getNullable());
+                            log.error("  size: "+ obj.getField().getSize());
+                            throw new DbRevisionException(e);
+                        }
                     }
                     break;
 
