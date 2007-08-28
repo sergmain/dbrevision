@@ -26,14 +26,7 @@
 package org.riverock.dbrevision.db;
 
 import java.io.ByteArrayInputStream;
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.sql.Types;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -982,9 +975,9 @@ public class DatabaseStructureManager {
         key.setFkTableName(columnNames.getString("FKTABLE_NAME"));
         key.setFkName(columnNames.getString("FK_NAME"));
 
-        key.setUpdateRule(DatabaseManager.decodeUpdateRule(columnNames));
-        key.setDeleteRule(DatabaseManager.decodeDeleteRule(columnNames));
-        key.setDeferrability(DatabaseManager.decodeDeferrabilityRule(columnNames));
+        key.setUpdateRule(decodeUpdateRule(columnNames));
+        key.setDeleteRule(decodeDeleteRule(columnNames));
+        key.setDeferrability(decodeDeferrabilityRule(columnNames));
         return key;
     }
 
@@ -1126,13 +1119,278 @@ public class DatabaseStructureManager {
     }
 
     public static void setDefaultValueTimestamp(Database adapter, DbTable originTable, DbField originField) {
-        DbField tempField = DatabaseManager.cloneDescriptionField(originField);
+        DbField tempField = cloneDescriptionField(originField);
         tempField.setName(tempField.getName() + '1');
         adapter.addColumn(originTable, tempField);
-        DatabaseManager.copyFieldData(adapter, originTable, originField, tempField);
+        copyFieldData(adapter, originTable, originField, tempField);
         dropColumn(adapter, originTable, originField);
         adapter.addColumn(originTable, originField);
-        DatabaseManager.copyFieldData(adapter, originTable, tempField, originField);
+        copyFieldData(adapter, originTable, tempField, originField);
         dropColumn(adapter, originTable, tempField);
+    }
+
+    public static DbKeyActionRule decodeUpdateRule(final ResultSet rs) {
+        Object obj;
+        DbKeyActionRule rule = null;
+        try {
+            obj = rs.getObject("UPDATE_RULE");
+            if (obj == null) {
+                return null;
+            }
+
+            rule = new DbKeyActionRule();
+            rule.setRuleType(DbUtils.getInteger(rs, "UPDATE_RULE"));
+        }
+        catch (SQLException e) {
+            throw new DbRevisionException(e);
+        }
+
+        switch (rule.getRuleType()) {
+            case DatabaseMetaData.importedKeyNoAction:
+                rule.setRuleName("java.sql.DatabaseMetaData.importedKeyNoAction");
+                break;
+
+            case DatabaseMetaData.importedKeyCascade:
+                rule.setRuleName("java.sql.DatabaseMetaData.importedKeyCascade");
+                break;
+
+            case DatabaseMetaData.importedKeySetNull:
+                rule.setRuleName("java.sql.DatabaseMetaData.importedKeySetNull");
+                break;
+
+            case DatabaseMetaData.importedKeySetDefault:
+                rule.setRuleName("java.sql.DatabaseMetaData.importedKeySetDefault");
+                break;
+
+            case DatabaseMetaData.importedKeyRestrict:
+                rule.setRuleName("java.sql.DatabaseMetaData.importedKeyRestrict");
+                break;
+
+            default:
+                rule.setRuleName("unknown UPDATE_RULE(" + rule.getRuleType() + ")");
+                System.out.println("unknown UPDATE_RULE(" + rule.getRuleType() + ")");
+                break;
+        }
+        return rule;
+    }
+
+    public static DbKeyActionRule decodeDeleteRule(final ResultSet rs) {
+        DbKeyActionRule rule = null;
+        try {
+            Object obj = rs.getObject("DELETE_RULE");
+            if (obj == null) {
+                return null;
+            }
+
+            rule = new DbKeyActionRule();
+            rule.setRuleType(DbUtils.getInteger(rs, "DELETE_RULE"));
+        }
+        catch (SQLException e) {
+            throw new DbRevisionException(e);
+        }
+
+        switch (rule.getRuleType()) {
+            case DatabaseMetaData.importedKeyNoAction:
+                rule.setRuleName("java.sql.DatabaseMetaData.importedKeyNoAction");
+                break;
+
+            case DatabaseMetaData.importedKeyCascade:
+                rule.setRuleName("java.sql.DatabaseMetaData.importedKeyCascade");
+                break;
+
+            case DatabaseMetaData.importedKeySetNull:
+                rule.setRuleName("java.sql.DatabaseMetaData.importedKeySetNull");
+                break;
+
+            case DatabaseMetaData.importedKeyRestrict:
+                rule.setRuleName("java.sql.DatabaseMetaData.importedKeyRestrict");
+                break;
+
+            case DatabaseMetaData.importedKeySetDefault:
+                rule.setRuleName("java.sql.DatabaseMetaData.importedKeySetDefault");
+                break;
+
+            default:
+                rule.setRuleName("unknown DELETE_RULE(" + rule.getRuleType() + ")");
+                System.out.println("unknown DELETE_RULE(" + rule.getRuleType() + ")");
+                break;
+        }
+        return rule;
+    }
+
+    public static DbKeyActionRule decodeDeferrabilityRule(final ResultSet rs) {
+        DbKeyActionRule rule = null;
+        try {
+            Object obj = rs.getObject("DEFERRABILITY");
+            if (obj == null) {
+                return null;
+            }
+
+            rule = new DbKeyActionRule();
+            rule.setRuleType(DbUtils.getInteger(rs, "DEFERRABILITY"));
+        }
+        catch (SQLException e) {
+            throw new DbRevisionException(e);
+        }
+
+        switch (rule.getRuleType()) {
+            case DatabaseMetaData.importedKeyInitiallyDeferred:
+                rule.setRuleName("java.sql.DatabaseMetaData.importedKeyInitiallyDeferred");
+                break;
+            case DatabaseMetaData.importedKeyInitiallyImmediate:
+                rule.setRuleName("java.sql.DatabaseMetaData.importedKeyInitiallyImmediate");
+                break;
+            case DatabaseMetaData.importedKeyNotDeferrable:
+                rule.setRuleName("java.sql.DatabaseMetaData.importedKeyNotDeferrable");
+                break;
+            default:
+                rule.setRuleName("unknown DEFERRABILITY(" + rule.getRuleType() + ")");
+                System.out.println("unknown DEFERRABILITY(" + rule.getRuleType() + ")");
+                break;
+        }
+        return rule;
+    }
+
+    public static DbPrimaryKeyColumn cloneDescriptionPrimaryKeyColumn(final DbPrimaryKeyColumn srcCol) {
+        DbPrimaryKeyColumn c = new DbPrimaryKeyColumn();
+        c.setColumnName(srcCol.getColumnName());
+        c.setKeySeq(srcCol.getKeySeq());
+
+        return c;
+    }
+
+    public static DbForeignKey cloneDescriptionFK(final DbForeignKey srcFk) {
+        if (srcFk == null) {
+            return null;
+        }
+
+        DbForeignKey fk = new DbForeignKey();
+        fk.setDeferrability(srcFk.getDeferrability());
+        fk.setDeleteRule(srcFk.getDeleteRule());
+        fk.setFkName(srcFk.getFkName());
+        fk.setFkTableName(srcFk.getFkTableName());
+        fk.setFkSchemaName(srcFk.getFkSchemaName());
+        fk.setPkName(srcFk.getPkName());
+        fk.setPkTableName(srcFk.getPkTableName());
+        fk.setPkSchemaName(srcFk.getPkSchemaName());
+        fk.setUpdateRule(srcFk.getUpdateRule());
+        for (DbForeignKeyColumn srcFkColumn : srcFk.getColumns()) {
+            fk.getColumns().add(cloneDescriptionForeignKeyColumn(srcFkColumn));
+        }
+
+        return fk;
+    }
+
+    static DbForeignKeyColumn cloneDescriptionForeignKeyColumn(DbForeignKeyColumn srcFkColumn) {
+        DbForeignKeyColumn c = new DbForeignKeyColumn();
+        c.setFkColumnName(srcFkColumn.getFkColumnName());
+        c.setKeySeq(srcFkColumn.getKeySeq());
+        c.setPkColumnName(srcFkColumn.getPkColumnName());
+
+        return c;
+    }
+
+    public static DbPrimaryKey cloneDescriptionPK(final DbPrimaryKey srcPk) {
+        if (srcPk == null) {
+            return null;
+        }
+
+        DbPrimaryKey pk = new DbPrimaryKey();
+        pk.setCatalogName(srcPk.getCatalogName());
+        pk.setPkName(srcPk.getPkName());
+        pk.setSchemaName(srcPk.getSchemaName());
+        pk.setTableName(srcPk.getTableName());
+        for (DbPrimaryKeyColumn column : srcPk.getColumns()) {
+            pk.getColumns().add(cloneDescriptionPrimaryKeyColumn(column));
+        }
+
+        return pk;
+    }
+
+    public static DbField cloneDescriptionField(final DbField srcField) {
+        if (srcField == null) {
+            return null;
+        }
+
+        DbField f = new DbField();
+        f.setApplType(srcField.getApplType());
+        f.setComment(srcField.getComment());
+        f.setDataType(srcField.getDataType());
+        f.setDecimalDigit(srcField.getDecimalDigit());
+        f.setDefaultValue(srcField.getDefaultValue());
+        f.setJavaStringType(srcField.getJavaStringType());
+        f.setJavaType(srcField.getJavaType());
+        f.setName(srcField.getName());
+        f.setNullable(srcField.getNullable());
+        f.setSize(srcField.getSize());
+
+        return f;
+    }
+
+    /**
+     * Clone description of table. Data not cloned
+     *
+     * @param srcTable source table
+     * @return DbTable cloned table
+     */
+    public static DbTable cloneDescriptionTable(final DbTable srcTable) {
+        if (srcTable == null) {
+            return null;
+        }
+
+        DbTable r = new DbTable();
+
+        r.setSchema(srcTable.getSchema());
+        r.setName(srcTable.getName());
+        r.setType(srcTable.getType());
+
+        DbPrimaryKey pk = cloneDescriptionPK(srcTable.getPrimaryKey());
+        r.setPrimaryKey(pk);
+
+        for (DbField DbField : srcTable.getFields()) {
+            DbField f = cloneDescriptionField(DbField);
+            r.getFields().add(f);
+        }
+
+        for (DbForeignKey DbForeignKey : srcTable.getForeignKeys()) {
+            DbForeignKey fk = cloneDescriptionFK(DbForeignKey);
+            r.getForeignKeys().add(fk);
+        }
+
+        return r;
+    }
+
+    public static void copyFieldData(
+        final Database db_, final DbTable table, final DbField sourceField, final DbField targetField
+    ) {
+        if (table == null || sourceField == null || targetField == null) {
+            if (log.isInfoEnabled()) {
+                log.info("copy field data failed, some objects is null");
+            }
+
+            return;
+        }
+
+        String sql_ =
+            "update " + table.getName() + ' ' +
+                "SET " + targetField.getName() + '=' + sourceField.getName();
+
+        Statement ps = null;
+        try {
+            ps = db_.getConnection().createStatement();
+            ps.execute(sql_);
+        }
+        catch (SQLException e) {
+            String errorString = "Error copy data from field '" + table.getName() + '.' + sourceField.getName() +
+                "' to '" + table.getName() + '.' + targetField.getName() + "' " + e.getErrorCode() + "\nsql - " + sql_;
+
+            log.error(errorString, e);
+            System.out.println(errorString);
+            throw new DbRevisionException(e);
+        }
+        finally {
+            DbUtils.close(ps);
+            ps = null;
+        }
     }
 }

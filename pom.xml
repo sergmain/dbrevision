@@ -11,7 +11,7 @@ http://www.sonatype.com/book/reporting.html
     <groupId>org.riverock</groupId>
     <artifactId>dbrevision</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.0</version>
+    <version>1.0.1-SNAPSHOT</version>
     <name>DbRevision engine</name>
     <url>http://dbrevision.riverock.org</url>
     <organization>
