@@ -93,6 +93,20 @@ public class DbRevisionManager {
         return null;
     }
 
+    /**
+     * is all moudles completed?
+     *
+     * @return module
+     */
+    public boolean isAllCompleted() {
+        for (Module module : modules) {
+            if (!module.isComplete()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     private void processConfigFile() {
         Config config;
         FileInputStream inputStream=null;
