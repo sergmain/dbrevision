@@ -28,6 +28,7 @@ package org.riverock.dbrevision.db;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.DatabaseMetaData;
 import java.util.List;
 
 import org.riverock.dbrevision.annotation.schema.db.DbDataFieldData;
@@ -92,6 +93,10 @@ public abstract class Database {
     public abstract boolean isNeedUpdateBracket();
 
     public abstract boolean isByteArrayInUtf8();
+
+    public abstract boolean isSchemaSupports();
+
+    public abstract String getDefaultSchemaName(DatabaseMetaData databaseMetaData);
 
     public abstract String getClobField(ResultSet rs, String nameFeld);
 

@@ -3,6 +3,7 @@ package org.riverock.dbrevision.db.impl;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.DatabaseMetaData;
 import java.util.List;
 
 import org.riverock.dbrevision.annotation.schema.db.DbDataFieldData;
@@ -14,11 +15,9 @@ import org.riverock.dbrevision.annotation.schema.db.DbView;
 import org.riverock.dbrevision.db.Database;
 
 /**
- * Created by IntelliJ IDEA.
  * User: SergeMaslyukov
  * Date: 28.07.2007
  * Time: 21:05:32
- * To change this template use File | Settings | File Templates.
  */
 public class LocalDatabase extends Database {
     public LocalDatabase(Connection conn) {
@@ -43,6 +42,14 @@ public class LocalDatabase extends Database {
 
     public boolean isByteArrayInUtf8() {
         return false;
+    }
+
+    public boolean isSchemaSupports() {
+        return true;
+    }
+
+    public String getDefaultSchemaName(DatabaseMetaData databaseMetaData) {
+        return null;  
     }
 
     public String getClobField(ResultSet rs, String nameFeld) {

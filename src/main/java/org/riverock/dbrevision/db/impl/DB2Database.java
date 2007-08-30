@@ -96,6 +96,14 @@ public class DB2Database extends Database {
         return false;
     }
 
+    public boolean isSchemaSupports() {
+        return false;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    public String getDefaultSchemaName(DatabaseMetaData databaseMetaData) {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
     public String getClobField(ResultSet rs, String nameField) {
         return getClobField(rs, nameField, 20000);
     }

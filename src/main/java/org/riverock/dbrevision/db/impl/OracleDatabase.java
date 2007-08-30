@@ -83,6 +83,19 @@ public class OracleDatabase extends Database {
         return true;
     }
 
+    public boolean isSchemaSupports() {
+        return true;
+    }
+
+    public String getDefaultSchemaName(DatabaseMetaData databaseMetaData) {
+        try {
+            return databaseMetaData.getUserName();
+        }
+        catch (SQLException e) {
+            throw new DbRevisionException(e);
+        }
+    }
+
     public String getClobField(ResultSet rs, String nameField) {
         return getClobField(rs, nameField, 20000);
     }
