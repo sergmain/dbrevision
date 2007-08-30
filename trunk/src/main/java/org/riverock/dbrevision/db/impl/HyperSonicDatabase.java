@@ -261,6 +261,7 @@ public class HyperSonicDatabase extends Database {
             }
         }
         catch (Exception e) {
+            log.error("sql: " + sql);
             throw new DbRevisionException(e);
         }
 
