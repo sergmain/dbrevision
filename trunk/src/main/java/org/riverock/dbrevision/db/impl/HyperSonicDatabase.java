@@ -74,7 +74,6 @@ public class HyperSonicDatabase extends Database {
     }
 
     public void setBlobField(String tableName, String fieldName, byte[] bytes, String whereQuery, Object[] objects, int[] fieldTyped) {
-        //To change body of implemented methods use File | Settings | File Templates.
     }
 
     public HyperSonicDatabase(Connection conn) {
@@ -95,6 +94,15 @@ public class HyperSonicDatabase extends Database {
 
     public boolean isByteArrayInUtf8() {
         return false;
+    }
+
+    public boolean isSchemaSupports() {
+        return false;
+    }
+
+    public String getDefaultSchemaName(DatabaseMetaData databaseMetaData) {
+        // hypersonic 1.8.x correctly work only with default schema 'PUBLIC'
+        return "PUBLIC";
     }
 
     public String getClobField(ResultSet rs, String nameField) {
@@ -129,15 +137,18 @@ public class HyperSonicDatabase extends Database {
         String sql = "create table \"" + table.getName() + "\"\n" +
             "(";
 
+        try {
         boolean isFirst = true;
 
         for (DbField field : table.getFields()) {
-            if (!isFirst)
+            if (!isFirst) {
                 sql += ",";
-            else
+            }
+            else {
                 isFirst = !isFirst;
+            }
 
-            sql += "\n\"" + field.getName() + "\"";
+            sql += "\n" + field.getName() + "";
             int fieldType = field.getJavaType();
             switch (fieldType) {
 
@@ -170,6 +181,7 @@ public class HyperSonicDatabase extends Database {
                     break;
 
                 case Types.LONGVARBINARY:
+                case Types.BLOB:
                     // Oracle 'long raw' fields type
                     sql += " LONGVARBINARY";
                     break;
@@ -190,8 +202,9 @@ public class HyperSonicDatabase extends Database {
                             break;
                         case Types.TIMESTAMP:
                         case Types.DATE:
-//                            if (DatabaseManager.checkDefaultTimestamp(val))
-//                                val = "'CURRENT_TIMESTAMP'";
+                            if (DatabaseManager.checkDefaultTimestamp(val)) {
+                                val = "'CURRENT_TIMESTAMP'";
+                            }
 
                             break;
                         default:
@@ -238,16 +251,17 @@ public class HyperSonicDatabase extends Database {
         sql += "\n)";
 
         Statement ps = null;
-        try {
-            ps = this.getConnection().createStatement();
-            ps.execute(sql);
+            try {
+                ps = this.getConnection().createStatement();
+                ps.execute(sql);
+            }
+            finally {
+                DbUtils.close(ps);
+                ps = null;
+            }
         }
-        catch (SQLException e) {
+        catch (Exception e) {
             throw new DbRevisionException(e);
-        }
-        finally {
-            DbUtils.close(ps);
-            ps = null;
         }
 
     }

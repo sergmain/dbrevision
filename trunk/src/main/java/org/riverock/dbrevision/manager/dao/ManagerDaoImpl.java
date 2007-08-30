@@ -97,7 +97,7 @@ public class ManagerDaoImpl implements ManagerDao {
     public void checkDbRevisionTableExist(Database database) {
         try {
             DatabaseMetaData metaData = database.getConnection().getMetaData();
-            String dbSchema = metaData.getUserName();
+            String dbSchema = database.getDefaultSchemaName(metaData);
             List<DbTable> list = DatabaseStructureManager.getTableList(database.getConnection(), dbSchema, Constants.DB_REVISION_TABLE_NAME);
             if (list.isEmpty()) {
                 DbTable table = new DbTable();

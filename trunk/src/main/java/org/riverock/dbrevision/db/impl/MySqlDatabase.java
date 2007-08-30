@@ -126,6 +126,19 @@ public final class MySqlDatabase extends Database {
         return false;
     }
 
+    public boolean isSchemaSupports() {
+        return true;
+    }
+
+    public String getDefaultSchemaName(DatabaseMetaData databaseMetaData) {
+        try {
+            return databaseMetaData.getUserName();
+        }
+        catch (SQLException e) {
+            throw new DbRevisionException(e);
+        }
+    }
+
     public String getClobField(ResultSet rs, String nameField) {
         return getClobField(rs, nameField, 20000);
     }
@@ -250,8 +263,9 @@ public final class MySqlDatabase extends Database {
                             break;
                         case Types.TIMESTAMP:
                         case Types.DATE:
-                            if (DatabaseManager.checkDefaultTimestamp(val))
+                            if (DatabaseManager.checkDefaultTimestamp(val)) {
                                 val = "CURRENT_TIMESTAMP";
+                            }
 
                             break;
                         default:

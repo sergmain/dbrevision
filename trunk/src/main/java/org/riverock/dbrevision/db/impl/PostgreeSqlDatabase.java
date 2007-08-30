@@ -79,6 +79,14 @@ public class PostgreeSqlDatabase extends Database {
         return true;
     }
 
+    public boolean isSchemaSupports() {
+        return false;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    public String getDefaultSchemaName(DatabaseMetaData databaseMetaData) {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
     public String getClobField(ResultSet rs, String nameField) {
         return getClobField(rs, nameField, 20000);
     }

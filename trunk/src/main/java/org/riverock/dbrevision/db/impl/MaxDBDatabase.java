@@ -33,6 +33,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.sql.DatabaseMetaData;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -67,6 +68,14 @@ public class MaxDBDatabase extends Database {
 
     public boolean isByteArrayInUtf8() {
         return false;
+    }
+
+    public boolean isSchemaSupports() {
+        return false;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    public String getDefaultSchemaName(DatabaseMetaData databaseMetaData) {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     public void createTable(DbTable table) {
