@@ -115,7 +115,7 @@ public class OracleDatabase extends Database {
             else
                 isFirst = !isFirst;
 
-            sql += "\n\"" + field.getName() + "\"";
+            sql += "\n" + field.getName() + " ";
             int fieldType = field.getJavaType();
             switch (fieldType) {
                 case Types.BIT:
