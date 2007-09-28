@@ -1,0 +1,9 @@
+DbRevision project aimed to help developers implement automatic upgrade database structure from one reversion to other. DB structure described in independent, XML-based format. All upgrade actions described in XML too.
+
+Main scenario of use:
+- create db structere xml file for initial version of db.
+- for all next revisions of db create upgrade action in xml format.
+- when the programm, which uses dbrevision engine, will be startup, she auto or by invoke by admin, check db structure, create missed db artifact and upgrade db structure to last revision.
+
+All alpha code already exist in project riverock/riverock-generic and will be moved to dbrevision
+http://riverock.svn.sourceforge.net/viewvc/riverock/trunk/riverock-generic/
