@@ -241,12 +241,14 @@ public final class MySqlDatabase extends Database {
                     sql += " LONGBLOB";
                     break;
 
+                case Types.CLOB:
+                    sql += " LONGTEXT";
+                    break;
+
                 case Types.OTHER:
                     sql += " LONGTEXT";
                     break;
 
-                // clob not supported by mysql
-                case Types.CLOB:
                 default:
                     field.setJavaStringType("unknown field type field - " + field.getName() + " javaType - " + field.getJavaType());
                     System.out.println("unknown field type field - " + field.getName() + " javaType - " + field.getJavaType());

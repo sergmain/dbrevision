@@ -167,8 +167,11 @@ public class OracleDatabase extends Database {
                     break;
 
                 case Types.BLOB:
-                    // Oracle 'long raw' fields type
                     sql += " BLOB";
+                    break;
+
+                case Types.CLOB:
+                    sql += " CLOB";
                     break;
 
                 default:

@@ -186,6 +186,10 @@ public class HyperSonicDatabase extends Database {
                     sql += " LONGVARBINARY";
                     break;
 
+                case Types.CLOB:
+                    sql += " LONGVARCHAR";
+                    break;
+
                 default:
                     field.setJavaStringType("unknown field type field - " + field.getName() + " javaType - " + field.getJavaType());
                     System.out.println("unknown field type field - " + field.getName() + " javaType - " + field.getJavaType());
@@ -239,10 +243,12 @@ public class HyperSonicDatabase extends Database {
                 }
                 seq = column.getKeySeq();
 
-                if (!isFirst)
+                if (!isFirst) {
                     sql += ",";
-                else
+                }
+                else {
                     isFirst = !isFirst;
+                }
 
                 sql += column.getColumnName();
             }
