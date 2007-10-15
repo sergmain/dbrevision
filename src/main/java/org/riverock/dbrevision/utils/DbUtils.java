@@ -344,4 +344,21 @@ public class DbUtils {
             }
         }
     }
+
+    public static void close(final Connection conn) {
+        if (conn != null) {
+            try {
+                conn.rollback();
+            }
+            catch (SQLException e201) {
+                // catch SQLException
+            }
+            try {
+                conn.close();
+            }
+            catch (SQLException e201) {
+                // catch SQLException
+            }
+        }
+    }
 }
