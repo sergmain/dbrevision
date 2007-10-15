@@ -6,9 +6,9 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Serializable;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.sql.SQLException;
 
 import javax.xml.bind.JAXBException;
 
@@ -20,17 +20,18 @@ import org.riverock.dbrevision.annotation.schema.db.DbSchema;
 import org.riverock.dbrevision.annotation.schema.db.Patch;
 import org.riverock.dbrevision.annotation.schema.db.Patches;
 import org.riverock.dbrevision.db.Database;
+import org.riverock.dbrevision.exception.DbRevisionException;
 import org.riverock.dbrevision.exception.InitStructureFileNotFoundException;
 import org.riverock.dbrevision.exception.NoChildPatchFoundException;
 import org.riverock.dbrevision.exception.PatchParseException;
 import org.riverock.dbrevision.exception.PatchPrepareException;
 import org.riverock.dbrevision.exception.TwoPatchesWithEmptyPreviousPatchException;
 import org.riverock.dbrevision.exception.VersionPathNotFoundException;
-import org.riverock.dbrevision.exception.DbRevisionException;
 import org.riverock.dbrevision.manager.dao.ManagerDaoFactory;
 import org.riverock.dbrevision.manager.patch.PatchService;
 import org.riverock.dbrevision.manager.patch.PatchSorter;
 import org.riverock.dbrevision.system.DbStructureImport;
+import org.riverock.dbrevision.utils.DbUtils;
 import org.riverock.dbrevision.utils.Utils;
 
 /**
@@ -74,6 +75,21 @@ public class Version implements Serializable {
         }
         this.patchPath = new File(versionPath, Constants.PATCH_DIR_NAME);
         initPatches(); 
+    }
+
+    public void destroy() {
+        this.setPreviousVersion(null);
+        this.setNextVersion(null);
+        if (database!=null) {
+            if (database.getConnection()!=null) {
+                DbUtils.close(database.getConnection());
+                database.setConnection(null);
+            }
+            database=null;
+        }
+        if (this.patches!=null) {
+            this.patches.clear();
+        }
     }
 
     private void initPatches() {
@@ -224,7 +240,7 @@ public class Version implements Serializable {
         if (firstNotProcessed!=null && firstNotProcessed.getName().equals(patchName)) {
             PatchService.processPatch(database, firstNotProcessed);
             ManagerDaoFactory.getManagerDao().makrCurrentVersion(database, modulePath.getName(), versionName, firstNotProcessed.getName());
-database.getConnection().commit();
+            database.getConnection().commit();
         }
     }
 

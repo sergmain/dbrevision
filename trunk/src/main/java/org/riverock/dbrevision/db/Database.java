@@ -62,6 +62,10 @@ public abstract class Database {
         this.conn = conn;
     }
 
+    public void setConnection(Connection conn) {
+        this.conn = conn;
+    }
+
     /**
      * Get jdbc connection
      *

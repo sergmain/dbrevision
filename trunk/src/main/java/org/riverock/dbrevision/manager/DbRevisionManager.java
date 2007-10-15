@@ -1,6 +1,7 @@
 package org.riverock.dbrevision.manager;
 
 import org.riverock.dbrevision.Constants;
+import org.riverock.dbrevision.utils.DbUtils;
 import org.riverock.dbrevision.annotation.schema.db.Patch;
 import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.exception.ConfigFileNotFoundException;
@@ -58,24 +59,26 @@ public class DbRevisionManager {
     }
     
     protected void finalize() throws Throwable {
+        destroy();
+        super.finalize();
+    }
+
+    public void destroy() {
+
         if (modules!=null) {
             for (Module module : modules) {
-                module.database=null;
-                if (module.versions!=null) {
-                    for (Version version : module.versions) {
-                        version.setPreviousVersion(null);
-                        version.setNextVersion(null);
-                        version.database=null;
-                        if (version.patches!=null) {
-                            version.patches.clear();
-                        }
-                    }
-                    module.versions.clear();
-                }
+                module.destroy();
             }
             modules.clear();
+            modules=null;
         }
-        super.finalize();
+        if (database!=null) {
+            if (database.getConnection()!=null) {
+                DbUtils.close(database.getConnection());
+                database.setConnection(null);
+            }
+            this.database=null;
+        }
     }
 
     /**

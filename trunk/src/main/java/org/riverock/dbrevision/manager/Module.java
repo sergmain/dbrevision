@@ -4,6 +4,7 @@ import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.exception.FirstVersionWithPatchdException;
 import org.riverock.dbrevision.exception.ModulePathNotFoundException;
 import org.riverock.dbrevision.exception.CurrentVersionNotDefinedException;
+import org.riverock.dbrevision.utils.DbUtils;
 
 import java.io.File;
 import java.io.Serializable;
@@ -49,6 +50,24 @@ public class Module implements Serializable {
             }
         }
     }
+
+    public void destroy() {
+        if (database!=null) {
+            if (database.getConnection()!=null) {
+                DbUtils.close(database.getConnection());
+                database.setConnection(null);
+            }
+            database=null;
+        }
+        if (versions!=null) {
+            for (Version version : versions) {
+                version.destroy();
+            }
+            versions.clear();
+            versions=null;
+        }
+    }
+
     public void apply() {
         if (versions.isEmpty()) {
             return;
