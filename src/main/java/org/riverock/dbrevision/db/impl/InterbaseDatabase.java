@@ -51,6 +51,7 @@ import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.db.DbPkComparator;
 import org.riverock.dbrevision.exception.DbRevisionException;
+import org.riverock.dbrevision.exception.ViewAlreadyExistException;
 import org.riverock.dbrevision.utils.DbUtils;
 
 /**
@@ -486,6 +487,9 @@ ALTER TABLE table
             ps.execute(sql_);
         }
         catch (SQLException e) {
+            if (testExceptionViewExists(e)) {
+                throw new ViewAlreadyExistException("View "+view.getName()+" already exist.");
+            }
             String errorString = "Error create view. Error code " + e.getErrorCode() + "\n" + sql_;
             log.error(errorString, e);
             throw new DbRevisionException(errorString, e);

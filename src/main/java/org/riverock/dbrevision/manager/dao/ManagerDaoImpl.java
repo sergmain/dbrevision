@@ -98,7 +98,7 @@ public class ManagerDaoImpl implements ManagerDao {
         try {
             DatabaseMetaData metaData = database.getConnection().getMetaData();
             String dbSchema = database.getDefaultSchemaName(metaData);
-            List<DbTable> list = DatabaseStructureManager.getTableList(database.getConnection(), dbSchema, Constants.DB_REVISION_TABLE_NAME);
+            List<DbTable> list = DatabaseStructureManager.getTableList(database, dbSchema, Constants.DB_REVISION_TABLE_NAME);
             if (list.isEmpty()) {
                 DbTable table = new DbTable();
                 table.setName(Constants.DB_REVISION_TABLE_NAME);

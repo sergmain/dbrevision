@@ -26,6 +26,7 @@
 package org.riverock.dbrevision.system;
 
 import java.io.InputStream;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 
@@ -38,6 +39,7 @@ import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.db.DatabaseStructureManager;
 import org.riverock.dbrevision.utils.Utils;
 import org.riverock.dbrevision.exception.DbRevisionException;
+import org.riverock.dbrevision.exception.ViewAlreadyExistException;
 
 /**
  * import data from input stream to DB
@@ -90,35 +92,7 @@ public class DbStructureImport {
 
         }
 
-        for (DbView view : millSchema.getViews()) {
-            DatabaseManager.createWithReplaceAllView(database, millSchema);
-            try {
-                log.debug("create view " + view.getName());
-                database.createView(view);
-            }
-            catch (Exception e) {
-                if (database.testExceptionViewExists(e)) {
-                    log.debug("view " + view.getName() + " already exists");
-                    log.debug("drop view " + view.getName());
-                    DatabaseStructureManager.dropView(database, view);
-                    log.debug("create view " + view.getName());
-                    try {
-                        database.createView(view);
-                    }
-                    catch (Exception e1) {
-                        String es = "Error create view - ";
-                        log.error(es, e1);
-                        throw new DbRevisionException(es, e1);
-                    }
-                }
-                else {
-                    String es = "Error create view";
-                    log.debug(es,e);
-                    throw new DbRevisionException(es, e);
-                }
-            }
-        }
-        DatabaseManager.createWithReplaceAllView(database, millSchema);
+        fullCreateViews(database, millSchema.getViews());
 
         for (DbSequence seq : millSchema.getSequences()) {
             try {
@@ -131,5 +105,35 @@ public class DbStructureImport {
                 throw new DbRevisionException(es, e);
             }
         }
+    }
+
+    public static void fullCreateViews(Database database, List<DbView> views) {
+        for (DbView view : views) {
+            DatabaseManager.createWithReplaceAllView(database, views);
+            try {
+                log.debug("create view " + view.getName());
+                database.createView(view);
+            }
+            catch(ViewAlreadyExistException e) {
+                log.debug("view " + view.getName() + " already exists");
+                log.debug("drop view " + view.getName());
+                DatabaseStructureManager.dropView(database, view);
+                log.debug("create view " + view.getName());
+                try {
+                    database.createView(view);
+                }
+                catch (Exception e1) {
+                    String es = "Error create view - ";
+                    log.error(es, e1);
+                    throw new DbRevisionException(es, e1);
+                }
+            }
+            catch (Exception e) {
+                String es = "Error create view";
+                log.debug(es,e);
+                throw new DbRevisionException(es, e);
+            }
+        }
+        DatabaseManager.createWithReplaceAllView(database, views);
     }
 }

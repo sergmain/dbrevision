@@ -56,6 +56,7 @@ import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.db.DbPkComparator;
 import org.riverock.dbrevision.exception.DbRevisionException;
+import org.riverock.dbrevision.exception.ViewAlreadyExistException;
 import org.riverock.dbrevision.utils.DbUtils;
 
 
@@ -310,8 +311,9 @@ public final class MySqlDatabase extends Database {
             ps.executeUpdate();
         }
         catch (SQLException e) {
-            log.error("Error create table\nSQL:\n"+sql+"\n");
-            throw new DbRevisionException(e);
+            String es = "Error create table\nSQL:\n" + sql + "\n";
+            log.error(es);
+            throw new DbRevisionException(es, e);
         }
         finally {
             DbUtils.close(ps);
@@ -487,13 +489,14 @@ public final class MySqlDatabase extends Database {
     }
 
     public void createView(DbView view) {
-        // current version of MySql not supported view
-/*
+        // MySql 5.1 support view
         if (view == null ||
             view.getName() == null || view.getName().length() == 0 ||
             view.getText() == null || view.getText().length() == 0
-        )
+        ) {
+            System.out.println("Skip view.");
             return;
+        }
 
         String sql_ =
             "CREATE VIEW " + view.getName() +
@@ -501,20 +504,22 @@ public final class MySqlDatabase extends Database {
 
         Statement ps = null;
         try {
-            ps = this.conn.createStatement();
+            ps = this.getConnection().createStatement();
             ps.execute(sql_);
         }
         catch (SQLException e) {
+            if (testExceptionViewExists(e)) {
+                throw new ViewAlreadyExistException("View "+view.getName()+" already exist.");
+            }
             String errorString = "Error create view. Error code " + e.getErrorCode() + "\n" + sql_;
             log.error(errorString, e);
-            System.out.println(errorString);
-            throw e;
+//            System.out.println(errorString);
+            throw new DbRevisionException(errorString, e);
         }
         finally {
-            DatabaseManager.close(ps);
+            DbUtils.close(ps);
             ps = null;
         }
-*/
     }
 
     public void createSequence(DbSequence seq) {
@@ -601,7 +606,7 @@ public final class MySqlDatabase extends Database {
 
     public boolean testExceptionViewExists(Exception e) {
         if (e instanceof SQLException) {
-            if (((SQLException) e).getErrorCode() == 2714)
+            if (((SQLException) e).getErrorCode() == 1050)
                 return true;
         }
         return false;
