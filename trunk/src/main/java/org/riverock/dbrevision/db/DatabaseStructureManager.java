@@ -289,7 +289,7 @@ public class DatabaseStructureManager {
                                             ", extracted value: " + fieldData.getNumberData().longValueExact())
                                         );
                                     }
-                                    ps.setLong(k + 1, fieldData.getNumberData().longValueExact());
+                                    ps.setBigDecimal(k + 1, fieldData.getNumberData());
                                 }
                                 else {
                                     if (isDebug) {
@@ -303,7 +303,7 @@ public class DatabaseStructureManager {
                                 if (isDebug) {
                                     System.out.println("Types.INTEGER param #" + (k + 1) + ", value " + fieldData.getNumberData().doubleValue());
                                 }
-                                ps.setLong(k + 1, fieldData.getNumberData().longValueExact());
+                                ps.setBigDecimal(k + 1, fieldData.getNumberData());
                                 break;
 
                             case Types.CHAR:
@@ -420,7 +420,7 @@ public class DatabaseStructureManager {
                     log.fatal("\tfield " + field.getName());
                 }
 
-                throw new DbRevisionException("Count for field in ResultSet not equals in DbTable");
+                throw new DbRevisionException("Count for field in ResultSet not equals in DbTable. May be you forgot initialize DbFields.");
             }
 
             byte[] bytes=null;
@@ -539,22 +539,35 @@ public class DatabaseStructureManager {
     }
 
     /**
+     * @deprecated NOT SUPPORTED ANY MORE.
+     * Use public static List<DbTable> getTableList(Database database, String schemaPattern, String tablePattern);
+     *
+     * @param conn1
+     * @param schemaPattern
+     * @param tablePattern
+     * @return
+     */
+    public static List<DbTable> getTableList(Connection conn1, String schemaPattern, String tablePattern) {
+        throw new RuntimeException("NOT SUPPORTED ANY MORE. See JavaDoc");
+    }
+
+    /**
      * Return filtered list of tables
      * usually schemaPattern is a db username
      * if tablePattern equals "%", this mean what selected all tables
      *
-     * @param conn1 db connection
+     * @param database db connection
      * @param schemaPattern schema name filter 
      * @param tablePattern table name filter
      * @return List of DbTable
      */
-    public static List<DbTable> getTableList(Connection conn1, String schemaPattern, String tablePattern) {
+    public static List<DbTable> getTableList(Database database, String schemaPattern, String tablePattern) {
         String[] types = {"TABLE"};
 
         ResultSet meta = null;
         List<DbTable> v = new ArrayList<DbTable>();
         try {
-            DatabaseMetaData db = conn1.getMetaData();
+            DatabaseMetaData db = database.getConnection().getMetaData();
 
             meta = db.getTables(null, schemaPattern, tablePattern, types );
 
@@ -607,7 +620,7 @@ public class DatabaseStructureManager {
                 field.setDefaultValue(defValue == null ? null : defValue.trim());
 
                 if (field.getDefaultValue()!=null) {
-                    // fix issue with null value for concrete of BD
+                    // fix issue with null and other default values for concrete of DB
                     switch (adapter.getFamily()) {
                         case MYSQL:
                             if (field.getJavaType()==Types.TIMESTAMP && field.getDefaultValue().equals("0000-00-00 00:00:00")) {
@@ -623,6 +636,14 @@ public class DatabaseStructureManager {
                         case MAXDB:
                             break;
                         case ORACLE:
+                            if (field.getJavaType()==Types.VARCHAR && field.getDefaultValue().length()>0) {
+                                if (field.getDefaultValue().charAt(0)!='\'' || field.getDefaultValue().charAt(field.getDefaultValue().length()-1)!='\'') {
+                                    throw new DbRevisionException(
+                                        "Found wrong oracle default varchar value: " + field.getDefaultValue()+". " +
+                                            "Value must start and end with \' char.");
+                                }
+                                field.setDefaultValue(field.getDefaultValue().substring(1, field.getDefaultValue().length()-1));
+                            }
                             break;
                         case POSTGREES:
                             break;

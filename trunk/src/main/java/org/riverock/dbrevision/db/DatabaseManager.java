@@ -43,6 +43,7 @@ import org.riverock.dbrevision.annotation.schema.db.DbSchema;
 import org.riverock.dbrevision.annotation.schema.db.DbTable;
 import org.riverock.dbrevision.annotation.schema.db.DbView;
 import org.riverock.dbrevision.exception.DbRevisionException;
+import org.riverock.dbrevision.exception.ViewAlreadyExistException;
 import org.riverock.dbrevision.utils.DbUtils;
 
 /**
@@ -250,7 +251,7 @@ public final class DatabaseManager {
             dbSchema = "%";
         }
 
-        List<DbTable> list = DatabaseStructureManager.getTableList(adapter.getConnection(), dbSchema, "%");
+        List<DbTable> list = DatabaseStructureManager.getTableList(adapter, dbSchema, "%");
         for (DbTable table : list) {
             schema.getTables().add(table);
         }
@@ -272,7 +273,10 @@ public final class DatabaseManager {
     }
 
     public static void createWithReplaceAllView(final Database adapter, final DbSchema millSchema) {
-        boolean[] idx = new boolean[millSchema.getViews().size()];
+        createWithReplaceAllView(adapter, millSchema.getViews());
+    }
+    public static void createWithReplaceAllView(final Database adapter, final List<DbView> views) {
+        boolean[] idx = new boolean[views.size()];
         for (int i = 0; i < idx.length; i++) {
             idx[i] = false;
         }
@@ -287,31 +291,29 @@ public final class DatabaseManager {
                     continue;
                 }
 
-                DbView view = millSchema.getViews().get(i);
+                DbView view = views.get(i);
                 try {
                     adapter.createView(view);
                     idx[i] = true;
                 }
-                catch (Exception e) {
-                    if (adapter.testExceptionViewExists(e)) {
-                        try {
-                            DatabaseStructureManager.dropView(adapter, view);
-                        }
-                        catch (Exception e1) {
-                            String es = "Error drop view";
-                            log.error(es, e1);
-                            throw new DbRevisionException(es, e1);
-                        }
+                catch (ViewAlreadyExistException e) {
+                    try {
+                        DatabaseStructureManager.dropView(adapter, view);
+                    }
+                    catch (Exception e1) {
+                        String es = "Error drop view";
+                        log.error(es, e1);
+                        throw new DbRevisionException(es, e1);
+                    }
 
-                        try {
-                            adapter.createView(view);
-                            idx[i] = true;
-                        }
-                        catch (Exception e1) {
-                            String es = "Error create view";
-                            log.error(es, e1);
-                            throw new DbRevisionException(es, e1);
-                        }
+                    try {
+                        adapter.createView(view);
+                        idx[i] = true;
+                    }
+                    catch (Exception e1) {
+                        String es = "Error create view";
+                        log.error(es, e1);
+                        throw new DbRevisionException(es, e1);
                     }
                 }
             }

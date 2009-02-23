@@ -56,6 +56,7 @@ import org.riverock.dbrevision.annotation.schema.db.DbView;
 import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.exception.DbRevisionException;
+import org.riverock.dbrevision.exception.ViewAlreadyExistException;
 import org.riverock.dbrevision.utils.DbUtils;
 
 /**
@@ -515,6 +516,9 @@ public class OracleDatabase extends Database {
             ps.executeUpdate();
         }
         catch (SQLException e) {
+            if (testExceptionViewExists(e)) {
+                throw new ViewAlreadyExistException("View "+view.getName()+" already exist.");
+            }
             throw new DbRevisionException(e);
         } finally {
             DbUtils.close(ps);

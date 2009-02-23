@@ -192,6 +192,9 @@ http://www.sonatype.com/book/reporting.html
                 <executions>
                     <execution>
                         <phase>generate-sources</phase>
+<!--
+<phase>site-deploy</phase>
+-->
                         <configuration>
                             <tasks>
                                 <copy todir="target/site/xsd" overwrite="true">

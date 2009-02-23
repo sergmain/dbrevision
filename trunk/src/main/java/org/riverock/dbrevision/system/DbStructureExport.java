@@ -51,6 +51,26 @@ public class DbStructureExport {
     }
 
     public static void export(Database adapter, OutputStream outputStream, boolean isData, boolean isOnlyCurrent) {
+        export(adapter, outputStream, isData, isOnlyCurrent, "SchemaElement", "utf-8");
+    }
+
+    /**
+     *
+     * @param adapter
+     * @param outputStream
+     * @param isData
+     * @param isOnlyCurrent if true - only objects in current db schema 
+     * @param xmlRootElement
+     * @param encoding
+     */
+    public static void export(
+        Database adapter,
+        OutputStream outputStream,
+        boolean isData,
+        boolean isOnlyCurrent,
+        String xmlRootElement,
+        String encoding) {
+
         try {
             DbSchema schema = DatabaseManager.getDbStructure(adapter, isOnlyCurrent);
             if (isData) {
@@ -58,7 +78,7 @@ public class DbStructureExport {
                     table.setData(DatabaseStructureManager.getDataTable(adapter, table));
                 }
             }
-            Utils.writeObjectAsXml(schema, outputStream, "utf-8");
+            Utils.writeObjectAsXml(schema, outputStream, xmlRootElement, encoding);
         } catch (Exception e) {
             throw new DbRevisionException(e);
         }

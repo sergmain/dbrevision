@@ -33,7 +33,6 @@ import org.riverock.dbrevision.annotation.schema.db.DbField;
 import org.riverock.dbrevision.annotation.schema.db.DbForeignKey;
 import org.riverock.dbrevision.annotation.schema.db.DbSchema;
 import org.riverock.dbrevision.annotation.schema.db.DbTable;
-import org.riverock.dbrevision.annotation.schema.db.DbView;
 import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.db.DatabaseStructureManager;
@@ -47,37 +46,6 @@ import org.riverock.dbrevision.utils.Utils;
  * $Id: ValidateStructure.java 1141 2006-12-14 14:43:29Z serg_main $
  */
 public class ValidateStructure {
-
-    public ValidateStructure() {
-    }
-
-    private static void processAllView(Database db_, DbSchema millSchema) throws Exception {
-        for (DbView view : millSchema.getViews()) {
-            DatabaseManager.createWithReplaceAllView(db_, millSchema);
-            try {
-                System.out.println("create view " + view.getName());
-                db_.createView(view);
-            }
-            catch (Exception e) {
-                if (db_.testExceptionViewExists(e)) {
-                    System.out.println("view " + view.getName() + " already exists");
-                    System.out.println("drop view " + view.getName());
-                    DatabaseStructureManager.dropView(db_, view);
-                    System.out.println("create view " + view.getName());
-                    try {
-                        db_.createView(view);
-                    }
-                    catch (Exception e1) {
-                        System.out.println("Error create view - " + e1.toString());
-                    }
-                }
-                else {
-                    System.out.println("Error create view - " + e.toString());
-                }
-            }
-        }
-        DatabaseManager.createWithReplaceAllView(db_, millSchema);
-    }
 
     private static void processForeignKeys(Database adapter, DbSchema millSchema) throws Exception {
         for (DbTable table : millSchema.getTables()) {
@@ -168,7 +136,7 @@ public class ValidateStructure {
         }
 */
 
-        processAllView(adapter, millSchema);
+        DbStructureImport.fullCreateViews(adapter, millSchema.getViews());
         processForeignKeys(adapter, millSchema);
 
         return DatabaseManager.getDbStructure(adapter);

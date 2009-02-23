@@ -27,7 +27,7 @@ public class TestConnectionProvider {
         DatabaseMetaData metaData = database.getConnection().getMetaData();
 //        String dbSchema = metaData.getUserName();
         String dbSchema = "";
-        List<DbTable> list = DatabaseStructureManager.getTableList(database.getConnection(), dbSchema, Constants.DB_REVISION_TABLE_NAME);
+        List<DbTable> list = DatabaseStructureManager.getTableList(database, dbSchema, Constants.DB_REVISION_TABLE_NAME);
 
         System.out.println("list = " + list);
     }
