@@ -57,6 +57,7 @@ import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.db.DbPkComparator;
 import org.riverock.dbrevision.exception.DbRevisionException;
 import org.riverock.dbrevision.exception.ViewAlreadyExistException;
+import org.riverock.dbrevision.exception.TableNotFoundException;
 import org.riverock.dbrevision.utils.DbUtils;
 
 /**
@@ -559,6 +560,9 @@ ALTER TABLE table
         catch (SQLException e) {
             if (testExceptionViewExists(e)) {
                 throw new ViewAlreadyExistException("View "+view.getName()+" already exist.");
+            }
+            if (testExceptionTableNotFound(e)) {
+                throw new TableNotFoundException("View "+view.getName()+" refered to unknown table.");
             }
             String errorString = "Error create view. Error code " + e.getErrorCode() + "\n" + sql_;
             log.error(errorString, e);

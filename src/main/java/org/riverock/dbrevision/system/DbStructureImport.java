@@ -108,17 +108,14 @@ public class DbStructureImport {
     }
 
     public static void fullCreateViews(Database database, List<DbView> views) {
+        DatabaseManager.createWithReplaceAllView(database, views);
+
         for (DbView view : views) {
-            DatabaseManager.createWithReplaceAllView(database, views);
             try {
-                log.debug("create view " + view.getName());
                 database.createView(view);
             }
             catch(ViewAlreadyExistException e) {
-                log.debug("view " + view.getName() + " already exists");
-                log.debug("drop view " + view.getName());
                 DatabaseStructureManager.dropView(database, view);
-                log.debug("create view " + view.getName());
                 try {
                     database.createView(view);
                 }
@@ -134,6 +131,6 @@ public class DbStructureImport {
                 throw new DbRevisionException(es, e);
             }
         }
-        DatabaseManager.createWithReplaceAllView(database, views);
+        //DatabaseManager.createWithReplaceAllView(database, views);
     }
 }

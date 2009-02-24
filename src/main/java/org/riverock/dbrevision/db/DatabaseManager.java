@@ -44,6 +44,7 @@ import org.riverock.dbrevision.annotation.schema.db.DbTable;
 import org.riverock.dbrevision.annotation.schema.db.DbView;
 import org.riverock.dbrevision.exception.DbRevisionException;
 import org.riverock.dbrevision.exception.ViewAlreadyExistException;
+import org.riverock.dbrevision.exception.TableNotFoundException;
 import org.riverock.dbrevision.utils.DbUtils;
 
 /**
@@ -275,6 +276,7 @@ public final class DatabaseManager {
     public static void createWithReplaceAllView(final Database adapter, final DbSchema millSchema) {
         createWithReplaceAllView(adapter, millSchema.getViews());
     }
+    
     public static void createWithReplaceAllView(final Database adapter, final List<DbView> views) {
         boolean[] idx = new boolean[views.size()];
         for (int i = 0; i < idx.length; i++) {
@@ -311,10 +313,11 @@ public final class DatabaseManager {
                         idx[i] = true;
                     }
                     catch (Exception e1) {
-                        String es = "Error create view";
-                        log.error(es, e1);
-                        throw new DbRevisionException(es, e1);
+                        // do not throw any exception
                     }
+                }
+                catch(TableNotFoundException e) {
+                    // do not throw any exception
                 }
             }
         }
