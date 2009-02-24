@@ -47,6 +47,7 @@ import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.exception.DbRevisionException;
 import org.riverock.dbrevision.exception.ViewAlreadyExistException;
+import org.riverock.dbrevision.exception.TableNotFoundException;
 import org.riverock.dbrevision.utils.DbUtils;
 
 /**
@@ -137,6 +138,9 @@ public class MaxDBDatabase extends Database {
         catch (SQLException e) {
             if (testExceptionViewExists(e)) {
                 throw new ViewAlreadyExistException("View "+view.getName()+" already exist.");
+            }
+            if (testExceptionTableNotFound(e)) {
+                throw new TableNotFoundException("View "+view.getName()+" refered to unknown table.");
             }
             throw new DbRevisionException(e);
         } finally {

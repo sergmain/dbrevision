@@ -57,6 +57,7 @@ import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.db.DbPkComparator;
 import org.riverock.dbrevision.exception.DbRevisionException;
 import org.riverock.dbrevision.exception.ViewAlreadyExistException;
+import org.riverock.dbrevision.exception.TableNotFoundException;
 import org.riverock.dbrevision.utils.DbUtils;
 
 
@@ -498,9 +499,26 @@ public final class MySqlDatabase extends Database {
             return;
         }
 
+        String s = StringUtils.replace(view.getText(), "||", "+");
+        
+        // replace oracle to_char() with CONCAT(storedMList,'')
+        // need implement....
+
+        // remove oracle 'WITH READ ONLY'
+        int idx = s.toUpperCase().indexOf("WITH");
+        if (idx!=-1) {
+            String sr = s.substring(idx+4).trim().toUpperCase();
+            if  (sr.startsWith("READ")) {
+                String so = sr.substring(4).trim();
+                if (so.startsWith("ONLY")) {
+                    int idxEnd = s.toUpperCase().indexOf("ONLY", idx);
+                    s = s.substring(0, idx) + s.substring(idxEnd+4);
+                }
+            }
+        }
         String sql_ =
             "CREATE VIEW " + view.getName() +
-            " AS " + StringUtils.replace(view.getText(), "||", "+");
+            " AS " + s;
 
         Statement ps = null;
         try {
@@ -511,9 +529,11 @@ public final class MySqlDatabase extends Database {
             if (testExceptionViewExists(e)) {
                 throw new ViewAlreadyExistException("View "+view.getName()+" already exist.");
             }
+            if (testExceptionTableNotFound(e)) {
+                throw new TableNotFoundException("View "+view.getName()+" refered to unknown table.");
+            }
             String errorString = "Error create view. Error code " + e.getErrorCode() + "\n" + sql_;
             log.error(errorString, e);
-//            System.out.println(errorString);
             throw new DbRevisionException(errorString, e);
         }
         finally {
