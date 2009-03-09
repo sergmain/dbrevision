@@ -27,6 +27,7 @@ package org.riverock.dbrevision.system;
 
 import java.io.InputStream;
 import java.util.List;
+import java.util.ArrayList;
 
 import org.apache.log4j.Logger;
 
@@ -34,6 +35,7 @@ import org.riverock.dbrevision.annotation.schema.db.DbSchema;
 import org.riverock.dbrevision.annotation.schema.db.DbSequence;
 import org.riverock.dbrevision.annotation.schema.db.DbTable;
 import org.riverock.dbrevision.annotation.schema.db.DbView;
+import org.riverock.dbrevision.annotation.schema.db.DbViewReplacement;
 import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.db.DatabaseStructureManager;
@@ -56,20 +58,32 @@ public class DbStructureImport {
     private static Logger log = Logger.getLogger(DbStructureImport.class);
 
     public static void importStructure(Database database, InputStream stream, boolean isData ) {
+        importStructure(database, stream, null, isData);
+    }
+
+    public static void importStructure(Database database, InputStream stream, InputStream replacementSchemaStream, boolean isData ) {
         log.debug("Unmarshal data from inputstream");
-        DbSchema millSchema;
+        DbSchema schema;
+        DbSchema replacementSchema=null;
         try {
-            millSchema = Utils.getObjectFromXml(DbSchema.class, stream);
+            schema = Utils.getObjectFromXml(DbSchema.class, stream);
+            if (replacementSchemaStream!=null) {
+                replacementSchema = Utils.getObjectFromXml(DbSchema.class, replacementSchemaStream);
+            }
         }
         catch (Exception e) {
             String es = "Error unmarshal DB structure from input stream";
             log.error(es, e);
             throw new DbRevisionException(es, e);
         }
-        importStructure(database, millSchema, isData);
+        importStructure(database, schema, replacementSchema, isData);
     }
 
     public static void importStructure(Database database, DbSchema millSchema, boolean isData) {
+        importStructure(database, millSchema, null, isData);
+    }
+
+    public static void importStructure(Database database, DbSchema millSchema, DbSchema replacementSchema, boolean isData) {
         for (DbTable table : millSchema.getTables()) {
 
             if (!DatabaseManager.isSkipTable(table.getName())) {
@@ -92,7 +106,15 @@ public class DbStructureImport {
 
         }
 
-        fullCreateViews(database, millSchema.getViews());
+        List<DbViewReplacement> dbViewReplacements = new ArrayList<DbViewReplacement>();
+        if (millSchema.getViewReplacement()!=null) {
+            dbViewReplacements.addAll(millSchema.getViewReplacement());
+        }
+        if (replacementSchema!=null && replacementSchema.getViewReplacement()!=null) {
+            dbViewReplacements.addAll(replacementSchema.getViewReplacement());
+        }
+
+        fullCreateViews(database, millSchema.getViews(), dbViewReplacements);
 
         for (DbSequence seq : millSchema.getSequences()) {
             try {
@@ -108,10 +130,22 @@ public class DbStructureImport {
     }
 
     public static void fullCreateViews(Database database, List<DbView> views) {
-        DatabaseManager.createWithReplaceAllView(database, views);
+        fullCreateViews(database, views, null);
+    }
+
+    public static void fullCreateViews(Database database, List<DbView> views, List<DbViewReplacement> replacementViews) {
+        DatabaseManager.createWithReplaceAllView(database, views, replacementViews);
 
         for (DbView view : views) {
+            DbViewReplacement viewReplacement = DatabaseManager.getViewReplcament(database, view, replacementViews);
             try {
+                if (viewReplacement!=null) {
+                    if (Boolean.TRUE.equals(viewReplacement.isSkip())) {
+                        continue;
+                    }
+                    view = viewReplacement.getView();
+                }
+                
                 database.createView(view);
             }
             catch(ViewAlreadyExistException e) {
@@ -131,6 +165,6 @@ public class DbStructureImport {
                 throw new DbRevisionException(es, e);
             }
         }
-        //DatabaseManager.createWithReplaceAllView(database, views);
     }
+
 }
