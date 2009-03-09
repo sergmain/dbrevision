@@ -42,6 +42,7 @@ import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKey;
 import org.riverock.dbrevision.annotation.schema.db.DbSchema;
 import org.riverock.dbrevision.annotation.schema.db.DbTable;
 import org.riverock.dbrevision.annotation.schema.db.DbView;
+import org.riverock.dbrevision.annotation.schema.db.DbViewReplacement;
 import org.riverock.dbrevision.exception.DbRevisionException;
 import org.riverock.dbrevision.exception.ViewAlreadyExistException;
 import org.riverock.dbrevision.exception.TableNotFoundException;
@@ -278,6 +279,10 @@ public final class DatabaseManager {
     }
     
     public static void createWithReplaceAllView(final Database adapter, final List<DbView> views) {
+        createWithReplaceAllView(adapter, views, null);
+    }
+
+    public static void createWithReplaceAllView(final Database database, final List<DbView> views, List<DbViewReplacement> replacementViews) {
         boolean[] idx = new boolean[views.size()];
         for (int i = 0; i < idx.length; i++) {
             idx[i] = false;
@@ -294,13 +299,21 @@ public final class DatabaseManager {
                 }
 
                 DbView view = views.get(i);
+                DbViewReplacement viewReplacement = getViewReplcament(database, view, replacementViews);
                 try {
-                    adapter.createView(view);
+                    if (viewReplacement!=null) {
+                        if (Boolean.TRUE.equals(viewReplacement.isSkip())) {
+                            idx[i] = true;
+                            continue;
+                        }
+                        view = viewReplacement.getView();
+                    }
+                    database.createView(view);
                     idx[i] = true;
                 }
                 catch (ViewAlreadyExistException e) {
                     try {
-                        DatabaseStructureManager.dropView(adapter, view);
+                        DatabaseStructureManager.dropView(database, view);
                     }
                     catch (Exception e1) {
                         String es = "Error drop view";
@@ -309,7 +322,7 @@ public final class DatabaseManager {
                     }
 
                     try {
-                        adapter.createView(view);
+                        database.createView(view);
                         idx[i] = true;
                     }
                     catch (Exception e1) {
@@ -592,5 +605,20 @@ public final class DatabaseManager {
             stmt = null;
             pstm = null;
         }
+    }
+
+    public static DbViewReplacement getViewReplcament(Database database, DbView view, List<DbViewReplacement> replacementViews) {
+        if (replacementViews==null) {
+            return null;
+        }
+        for (DbViewReplacement viewReplacement : replacementViews) {
+            for (String databaseName : viewReplacement.getDatabaseFamily()) {
+                Database.Family family = DatabaseFactory.decodeFamily(databaseName);
+                if (family==database.getFamily() && view.getName().equalsIgnoreCase(viewReplacement.getView().getName())) {
+                    return viewReplacement;
+                }
+            }
+        }
+        return null;
     }
 }
