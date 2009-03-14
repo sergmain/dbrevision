@@ -28,6 +28,8 @@ package org.riverock.dbrevision.system;
 import java.io.InputStream;
 import java.util.List;
 import java.util.ArrayList;
+import java.sql.Statement;
+import java.sql.SQLException;
 
 import org.apache.log4j.Logger;
 
@@ -36,10 +38,12 @@ import org.riverock.dbrevision.annotation.schema.db.DbSequence;
 import org.riverock.dbrevision.annotation.schema.db.DbTable;
 import org.riverock.dbrevision.annotation.schema.db.DbView;
 import org.riverock.dbrevision.annotation.schema.db.DbViewReplacement;
+import org.riverock.dbrevision.annotation.schema.db.DbSequenceReplacement;
 import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.db.DatabaseStructureManager;
 import org.riverock.dbrevision.utils.Utils;
+import org.riverock.dbrevision.utils.DbUtils;
 import org.riverock.dbrevision.exception.DbRevisionException;
 import org.riverock.dbrevision.exception.ViewAlreadyExistException;
 
@@ -83,8 +87,8 @@ public class DbStructureImport {
         importStructure(database, millSchema, null, isData);
     }
 
-    public static void importStructure(Database database, DbSchema millSchema, DbSchema replacementSchema, boolean isData) {
-        for (DbTable table : millSchema.getTables()) {
+    public static void importStructure(Database database, DbSchema dbSchema, DbSchema replacementSchema, boolean isData) {
+        for (DbTable table : dbSchema.getTables()) {
 
             if (!DatabaseManager.isSkipTable(table.getName())) {
                 try {
@@ -107,27 +111,62 @@ public class DbStructureImport {
         }
 
         List<DbViewReplacement> dbViewReplacements = new ArrayList<DbViewReplacement>();
-        if (millSchema.getViewReplacement()!=null) {
-            dbViewReplacements.addAll(millSchema.getViewReplacement());
+        if (dbSchema.getViewReplacement()!=null) {
+            dbViewReplacements.addAll(dbSchema.getViewReplacement());
         }
         if (replacementSchema!=null && replacementSchema.getViewReplacement()!=null) {
             dbViewReplacements.addAll(replacementSchema.getViewReplacement());
         }
 
-        fullCreateViews(database, millSchema.getViews(), dbViewReplacements);
+        fullCreateViews(database, dbSchema.getViews(), dbViewReplacements);
 
-        for (DbSequence seq : millSchema.getSequences()) {
+        createSequences(database, dbSchema, replacementSchema);
+        processSequencesReplacement(database, dbSchema, replacementSchema);
+    }
+
+    private static void processSequencesReplacement(Database database, DbSchema dbSchema, DbSchema replacementSchema) {
+        if (replacementSchema==null || replacementSchema.getSequenceReplacement()==null ) {
+            return;
+        }
+        DbSequenceReplacement r = replacementSchema.getSequenceReplacement();
+        DbTable table = r.getTableWithIds();
+        database.createTable(table);
+        for (DbSequence seq : dbSchema.getSequences()) {
+            String sql_ =
+                "insert into " + table.getName() +
+                    "(" + r.getSequenceColumnName() + ','+ r.getValueColumnName() + ")" +
+                    "value " +
+                    "('"+seq.getName()+"', "+seq.getLastNumber()+")";
+
+            Statement ps = null;
             try {
-                log.debug("create sequence " + seq.getName());
-                database.createSequence(seq);
+                ps = database.getConnection().createStatement();
+                ps.execute(sql_);
+                database.getConnection().commit();
             }
-            catch (Exception e) {
-                String es = "Error create sequence ";
-                log.debug(es + seq.getName(), e);
-                throw new DbRevisionException(es, e);
+            catch (SQLException e) {
+                throw new DbRevisionException("sql:\n"+sql_, e);
+            }
+            finally {
+                DbUtils.close(ps);
+                ps = null;
             }
         }
     }
+
+    private static void createSequences(Database database, DbSchema millSchema, DbSchema replacementSchema) {
+        if (replacementSchema!=null &&
+            replacementSchema.getSequenceReplacement()!=null &&
+            Boolean.TRUE.equals(replacementSchema.getSequenceReplacement().isIsSkipAll())
+            ) {
+
+            return;
+        }
+        for (DbSequence seq : millSchema.getSequences()) {
+            database.createSequence(seq);
+        }
+    }
+
 
     public static void fullCreateViews(Database database, List<DbView> views) {
         fullCreateViews(database, views, null);
