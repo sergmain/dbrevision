@@ -43,8 +43,17 @@
 			<xs:element name="View" type="dbrevision-structure:DbView" minOccurs="0" maxOccurs="unbounded"/>
             <xs:element name="ViewReplacement" type="dbrevision-structure:DbViewReplacement" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element name="Sequence" type="dbrevision-structure:DbSequence" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="SequenceReplacement" type="dbrevision-structure:DbSequenceReplacement" minOccurs="0" maxOccurs="1"/>
 		</xs:sequence>
 	</xs:complexType>
+    <xs:complexType name="DbSequenceReplacement">
+        <xs:sequence>
+            <xs:element name="TableWithIds" type="dbrevision-structure:DbTable" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="SequenceColumnName" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="ValueColumnName" type="xs:string" minOccurs="1" maxOccurs="1"/>
+        </xs:sequence>
+        <xs:attribute name="isSkipAll" type="xs:boolean" use="optional"/>
+    </xs:complexType>
     <xs:complexType name="DbViewReplacement">
         <xs:sequence>
             <xs:element name="DatabaseFamily" minOccurs="1" maxOccurs="unbounded">
