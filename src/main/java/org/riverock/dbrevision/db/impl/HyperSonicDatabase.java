@@ -102,6 +102,49 @@ public class HyperSonicDatabase extends Database {
         return false;
     }
 
+    @Override
+    public boolean isForeignKeyControlSupports() {
+        return false;
+    }
+
+    @Override
+    public void changeForeignKeyState(DbForeignKey key, ForeingKeyState state) {
+        if (!isForeignKeyControlSupports()) {
+            throw new IllegalStateException( "This database type not supported changing state of FK.");
+        }
+        String s;
+        switch (state) {
+
+            case DISABLE:
+                s = "DISABLE";
+                break;
+            case ENABLE:
+                s = "ENABLE";
+                break;
+            default:
+                throw new IllegalArgumentException( "Unknown state "+ state);
+        }
+        String sql = "ALTER TABLE "+key.getFkTableName()+" MODIFY CONSTRAINT "+key.getFkName()+" " + s;
+
+        PreparedStatement ps = null;
+        try {
+            ps = this.getConnection().prepareStatement(sql);
+            ps.executeUpdate();
+        }
+        catch (SQLException e) {
+            throw new DbRevisionException(e);
+        }
+        finally {
+            DbUtils.close(ps);
+            ps = null;
+        }
+    }
+
+    @Override
+    public void changeNullableState(DbTable table, DbField field, NullableState state) {
+        throw new DbRevisionException("Not implemented");
+    }
+
     public String getDefaultSchemaName(DatabaseMetaData databaseMetaData) {
         // hypersonic 1.8.x correctly work only with default schema 'PUBLIC'
         return "PUBLIC";
@@ -304,12 +347,17 @@ public class HyperSonicDatabase extends Database {
     public void dropSequence(String nameSequence) {
     }
 
-    public void dropConstraint(DbForeignKey impPk) {
-        if (impPk == null)
-            return;
+    @Override
+    public void dropConstraint(DbPrimaryKey pk){
+        dropConstraint(pk.getTableName(), pk.getPkName());
+    }
 
-        String sql = "ALTER TABLE " + impPk.getPkTableName() + " DROP CONSTRAINT " + impPk.getPkName();
+    public void dropConstraint(DbForeignKey fk){
+        dropConstraint(fk.getFkTableName(), fk.getFkName());
+    }
 
+    public void dropConstraint(String tableName, String constraintName){
+        String sql = "alter table "+tableName+" drop constraint " + constraintName;
         PreparedStatement ps = null;
         try {
             ps = this.getConnection().prepareStatement(sql);

@@ -43,6 +43,7 @@ import org.riverock.dbrevision.annotation.schema.db.DbForeignKey;
 import org.riverock.dbrevision.annotation.schema.db.DbSequence;
 import org.riverock.dbrevision.annotation.schema.db.DbTable;
 import org.riverock.dbrevision.annotation.schema.db.DbView;
+import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKey;
 import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.exception.DbRevisionException;
@@ -76,6 +77,49 @@ public class MaxDBDatabase extends Database {
         return false;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
+    @Override
+    public boolean isForeignKeyControlSupports() {
+        return false;
+    }
+
+    @Override
+    public void changeForeignKeyState(DbForeignKey key, ForeingKeyState state) {
+        if (!isForeignKeyControlSupports()) {
+            throw new IllegalStateException( "This database type not supported changing state of FK.");
+        }
+        String s;
+        switch (state) {
+
+            case DISABLE:
+                s = "DISABLE";
+                break;
+            case ENABLE:
+                s = "ENABLE";
+                break;
+            default:
+                throw new IllegalArgumentException( "Unknown state "+ state);
+        }
+        String sql = "ALTER TABLE "+key.getFkTableName()+" MODIFY CONSTRAINT "+key.getFkName()+" " + s;
+
+        PreparedStatement ps = null;
+        try {
+            ps = this.getConnection().prepareStatement(sql);
+            ps.executeUpdate();
+        }
+        catch (SQLException e) {
+            throw new DbRevisionException(e);
+        }
+        finally {
+            DbUtils.close(ps);
+            ps = null;
+        }
+    }
+
+    @Override
+    public void changeNullableState(DbTable table, DbField field, NullableState state) {
+        throw new DbRevisionException("Not implemented");
+    }
+
     public String getDefaultSchemaName(DatabaseMetaData databaseMetaData) {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
@@ -94,6 +138,11 @@ public class MaxDBDatabase extends Database {
     }
 
     public void dropSequence(String nameSequence) {
+    }
+
+    @Override
+    public void dropConstraint(DbPrimaryKey pk) {
+        
     }
 
     public void dropConstraint(DbForeignKey impPk) {

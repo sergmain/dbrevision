@@ -52,6 +52,9 @@ import org.riverock.dbrevision.utils.DbUtils;
 public class DatabaseStructureManager {
     private final static Logger log = Logger.getLogger(DatabaseStructureManager.class);
     private static final int MAX_LENGTH_BLOB = 1000000;
+    private static final String CURRENT = "CURRENT";
+    private static final String TIMESTAMP = "TIMESTAMP";
+
 
     /**
      * create foreign key
@@ -628,6 +631,14 @@ public class DatabaseStructureManager {
                             }
                             break;
                         case DB2:
+                            // check for IBM DB2 CURRENT TIMESTAMP
+                            if (field.getDefaultValue().toUpperCase().startsWith(CURRENT)) {
+                                String s1 = field.getDefaultValue().substring(CURRENT.length()).trim();
+                                if (s1.equalsIgnoreCase(TIMESTAMP)) {
+                                    field.setDefaultValue("current_timestamp");
+                                }
+                            }
+
                             break;
                         case HYPERSONIC:
                             break;
@@ -712,6 +723,8 @@ public class DatabaseStructureManager {
                             if (adapter.getFamily()== Database.Family.MYSQL) {
                                 field.setDataType("tinyint");
                                 field.setJavaType(Types.TINYINT);
+                                field.setSize(1);
+                                field.setDecimalDigit(null);
                                 field.setJavaStringType("java.sql.Types.TINYINT");
                                 break;
                             }

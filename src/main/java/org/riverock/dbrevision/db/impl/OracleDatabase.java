@@ -89,6 +89,84 @@ public class OracleDatabase extends Database {
         return true;
     }
 
+    @Override
+    public boolean isForeignKeyControlSupports() {
+        return true;
+    }
+
+    @Override
+    public void changeForeignKeyState(DbForeignKey key, ForeingKeyState state) {
+        if (!isForeignKeyControlSupports()) {
+            throw new IllegalStateException( "This database type not supported changing state of FK.");
+        }
+        String s;
+        switch (state) {
+
+            case DISABLE:
+                s = "DISABLE";
+                break;
+            case ENABLE:
+                s = "ENABLE";
+                break;
+            case ENABLE_VALIDATE:
+                s = "ENABLE VALIDATE";
+                break;
+            default:
+                throw new IllegalArgumentException( "Unknown state "+ state);
+        }
+        String sql = "ALTER TABLE "+key.getFkTableName()+" MODIFY CONSTRAINT "+key.getFkName()+" " + s;
+
+        PreparedStatement ps = null;
+        try {
+            ps = this.getConnection().prepareStatement(sql);
+            ps.executeUpdate();
+        }
+        catch (SQLException e) {
+            throw new DbRevisionException(e);
+        }
+        finally {
+            DbUtils.close(ps);
+            ps = null;
+        }
+    }
+
+    @Override
+    public void changeNullableState(DbTable table, DbField field, NullableState state) {
+        String s;
+        switch (state) {
+
+            case NULL:
+                s = "NULL";
+                break;
+            case NOTNULL:
+                s = "NOT NULL";
+                break;
+            default:
+                throw new IllegalArgumentException( "Unknown state "+ state);
+        }
+
+/*
+ALTER TABLE AUTH_ACCESS_GROUP
+ MODIFY (
+  ID_ACCESS_GROUP NOT NULL
+)
+         */
+        String sql = "ALTER TABLE "+table.getName()+" MODIFY ( "+field.getName()+"  " + s +")";
+
+        PreparedStatement ps = null;
+        try {
+            ps = this.getConnection().prepareStatement(sql);
+            ps.executeUpdate();
+        }
+        catch (SQLException e) {
+            throw new DbRevisionException(e);
+        }
+        finally {
+            DbUtils.close(ps);
+            ps = null;
+        }
+    }
+
     public String getDefaultSchemaName(DatabaseMetaData databaseMetaData) {
         try {
             return databaseMetaData.getUserName();
@@ -261,10 +339,6 @@ public class OracleDatabase extends Database {
 
     }
 
-    public void createForeignKey(DbTable view) {
-        
-    }
-
     /**
      * ALTER TABLE a_test_1<br>
      * ADD CONSTRAINT a_test_1_fk FOREIGN KEY (id, id_test)&<br>
@@ -277,6 +351,10 @@ public class OracleDatabase extends Database {
      * DEFERRABLE INITIALLY DEFERRED<br>
      /
     */
+    public void createForeignKey(DbTable view) {
+        
+    }
+
     public void dropTable(DbTable table) {
         dropTable(table.getName());
     }
@@ -320,8 +398,28 @@ public class OracleDatabase extends Database {
         }
     }
 
-    public void dropConstraint(DbForeignKey impPk){
-        throw new DbRevisionException("not implemented");
+    public void dropConstraint(DbPrimaryKey pk){
+        dropConstraint(pk.getTableName(), pk.getPkName());
+    }
+
+    public void dropConstraint(DbForeignKey fk){
+        dropConstraint(fk.getFkTableName(), fk.getFkName());
+    }
+
+    public void dropConstraint(String tableName, String constraintName){
+        String sql = "alter table "+tableName+" drop constraint " + constraintName;
+        PreparedStatement ps = null;
+        try {
+            ps = this.getConnection().prepareStatement(sql);
+            ps.executeUpdate();
+        }
+        catch (SQLException e) {
+            throw new DbRevisionException(e);
+        }
+        finally {
+            DbUtils.close(ps);
+            ps = null;
+        }
     }
 
     public void addColumn(DbTable table, DbField field) {
@@ -336,7 +434,7 @@ public class OracleDatabase extends Database {
             case Types.DOUBLE:
             case Types.NUMERIC:
             case Types.INTEGER:
-                if (field.getDecimalDigit() == null || field.getDecimalDigit() == 0)
+                if (field.getDecimalDigit()== null)
                     sql += " NUMBER";
                 else
                     sql += " NUMBER(" + (field.getSize()==null || field.getSize()>38?38:field.getSize()) + "," + field.getDecimalDigit() + ")";
@@ -386,7 +484,7 @@ public class OracleDatabase extends Database {
                 case Types.DATE:
                 case Types.TIMESTAMP:
                     if (DatabaseManager.checkDefaultTimestamp(val)) {
-                        val = "SYSDATE";
+                        val = " SYSDATE ";
                     }
                     break;
             }

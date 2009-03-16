@@ -37,6 +37,7 @@ import org.riverock.dbrevision.annotation.schema.db.DbForeignKey;
 import org.riverock.dbrevision.annotation.schema.db.DbSequence;
 import org.riverock.dbrevision.annotation.schema.db.DbTable;
 import org.riverock.dbrevision.annotation.schema.db.DbView;
+import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKey;
 
 /**
  * Database
@@ -51,6 +52,14 @@ public abstract class Database {
      */
     public enum Family {
         ORACLE, MYSQL, DB2, SQLSERVER, HYPERSONIC, MAXDB, INTERBASE, POSTGREES
+    }
+
+    public enum ForeingKeyState {
+        ENABLE, DISABLE, ENABLE_VALIDATE
+    }
+
+    public enum NullableState {
+        NULL, NOTNULL
     }
 
     /**
@@ -100,6 +109,12 @@ public abstract class Database {
 
     public abstract boolean isSchemaSupports();
 
+    public abstract boolean isForeignKeyControlSupports();
+
+    public abstract void changeForeignKeyState(DbForeignKey key, ForeingKeyState state);
+
+    public abstract void changeNullableState(DbTable table, DbField field, NullableState state); 
+
     public abstract String getDefaultSchemaName(DatabaseMetaData databaseMetaData);
 
     public abstract String getClobField(ResultSet rs, String nameFeld);
@@ -119,6 +134,8 @@ public abstract class Database {
     public abstract void dropSequence(String nameSequence);
 
     public abstract void dropConstraint(DbForeignKey impPk);
+
+    public abstract void dropConstraint(DbPrimaryKey pk);
 
     public abstract void addColumn(DbTable table, DbField field);
 

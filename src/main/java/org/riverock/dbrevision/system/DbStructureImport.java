@@ -134,7 +134,7 @@ public class DbStructureImport {
         for (DbSequence seq : dbSchema.getSequences()) {
             String sql_ =
                 "insert into " + table.getName() +
-                    "(" + r.getSequenceColumnName() + ','+ r.getValueColumnName() + ")" +
+                    "(" + r.getSequenceColumnName() + ','+r.getValueColumnName()  + ")" +
                     "value " +
                     "('"+seq.getName()+"', "+seq.getLastNumber()+")";
 
