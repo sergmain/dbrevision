@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.DatabaseMetaData;
+import java.sql.SQLException;
 import java.util.List;
 
 import org.riverock.dbrevision.annotation.schema.db.DbDataFieldData;
@@ -12,7 +13,10 @@ import org.riverock.dbrevision.annotation.schema.db.DbForeignKey;
 import org.riverock.dbrevision.annotation.schema.db.DbSequence;
 import org.riverock.dbrevision.annotation.schema.db.DbTable;
 import org.riverock.dbrevision.annotation.schema.db.DbView;
+import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKey;
 import org.riverock.dbrevision.db.Database;
+import org.riverock.dbrevision.exception.DbRevisionException;
+import org.riverock.dbrevision.utils.DbUtils;
 
 /**
  * User: SergeMaslyukov
@@ -46,6 +50,49 @@ public class LocalDatabase extends Database {
 
     public boolean isSchemaSupports() {
         return true;
+    }
+
+    @Override
+    public boolean isForeignKeyControlSupports() {
+        return false;
+    }
+
+    @Override
+    public void changeForeignKeyState(DbForeignKey key, ForeingKeyState state) {
+        if (!isForeignKeyControlSupports()) {
+            throw new IllegalStateException( "This database type not supported changing state of FK.");
+        }
+        String s;
+        switch (state) {
+
+            case DISABLE:
+                s = "DISABLE";
+                break;
+            case ENABLE:
+                s = "ENABLE";
+                break;
+            default:
+                throw new IllegalArgumentException( "Unknown state "+ state);
+        }
+        String sql = "ALTER TABLE "+key.getFkTableName()+" MODIFY CONSTRAINT "+key.getFkName()+" " + s;
+
+        PreparedStatement ps = null;
+        try {
+            ps = this.getConnection().prepareStatement(sql);
+            ps.executeUpdate();
+        }
+        catch (SQLException e) {
+            throw new DbRevisionException(e);
+        }
+        finally {
+            DbUtils.close(ps);
+            ps = null;
+        }
+    }
+
+    @Override
+    public void changeNullableState(DbTable table, DbField field, NullableState state) {
+        throw new DbRevisionException("Not implemented");
     }
 
     public String getDefaultSchemaName(DatabaseMetaData databaseMetaData) {
@@ -82,6 +129,11 @@ public class LocalDatabase extends Database {
 
     public void dropSequence(String nameSequence) {
 
+    }
+
+    @Override
+    public void dropConstraint(DbPrimaryKey pk) {
+        
     }
 
     public void dropConstraint(DbForeignKey impPk) {

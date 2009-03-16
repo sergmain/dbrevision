@@ -34,18 +34,23 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Collections;
 
 import org.apache.log4j.Logger;
+import org.apache.commons.lang.StringUtils;
 
 import org.riverock.dbrevision.annotation.schema.db.DbField;
+import org.riverock.dbrevision.annotation.schema.db.DbForeignKey;
+import org.riverock.dbrevision.annotation.schema.db.DbForeignKeyColumn;
 import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKey;
 import org.riverock.dbrevision.annotation.schema.db.DbSchema;
 import org.riverock.dbrevision.annotation.schema.db.DbTable;
 import org.riverock.dbrevision.annotation.schema.db.DbView;
 import org.riverock.dbrevision.annotation.schema.db.DbViewReplacement;
+import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKeyColumn;
 import org.riverock.dbrevision.exception.DbRevisionException;
-import org.riverock.dbrevision.exception.ViewAlreadyExistException;
 import org.riverock.dbrevision.exception.TableNotFoundException;
+import org.riverock.dbrevision.exception.ViewAlreadyExistException;
 import org.riverock.dbrevision.utils.DbUtils;
 
 /**
@@ -59,20 +64,34 @@ import org.riverock.dbrevision.utils.DbUtils;
 public final class DatabaseManager {
     private static Logger log = Logger.getLogger(DatabaseManager.class);
 
-    private static final String DEFAULT_DATE_VALUES[] = {"sysdate", "current_timestamp", "current_time", "current_date"};
+    private static final String DEFAULT_DATE_VALUES[] =
+        {"sysdate", "current_timestamp", "current_time", "current_date"};
 
+    public static void commit(Database database) {
+        try {
+            database.getConnection().commit();
+        }
+        catch (SQLException e) {
+            throw new DbRevisionException("Commit error", e);
+        }
+    }
+
+    /**
+     * @deprecated use addPrimaryKey(final Database db_, final DbPrimaryKey pk);
+     * @param db_
+     * @param table
+     * @param pk
+     */
     public static void addPrimaryKey(final Database db_, final DbTable table, final DbPrimaryKey pk) {
-        if (table == null) {
-            String s = "Add primary key failed - table object is null";
-            System.out.println(s);
-            if (log.isInfoEnabled()) {
-                log.info(s);
-            }
+        addPrimaryKey(db_, pk);
+    }
 
-            return;
+    public static void addPrimaryKey(final Database db_, final DbPrimaryKey pk) {
+        if (StringUtils.isBlank(pk.getPkName())) {
+            throw new DbRevisionException("Primary key name is null");
         }
 
-        DbPrimaryKey checkPk = DatabaseStructureManager.getPrimaryKey(db_, table.getSchema(), table.getName());
+        DbPrimaryKey checkPk = DatabaseStructureManager.getPrimaryKey(db_, pk.getSchemaName(), pk.getTableName());
 
         if (checkPk != null && checkPk.getColumns().size() != 0) {
             String s = "primary key already exists";
@@ -81,16 +100,48 @@ public final class DatabaseManager {
                 log.info(s);
             }
 
-            return;
+            throw new DbRevisionException(s);
         }
 
-        String tempTable = table.getName() + '_' + table.getName();
-        duplicateTable(db_, table, tempTable);
-        db_.dropTable(table);
-        table.setPrimaryKey(pk);
-        db_.createTable(table);
-        copyData(db_, table, tempTable, table.getName());
-        db_.dropTable(tempTable);
+
+/*
+        ALTER TABLE QQQ.AUTH_ACCESS_GROUP ADD CONSTRAINT AAA
+  PRIMARY KEY (
+  ID_ACCESS_GROUP
+)
+*/
+
+
+        String sql =
+            "ALTER TABLE " + pk.getTableName() + " " +
+                "ADD CONSTRAINT " + pk.getPkName() + " PRIMARY KEY (";
+
+        Collections.sort(pk.getColumns(), DbPkComparator.getInstance());
+        boolean isFirst = true;
+        for (DbPrimaryKeyColumn primaryKeyColumn : pk.getColumns()) {
+            if (!isFirst) {
+                sql += ",";
+            }
+            else {
+                isFirst = false;
+            }
+
+            sql += primaryKeyColumn.getColumnName();
+        }
+        sql += ")";
+
+        PreparedStatement ps = null;
+        try {
+            ps = db_.getConnection().prepareStatement(sql);
+            ps.executeUpdate();
+        }
+        catch (SQLException exc) {
+            throw new DbRevisionException(exc);
+        }
+        finally {
+            DbUtils.close(ps);
+            ps = null;
+        }
     }
 
     public static void copyData(
@@ -134,7 +185,7 @@ public final class DatabaseManager {
 
             log.error(errorString, e);
             System.out.println(errorString);
-            throw new DbRevisionException(e);
+            throw new DbRevisionException(errorString, e);
         }
         finally {
             DbUtils.close(ps);
@@ -157,6 +208,25 @@ public final class DatabaseManager {
         copyData(db_, tempTable, srcTable.getName(), targetTableName);
     }
 
+    public static List<DbForeignKey> getForeignKeys(DbSchema schema, String pkTableName, String pkFieldName) {
+        List<DbForeignKey> fk = new ArrayList<DbForeignKey>();
+        for (DbTable table : schema.getTables()) {
+
+            List<DbForeignKey> foreignKeyColumnList = table.getForeignKeys();
+            for (DbForeignKey foreignKey : foreignKeyColumnList) {
+                List<DbForeignKeyColumn> columns = foreignKey.getColumns();
+                if (columns.size()>1) {
+                    throw new DbRevisionException("Composite keys not supported.");
+                }
+                DbForeignKeyColumn pk = columns.get(0);
+                if (foreignKey.getPkTableName().equalsIgnoreCase(pkTableName) && pk.getPkColumnName().equalsIgnoreCase(pkFieldName)) {
+                    fk.add(foreignKey);
+                }
+            }
+        }
+        return fk;
+    }
+
     public static DbField getFieldFromStructure(final DbSchema schema, final String tableName, final String fieldName) {
         if (schema == null || tableName == null || fieldName == null) {
             return null;
@@ -175,7 +245,7 @@ public final class DatabaseManager {
         return null;
     }
 
-    // cheak what 'tableName' is a table or a view
+    // TODO cheak what 'tableName' is a table or a view
     public static DbTable getTableFromStructure(final DbSchema schema, final String tableName) {
         if (schema == null || tableName == null) {
             return null;
@@ -402,9 +472,6 @@ public final class DatabaseManager {
         return false;
     }
 
-    private static final String CURRENT = "CURRENT";
-    private static final String TIMESTAMP = "TIMESTAMP";
-
     /**
      * Check what field's default value is default timestamp(date) for bd column
      * For example for Oracle value is 'SYSDATE'
@@ -424,11 +491,6 @@ public final class DatabaseManager {
             }
         }
 
-        // check for IBM DB2 CURRENT TIMESTAMP
-        if (val.toUpperCase().startsWith(CURRENT)) {
-            String s1 = val.substring(CURRENT.length()).trim();
-            return s1.equalsIgnoreCase(TIMESTAMP);
-        }
         return false;
     }
 
