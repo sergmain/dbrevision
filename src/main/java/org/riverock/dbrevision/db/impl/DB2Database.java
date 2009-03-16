@@ -53,6 +53,7 @@ import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.exception.DbRevisionException;
 import org.riverock.dbrevision.exception.ViewAlreadyExistException;
 import org.riverock.dbrevision.exception.TableNotFoundException;
+import org.riverock.dbrevision.exception.CreateTableException;
 import org.riverock.dbrevision.utils.DbUtils;
 import org.riverock.dbrevision.utils.Utils;
 
@@ -151,6 +152,9 @@ public class DB2Database extends Database {
 
                 case Types.NUMERIC:
                 case Types.DECIMAL:
+                    if (field.getDecimalDigit()==null) {
+                        throw new CreateTableException("Precision for column '"+field.getName()+"' is null");
+                    }
                     sql += " DECIMAL(" + (field.getSize()==null || field.getSize() > 31 ? 31 : field.getSize()) + ',' + field.getDecimalDigit() + ")";
                     break;
 
@@ -193,8 +197,9 @@ public class DB2Database extends Database {
 
 //                if (!val.equalsIgnoreCase("null"))
 //                    val = "'"+val+"'";
-                if (DatabaseManager.checkDefaultTimestamp(val))
-                    val = "CURRENT TIMESTAMP";
+                if (DatabaseManager.checkDefaultTimestamp(val)) {
+                    val = " CURRENT TIMESTAMP ";
+                }
 
                 sql += (" DEFAULT " + val);
             }
