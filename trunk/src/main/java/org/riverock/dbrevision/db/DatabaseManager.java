@@ -244,6 +244,9 @@ public final class DatabaseManager {
             try {
                 DatabaseMetaData metaData = adapter.getConnection().getMetaData();
                 dbSchema = metaData.getUserName();
+                if (adapter.getFamily()== Database.Family.DB2) {
+                    dbSchema = dbSchema.toUpperCase();
+                }
             }
             catch (SQLException e) {
                 throw new DbRevisionException("Error get metadata", e);
@@ -252,6 +255,7 @@ public final class DatabaseManager {
         else {
             dbSchema = "%";
         }
+
 
         List<DbTable> list = DatabaseStructureManager.getTableList(adapter, dbSchema, "%");
         for (DbTable table : list) {
@@ -398,6 +402,9 @@ public final class DatabaseManager {
         return false;
     }
 
+    private static final String CURRENT = "CURRENT";
+    private static final String TIMESTAMP = "TIMESTAMP";
+
     /**
      * Check what field's default value is default timestamp(date) for bd column
      * For example for Oracle value is 'SYSDATE'
@@ -415,6 +422,12 @@ public final class DatabaseManager {
             if (aCheck.equalsIgnoreCase(s)) {
                 return true;
             }
+        }
+
+        // check for IBM DB2 CURRENT TIMESTAMP
+        if (val.toUpperCase().startsWith(CURRENT)) {
+            String s1 = val.substring(CURRENT.length()).trim();
+            return s1.equalsIgnoreCase(TIMESTAMP);
         }
         return false;
     }
