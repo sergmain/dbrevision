@@ -34,10 +34,8 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Collections;
 
 import org.apache.log4j.Logger;
-import org.apache.commons.lang.StringUtils;
 
 import org.riverock.dbrevision.annotation.schema.db.DbField;
 import org.riverock.dbrevision.annotation.schema.db.DbForeignKey;
@@ -47,7 +45,6 @@ import org.riverock.dbrevision.annotation.schema.db.DbSchema;
 import org.riverock.dbrevision.annotation.schema.db.DbTable;
 import org.riverock.dbrevision.annotation.schema.db.DbView;
 import org.riverock.dbrevision.annotation.schema.db.DbViewReplacement;
-import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKeyColumn;
 import org.riverock.dbrevision.exception.DbRevisionException;
 import org.riverock.dbrevision.exception.TableNotFoundException;
 import org.riverock.dbrevision.exception.ViewAlreadyExistException;
@@ -84,7 +81,7 @@ public final class DatabaseManager {
      * @param pk
      */
     public static void addPrimaryKey(final Database db_, final DbTable table, final DbPrimaryKey pk) {
-        addPrimaryKey(db_, pk);
+        ConstraintManager.addPk(db_, pk);
     }
 
     /**
@@ -289,9 +286,9 @@ public final class DatabaseManager {
 
         for (DbTable table : schema.getTables()) {
             table.getFields().addAll(DatabaseStructureManager.getFieldsList(adapter, table.getSchema(), table.getName()));
-            table.setPrimaryKey(DatabaseStructureManager.getPrimaryKey(adapter, table.getSchema(), table.getName()));
-            table.getForeignKeys().addAll(DatabaseStructureManager.getForeignKeys(adapter, table.getSchema(), table.getName()));
-            table.getIndexes().addAll(DatabaseStructureManager.getIndexes(adapter, table.getSchema(), table.getName()));
+            table.setPrimaryKey(ConstraintManager.getPrimaryKey(adapter, table.getSchema(), table.getName()));
+            table.getForeignKeys().addAll(ConstraintManager.getForeignKeys(adapter, table.getSchema(), table.getName()));
+            table.getIndexes().addAll(ConstraintManager.getIndexes(adapter, table.getSchema(), table.getName()));
         }
 
         for (DbView view : schema.getViews()) {
