@@ -298,9 +298,6 @@ public class DB2Database extends Database {
 
     }
 
-    public void createForeignKey(DbTable view) {
-    }
-
     public void dropTable(DbTable table) {
         if (table == null)
             return;
@@ -329,31 +326,6 @@ public class DB2Database extends Database {
     }
 
     public void dropSequence(String nameSequence) {
-    }
-
-    @Override
-    public void dropConstraint(DbPrimaryKey pk){
-        dropConstraint(pk.getTableName(), pk.getPkName());
-    }
-
-    public void dropConstraint(DbForeignKey fk){
-        dropConstraint(fk.getFkTableName(), fk.getFkName());
-    }
-
-    public void dropConstraint(String tableName, String constraintName){
-        String sql = "alter table "+tableName+" drop constraint " + constraintName;
-        PreparedStatement ps = null;
-        try {
-            ps = this.getConnection().prepareStatement(sql);
-            ps.executeUpdate();
-        }
-        catch (SQLException e) {
-            throw new DbRevisionException(e);
-        }
-        finally {
-            DbUtils.close(ps);
-            ps = null;
-        }
     }
 
     public void addColumn(DbTable table, DbField field) {

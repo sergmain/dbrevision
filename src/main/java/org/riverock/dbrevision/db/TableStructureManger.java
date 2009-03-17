@@ -1,12 +1,9 @@
 package org.riverock.dbrevision.db;
 
 import java.util.List;
+import java.util.ArrayList;
 
-import org.riverock.dbrevision.annotation.schema.db.DbTable;
-import org.riverock.dbrevision.annotation.schema.db.DbField;
-import org.riverock.dbrevision.annotation.schema.db.DbSchema;
-import org.riverock.dbrevision.annotation.schema.db.DbForeignKey;
-import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKey;
+import org.riverock.dbrevision.annotation.schema.db.*;
 
 /**
  * User: SergeMaslyukov
@@ -16,12 +13,6 @@ import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKey;
  */
 public class TableStructureManger {
 
-    /*
-        ALTER TABLE NSI_LIST_WORKDAY
-         MODIFY (
-          ID NUMBER (10, 0)
-         )
-    */
     public static void changeFieldSize(
         Database db, DbSchema schema, String tableName, String fieldName, int fieldSize, int fieldDecimalDigit) {
 
@@ -61,18 +52,32 @@ public class TableStructureManger {
         if (table.getPrimaryKey()!=null) {
             fk = DatabaseManager.getForeignKeys(schema, table.getName(), table.getPrimaryKey().getColumns().get(0).getColumnName());
             for (DbForeignKey foreignKey : fk) {
-                db.dropConstraint(foreignKey);
+                ConstraintManager.dropFk(db, foreignKey);
             }
         }
         if (table.getForeignKeys()!=null) {
             for (DbForeignKey foreignKey : table.getForeignKeys()) {
-                db.dropConstraint(foreignKey);
+                ConstraintManager.dropFk(db, foreignKey);
             }
         }
 
         DbPrimaryKey pk = table.getPrimaryKey();
         if (pk!=null) {
-            db.dropConstraint(pk);
+            ConstraintManager.dropPk(db, pk);
+        }
+
+        List<DbIndex> indexes = new ArrayList<DbIndex>();
+        List<DbIndex> idxs = ConstraintManager.getIndexes(db, table.getSchema(), table.getName() );
+        for (DbIndex dbIndex : idxs) {
+            for (DbIndexColumn column : dbIndex.getColumns()) {
+                if (column.getColumnName()!=null && column.getColumnName().equalsIgnoreCase(fieldName)) {
+                    indexes.add(dbIndex);
+                    break;
+                }
+            }
+        }
+        for (DbIndex index : indexes) {
+            ConstraintManager.dropIndex(db, index);
         }
 
         DatabaseStructureManager.dropColumn(db, table, f);
@@ -86,17 +91,20 @@ public class TableStructureManger {
         DatabaseStructureManager.dropColumn(db, table, targetField);
 
         if (pk!=null) {
-            DatabaseManager.addPrimaryKey(db, pk);
+            ConstraintManager.addPk(db, pk);
         }
-        
+
+        for (DbIndex index : indexes) {
+            ConstraintManager.createIndex(db, index);
+        }
         if (fk!=null) {
             for (DbForeignKey foreignKey : fk) {
-                DatabaseStructureManager.createForeignKey(db, foreignKey);
+                ConstraintManager.createFk(db, foreignKey);
             }
         }
         if (table.getForeignKeys()!=null) {
             for (DbForeignKey foreignKey : table.getForeignKeys()) {
-                DatabaseStructureManager.createForeignKey(db, foreignKey);
+                ConstraintManager.createFk(db, foreignKey);
             }
         }
     }

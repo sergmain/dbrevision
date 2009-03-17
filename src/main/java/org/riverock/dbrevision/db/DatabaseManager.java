@@ -77,7 +77,8 @@ public final class DatabaseManager {
     }
 
     /**
-     * @deprecated use addPrimaryKey(final Database db_, final DbPrimaryKey pk);
+     * @deprecated use ConstraintManager.addPrimaryKey(Database db_, DbPrimaryKey pk);
+     * 
      * @param db_
      * @param table
      * @param pk
@@ -86,62 +87,14 @@ public final class DatabaseManager {
         addPrimaryKey(db_, pk);
     }
 
+    /**
+     * @deprecated use ConstraintManager.addPrimaryKey(db_, pk)
+     * 
+     * @param db_
+     * @param pk
+     */
     public static void addPrimaryKey(final Database db_, final DbPrimaryKey pk) {
-        if (StringUtils.isBlank(pk.getPkName())) {
-            throw new DbRevisionException("Primary key name is null");
-        }
-
-        DbPrimaryKey checkPk = DatabaseStructureManager.getPrimaryKey(db_, pk.getSchemaName(), pk.getTableName());
-
-        if (checkPk != null && checkPk.getColumns().size() != 0) {
-            String s = "primary key already exists";
-            System.out.println(s);
-            if (log.isInfoEnabled()) {
-                log.info(s);
-            }
-
-            throw new DbRevisionException(s);
-        }
-
-
-/*
-        ALTER TABLE QQQ.AUTH_ACCESS_GROUP ADD CONSTRAINT AAA
-  PRIMARY KEY (
-  ID_ACCESS_GROUP
-)
-*/
-
-
-        String sql =
-            "ALTER TABLE " + pk.getTableName() + " " +
-                "ADD CONSTRAINT " + pk.getPkName() + " PRIMARY KEY (";
-
-        Collections.sort(pk.getColumns(), DbPkComparator.getInstance());
-        boolean isFirst = true;
-        for (DbPrimaryKeyColumn primaryKeyColumn : pk.getColumns()) {
-            if (!isFirst) {
-                sql += ",";
-            }
-            else {
-                isFirst = false;
-            }
-
-            sql += primaryKeyColumn.getColumnName();
-        }
-        sql += ")";
-
-        PreparedStatement ps = null;
-        try {
-            ps = db_.getConnection().prepareStatement(sql);
-            ps.executeUpdate();
-        }
-        catch (SQLException exc) {
-            throw new DbRevisionException(exc);
-        }
-        finally {
-            DbUtils.close(ps);
-            ps = null;
-        }
+        ConstraintManager.addPk(db_, pk);    
     }
 
     public static void copyData(
