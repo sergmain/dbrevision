@@ -64,7 +64,7 @@ public class DatabaseStructureManager {
      * @param fk list of foreign keys
      */
     public static void createForeignKey(Database adapter, DbForeignKey fk) {
-        ConstraintManager.createForeignKey(adapter,  fk);
+        ConstraintManager.createFk(adapter,  fk);
     }
 
     /**

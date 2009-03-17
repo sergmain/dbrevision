@@ -36,6 +36,7 @@ import org.riverock.dbrevision.annotation.schema.db.DbTable;
 import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.db.DatabaseStructureManager;
+import org.riverock.dbrevision.db.ConstraintManager;
 import org.riverock.dbrevision.utils.Utils;
 
 /**
@@ -57,7 +58,7 @@ public class ValidateStructure {
                     if (StringUtils.isBlank(foreignKey.getFkName())) {
                         foreignKey.setFkName(foreignKey.getFkTableName() + p + "_fk");
                     }
-                    DatabaseStructureManager.createForeignKey(adapter, foreignKey);
+                    ConstraintManager.createFk(adapter, foreignKey);
                 }
             }
             else {

@@ -39,6 +39,7 @@ import org.riverock.dbrevision.annotation.schema.db.*;
 import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.db.DatabaseStructureManager;
+import org.riverock.dbrevision.db.ConstraintManager;
 import org.riverock.dbrevision.exception.DbRevisionException;
 import org.riverock.dbrevision.utils.DbUtils;
 import org.riverock.dbrevision.utils.Utils;
@@ -345,9 +346,9 @@ public final class PatchService {
                 DbPrimaryKey pk = (DbPrimaryKey) o;
 
                 if (!pk.getColumns().isEmpty()) {
-                    DbSchema schema = DatabaseManager.getDbStructure(database);
-                    DbTable table = DatabaseManager.getTableFromStructure(schema, pk.getTableName());
-                    DatabaseManager.addPrimaryKey(database, table, pk);
+//                    DbSchema schema = DatabaseManager.getDbStructure(database);
+//                    DbTable table = DatabaseManager.getTableFromStructure(schema, pk.getTableName());
+                    ConstraintManager.addPk(database, pk);
                 }
             }
         }
@@ -371,7 +372,7 @@ public final class PatchService {
             if (StringUtils.isBlank(key.getFkName())) {
                 key.setFkName(key.getFkTableName() + p + "_fk");
             }
-            DatabaseStructureManager.createForeignKey(adapter, key);
+            ConstraintManager.createFk(adapter, key);
         }
     }
 
