@@ -339,22 +339,6 @@ ALTER TABLE AUTH_ACCESS_GROUP
 
     }
 
-    /**
-     * ALTER TABLE a_test_1<br>
-     * ADD CONSTRAINT a_test_1_fk FOREIGN KEY (id, id_test)&<br>
-     * REFERENCES a_test (id_test,id_lang) ON DELETE SET NULL<br>
-     * /<br>
-       <br>
-     * ALTER TABLE a_test_1<br>
-     * ADD CONSTRAINT a_test_1_fk2 FOREIGN KEY (text1, id_text)<br>
-     * REFERENCES a_test_2 (text2,text_id) ON DELETE CASCADE<br>
-     * DEFERRABLE INITIALLY DEFERRED<br>
-     /
-    */
-    public void createForeignKey(DbTable view) {
-        
-    }
-
     public void dropTable(DbTable table) {
         dropTable(table.getName());
     }
@@ -384,30 +368,6 @@ ALTER TABLE AUTH_ACCESS_GROUP
             return;
 
         String sql = "drop sequence  " + nameSequence;
-        PreparedStatement ps = null;
-        try {
-            ps = this.getConnection().prepareStatement(sql);
-            ps.executeUpdate();
-        }
-        catch (SQLException e) {
-            throw new DbRevisionException(e);
-        }
-        finally {
-            DbUtils.close(ps);
-            ps = null;
-        }
-    }
-
-    public void dropConstraint(DbPrimaryKey pk){
-        dropConstraint(pk.getTableName(), pk.getPkName());
-    }
-
-    public void dropConstraint(DbForeignKey fk){
-        dropConstraint(fk.getFkTableName(), fk.getFkName());
-    }
-
-    public void dropConstraint(String tableName, String constraintName){
-        String sql = "alter table "+tableName+" drop constraint " + constraintName;
         PreparedStatement ps = null;
         try {
             ps = this.getConnection().prepareStatement(sql);

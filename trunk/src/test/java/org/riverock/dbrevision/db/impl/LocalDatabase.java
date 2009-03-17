@@ -13,7 +13,6 @@ import org.riverock.dbrevision.annotation.schema.db.DbForeignKey;
 import org.riverock.dbrevision.annotation.schema.db.DbSequence;
 import org.riverock.dbrevision.annotation.schema.db.DbTable;
 import org.riverock.dbrevision.annotation.schema.db.DbView;
-import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKey;
 import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.exception.DbRevisionException;
 import org.riverock.dbrevision.utils.DbUtils;
@@ -131,20 +130,7 @@ public class LocalDatabase extends Database {
 
     }
 
-    @Override
-    public void dropConstraint(DbPrimaryKey pk) {
-        
-    }
-
-    public void dropConstraint(DbForeignKey impPk) {
-
-    }
-
     public void addColumn(DbTable table, DbField field) {
-
-    }
-
-    public void createForeignKey(DbTable view) {
 
     }
 

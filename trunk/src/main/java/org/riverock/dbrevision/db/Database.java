@@ -133,13 +133,7 @@ public abstract class Database {
 
     public abstract void dropSequence(String nameSequence);
 
-    public abstract void dropConstraint(DbForeignKey impPk);
-
-    public abstract void dropConstraint(DbPrimaryKey pk);
-
     public abstract void addColumn(DbTable table, DbField field);
-
-    public abstract void createForeignKey(DbTable view);
 
     public abstract String getOnDeleteSetNull();
 

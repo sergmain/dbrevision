@@ -260,9 +260,6 @@ public class PostgreeSqlDatabase extends Database {
         }
     }
 
-    public void createForeignKey(DbTable view) {
-    }
-
     /*
 ALTER TABLE a_test_1
 ADD CONSTRAINT a_test_1_fk FOREIGN KEY (id, id_test)
@@ -317,31 +314,6 @@ DEFERRABLE INITIALLY DEFERRED
         finally {
             DbUtils.close(ps);
             //noinspection UnusedAssignment
-            ps = null;
-        }
-    }
-
-    @Override
-    public void dropConstraint(DbPrimaryKey pk){
-        dropConstraint(pk.getTableName(), pk.getPkName());
-    }
-
-    public void dropConstraint(DbForeignKey fk){
-        dropConstraint(fk.getFkTableName(), fk.getFkName());
-    }
-
-    public void dropConstraint(String tableName, String constraintName){
-        String sql = "alter table "+tableName+" drop constraint " + constraintName;
-        PreparedStatement ps = null;
-        try {
-            ps = this.getConnection().prepareStatement(sql);
-            ps.executeUpdate();
-        }
-        catch (SQLException e) {
-            throw new DbRevisionException(e);
-        }
-        finally {
-            DbUtils.close(ps);
             ps = null;
         }
     }

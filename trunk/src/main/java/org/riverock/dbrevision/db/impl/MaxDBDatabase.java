@@ -43,7 +43,6 @@ import org.riverock.dbrevision.annotation.schema.db.DbForeignKey;
 import org.riverock.dbrevision.annotation.schema.db.DbSequence;
 import org.riverock.dbrevision.annotation.schema.db.DbTable;
 import org.riverock.dbrevision.annotation.schema.db.DbView;
-import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKey;
 import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.exception.DbRevisionException;
@@ -128,9 +127,6 @@ public class MaxDBDatabase extends Database {
         throw new DbRevisionException("not implemented");
     }
 
-    public void createForeignKey(DbTable view) {
-    }
-
     public void dropTable(DbTable table) {
     }
 
@@ -138,14 +134,6 @@ public class MaxDBDatabase extends Database {
     }
 
     public void dropSequence(String nameSequence) {
-    }
-
-    @Override
-    public void dropConstraint(DbPrimaryKey pk) {
-        
-    }
-
-    public void dropConstraint(DbForeignKey impPk) {
     }
 
     public void addColumn(DbTable table, DbField field) {
