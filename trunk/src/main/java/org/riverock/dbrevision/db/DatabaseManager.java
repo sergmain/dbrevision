@@ -261,16 +261,7 @@ public final class DatabaseManager {
 
         String dbSchema;
         if (isOnlyCurrent) {
-            try {
-                DatabaseMetaData metaData = adapter.getConnection().getMetaData();
-                dbSchema = metaData.getUserName();
-                if (adapter.getFamily()== Database.Family.DB2) {
-                    dbSchema = dbSchema.toUpperCase();
-                }
-            }
-            catch (SQLException e) {
-                throw new DbRevisionException("Error get metadata", e);
-            }
+            dbSchema = getCurrentSchema(adapter);
         }
         else {
             dbSchema = "%";
@@ -296,6 +287,21 @@ public final class DatabaseManager {
         }
 
         return schema;
+    }
+
+    public static String getCurrentSchema(Database db) {
+        String dbSchema;
+        try {
+            DatabaseMetaData metaData = db.getConnection().getMetaData();
+            dbSchema = metaData.getUserName();
+            if (db.getFamily()== Database.Family.DB2) {
+                dbSchema = dbSchema.toUpperCase();
+            }
+        }
+        catch (SQLException e) {
+            throw new DbRevisionException("Error get metadata", e);
+        }
+        return dbSchema;
     }
 
     public static void createWithReplaceAllView(final Database adapter, final DbSchema millSchema) {
