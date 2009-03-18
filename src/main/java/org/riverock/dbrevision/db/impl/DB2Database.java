@@ -196,7 +196,7 @@ public class DB2Database extends Database {
                 case Types.NUMERIC:
                 case Types.DECIMAL:
                     if (field.getDecimalDigit()==null) {
-                        throw new CreateTableException("Precision for column '"+field.getName()+"' is null");
+                        throw new CreateTableException("Precision for column '"+field.getName()+"' is null. "+table.getName()+"."+field.getName());
                     }
                     sql += " DECIMAL(" + (field.getSize()==null || field.getSize() > 31 ? 31 : field.getSize()) + ',' + field.getDecimalDigit() + ")";
                     break;

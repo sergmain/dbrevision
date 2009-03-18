@@ -201,7 +201,7 @@ CREATE INDEX idx_id_employee_b_advance ON b_advance
             ps.executeUpdate();
         }
         catch (SQLException e) {
-            throw new DbRevisionException(e);
+            throw new DbRevisionException("Error drop constraint '"+constraintName+ " for table '"+tableName,  e);
         }
         finally {
             DbUtils.close(ps);
