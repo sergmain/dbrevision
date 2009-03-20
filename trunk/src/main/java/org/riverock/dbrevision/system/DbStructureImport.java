@@ -96,7 +96,7 @@ public class DbStructureImport {
                     database.createTable(table);
                 }
                 catch (Exception e) {
-                    String es = "Error create table ";
+                    String es = "Error create table";
                     log.debug(es + table.getName(), e);
                     throw new DbRevisionException(es, e);
                 }

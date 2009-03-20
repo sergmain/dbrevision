@@ -55,6 +55,7 @@ import org.riverock.dbrevision.annotation.schema.db.DbView;
 import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.db.DbPkComparator;
+import org.riverock.dbrevision.db.ViewManager;
 import org.riverock.dbrevision.exception.DbRevisionException;
 import org.riverock.dbrevision.exception.ViewAlreadyExistException;
 import org.riverock.dbrevision.exception.TableNotFoundException;
@@ -525,17 +526,7 @@ public final class MySqlDatabase extends Database {
         // need implement....
 
         // remove oracle 'WITH READ ONLY'
-        int idx = s.toUpperCase().indexOf("WITH");
-        if (idx!=-1) {
-            String sr = s.substring(idx+4).trim().toUpperCase();
-            if  (sr.startsWith("READ")) {
-                String so = sr.substring(4).trim();
-                if (so.startsWith("ONLY")) {
-                    int idxEnd = s.toUpperCase().indexOf("ONLY", idx);
-                    s = s.substring(0, idx) + s.substring(idxEnd+4);
-                }
-            }
-        }
+        s = ViewManager.removeOracleWithReadOnly(s);
         String sql_ =
             "CREATE VIEW " + view.getName() +
             " AS " + s;

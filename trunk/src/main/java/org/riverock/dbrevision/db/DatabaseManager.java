@@ -362,6 +362,9 @@ public final class DatabaseManager {
                 catch(TableNotFoundException e) {
                     // do not throw any exception
                 }
+                catch(Throwable e) {
+                    // 
+                }
             }
         }
     }

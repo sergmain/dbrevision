@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.apache.commons.lang.StringUtils;
 
 import org.riverock.dbrevision.annotation.schema.db.DbDataFieldData;
 import org.riverock.dbrevision.annotation.schema.db.DbField;
@@ -50,6 +51,7 @@ import org.riverock.dbrevision.annotation.schema.db.DbTable;
 import org.riverock.dbrevision.annotation.schema.db.DbView;
 import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.db.DatabaseManager;
+import org.riverock.dbrevision.db.ViewManager;
 import org.riverock.dbrevision.exception.DbRevisionException;
 import org.riverock.dbrevision.exception.ViewAlreadyExistException;
 import org.riverock.dbrevision.exception.TableNotFoundException;
@@ -191,7 +193,8 @@ public class DB2Database extends Database {
                 isFirst = !isFirst;
 
             sql += " \"" + field.getName() + "\"";
-            switch (field.getJavaType()) {
+            int fieldType = field.getJavaType();
+            switch (fieldType) {
 
                 case Types.NUMERIC:
                 case Types.DECIMAL:
@@ -231,20 +234,30 @@ public class DB2Database extends Database {
                     break;
 
                 default:
-                    field.setJavaStringType("unknown field type field - " + field.getName() + " javaType - " + field.getJavaType());
-                    System.out.println("unknown field type field - " + field.getName() + " javaType - " + field.getJavaType());
+                    field.setJavaStringType("unknown field type field - " + field.getName() + " javaType - " + fieldType);
+                    System.out.println("unknown field type field - " + field.getName() + " javaType - " + fieldType);
             }
 
             if (field.getDefaultValue() != null) {
                 String val = field.getDefaultValue().trim();
 
-//                if (!val.equalsIgnoreCase("null"))
-//                    val = "'"+val+"'";
-                if (DatabaseManager.checkDefaultTimestamp(val)) {
-                    val = " CURRENT TIMESTAMP ";
-                }
+                if (StringUtils.isNotBlank(val)) {
+                    switch (fieldType) {
+                        case Types.CHAR:
+                        case Types.VARCHAR:
+                            val = "'" + val + "'";
+                            break;
+                        case Types.TIMESTAMP:
+                        case Types.DATE:
+                            if (DatabaseManager.checkDefaultTimestamp(val)) {
+                                val = " CURRENT TIMESTAMP ";
+                            }
 
-                sql += (" DEFAULT " + val);
+                            break;
+                        default:
+                    }
+                    sql += (" DEFAULT " + val);
+                }
             }
 
             if (field.getNullable() == DatabaseMetaData.columnNoNulls) {
@@ -289,7 +302,7 @@ public class DB2Database extends Database {
             this.getConnection().commit();
         }
         catch (SQLException e) {
-            throw new DbRevisionException(e);
+            throw new DbRevisionException("Error create table. SQL = \n"+sql, e);
         }
         finally {
             DbUtils.close(ps);
@@ -358,16 +371,20 @@ public class DB2Database extends Database {
         )
             return;
 
+//        String s = Utils.replaceStringArray(view.getText(), new String[][]{{"\n", " "}}).trim();
+        String s = view.getText().trim();
+
+        // remove oracle 'WITH READ ONLY'
+        s = ViewManager.removeOracleWithReadOnly(s);
         String sql_ =
             "CREATE VIEW " + view.getName() +
-            " AS " +
-            Utils.replaceStringArray(view.getText(),
-                new String[][]{{"||", "+"}, {"\n", " "}}).trim();
+            " AS " + s;
 
         Statement ps = null;
         try {
             ps = this.getConnection().createStatement();
             ps.execute(sql_);
+            this.getConnection().commit();
         }
         catch (SQLException e) {
             if (testExceptionViewExists(e)) {
@@ -410,15 +427,6 @@ public class DB2Database extends Database {
     public String getClobField(ResultSet rs, String nameField, int maxLength) {
         return null;
     }
-/*
-            CLOB clob = ((OracleResultSet) rs).getCLOB(nameField);
-
-            if (clob == null)
-                return null;
-
-            return clob.getSubString(1, maxLength);
-        }
-*/
 
     public boolean testExceptionTableNotFound(Exception e) {
         if (e instanceof SQLException) {
@@ -429,18 +437,14 @@ public class DB2Database extends Database {
     }
 
     public boolean testExceptionIndexUniqueKey(Exception e, String index) {
+        throw new RuntimeException("Not implemented");
+/*
         if (e instanceof SQLException) {
-            if (((SQLException) e).getErrorCode() == -(org.hsqldb.Trace.VIOLATION_OF_UNIQUE_INDEX))
+            if (((SQLException) e).getErrorCode() == -100)
                 return true;
         }
-/*
-        if ((e instanceof SQLException) &&
-                ((e.toString().indexOf("ORA-00001") != -1) &&
-                (e.toString().indexOf(index) != -1)))
-
-            return true;
-*/
         return false;
+*/
     }
 
     public boolean testExceptionIndexUniqueKey(Exception e) {
@@ -468,10 +472,13 @@ public class DB2Database extends Database {
     }
 
     public boolean testExceptionConstraintExists(Exception e) {
+        throw new RuntimeException("Not implemented");
+/*
         if (e instanceof SQLException) {
-            if (((SQLException) e).getErrorCode() == -(org.hsqldb.Trace.CONSTRAINT_ALREADY_EXISTS))
+            if (((SQLException) e).getErrorCode() == -100)
                 return true;
         }
         return false;
+*/
     }
 }
