@@ -497,11 +497,6 @@ public final class MySqlDatabase extends Database {
         return "CURRENT_TIMESTAMP";
     }
 
-    public List<DbView> getViewList(String schemaPattern, String tablePattern) {
-        // version 3.x and 4.0 of MySQL not support view
-        return new ArrayList<DbView>(0);
-    }
-
     public List<DbSequence> getSequnceList(String schemaPattern) {
         return new ArrayList<DbSequence>();
     }

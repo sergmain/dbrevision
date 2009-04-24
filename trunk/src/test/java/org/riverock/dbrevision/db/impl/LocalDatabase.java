@@ -142,10 +142,6 @@ public class LocalDatabase extends Database {
         return null;
     }
 
-    public List<DbView> getViewList(String schemaPattern, String tablePattern) {
-        return null;
-    }
-
     public List<DbSequence> getSequnceList(String schemaPattern) {
         return null;
     }

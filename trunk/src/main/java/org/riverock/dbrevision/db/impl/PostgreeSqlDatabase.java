@@ -409,10 +409,6 @@ DEFERRABLE INITIALLY DEFERRED
         return "SYSDATE";
     }
 
-    public List<DbView> getViewList(String schemaPattern, String tablePattern) {
-        return DatabaseManager.getViewList(getConnection(), schemaPattern, tablePattern);
-    }
-
     public List<DbSequence> getSequnceList(String schemaPattern) {
         String sql_ =
             "select SEQUENCE_NAME, MIN_VALUE, TO_CHAR(MAX_VALUE) MAX_VALUE, " +

@@ -478,10 +478,6 @@ ALTER TABLE table
 
 */
 
-    public List<DbView> getViewList(String schemaPattern, String tablePattern) {
-        return DatabaseManager.getViewList(getConnection(), schemaPattern, tablePattern);
-    }
-
     public List<DbSequence> getSequnceList(String schemaPattern) {
         return new ArrayList<DbSequence>();
     }

@@ -44,7 +44,6 @@ import org.riverock.dbrevision.annotation.schema.db.DbSequence;
 import org.riverock.dbrevision.annotation.schema.db.DbTable;
 import org.riverock.dbrevision.annotation.schema.db.DbView;
 import org.riverock.dbrevision.db.Database;
-import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.exception.DbRevisionException;
 import org.riverock.dbrevision.exception.ViewAlreadyExistException;
 import org.riverock.dbrevision.exception.TableNotFoundException;
@@ -145,10 +144,6 @@ public class MaxDBDatabase extends Database {
 
     public String getDefaultTimestampValue() {
         return "SYSDATE";
-    }
-
-    public List<DbView> getViewList(String schemaPattern, String tablePattern) {
-        return DatabaseManager.getViewList(getConnection(), schemaPattern, tablePattern);
     }
 
     public List<DbSequence> getSequnceList(String schemaPattern) {

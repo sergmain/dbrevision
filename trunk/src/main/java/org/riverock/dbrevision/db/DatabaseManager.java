@@ -272,7 +272,7 @@ public final class DatabaseManager {
         for (DbTable table : list) {
             schema.getTables().add(table);
         }
-        schema.getViews().addAll(adapter.getViewList(dbSchema, "%"));
+        schema.getViews().addAll(ViewManager.getViewList(adapter, dbSchema, "%"));
         schema.getSequences().addAll(adapter.getSequnceList(dbSchema));
 
         for (DbTable table : schema.getTables()) {
@@ -369,42 +369,17 @@ public final class DatabaseManager {
         }
     }
 
-    public static List<DbView> getViewList(final Connection conn, final String schemaPattern, final String tablePattern) {
-        String[] types = {"VIEW"};
-
-        ResultSet meta = null;
-        List<DbView> v = new ArrayList<DbView>();
-        try {
-            DatabaseMetaData dbMeta = conn.getMetaData();
-
-            meta = dbMeta.getTables(
-                null,
-                schemaPattern,
-                tablePattern,
-                types
-            );
-
-            while (meta.next()) {
-
-                DbView table = new DbView();
-
-                table.setSchema(meta.getString("TABLE_SCHEM"));
-                table.setName(meta.getString("TABLE_NAME"));
-                table.setType(meta.getString("TABLE_TYPE"));
-                table.setRemark(meta.getString("REMARKS"));
-
-                if (log.isDebugEnabled()) {
-                    log.debug("View - " + table.getName() + "  remak - " + table.getRemark());
-                }
-
-                v.add(table);
-            }
-        }
-        catch (Exception e) {
-            String es = "Error get list of view";
-            log.error(es, e);
-        }
-        return v;
+    /**
+     * @deprecated NOT SUPPORTED ANY MORE.
+     * Use public static List<DbView> getViewList(Database database, String schemaPattern, String viewPattern);
+     *
+     * @param conn
+     * @param schemaPattern
+     * @param viewPattern
+     * @return
+     */
+    public static List<DbView> getViewList(final Connection conn, final String schemaPattern, final String viewPattern) {
+        throw new RuntimeException("NOT SUPPORTED ANY MORE. See JavaDoc");
     }
 
     public static boolean isSkipTable(final String table) {
