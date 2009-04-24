@@ -30,12 +30,10 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.List;
-import java.util.Collections;
 
 import javax.xml.datatype.DatatypeFactory;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import org.riverock.dbrevision.annotation.schema.db.*;
@@ -464,7 +462,7 @@ public class DatabaseStructureManager {
 
     /**
      * @deprecated NOT SUPPORTED ANY MORE.
-     * Use public static List<DbTable> getTableList(Database database, String schemaPattern, String tablePattern);
+     * Use public static List<DbTable> ViewManager.getTableList(Database database, String schemaPattern, String tablePattern);
      *
      * @param conn1
      * @param schemaPattern

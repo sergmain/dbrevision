@@ -37,7 +37,6 @@ import org.riverock.dbrevision.annotation.schema.db.DbForeignKey;
 import org.riverock.dbrevision.annotation.schema.db.DbSequence;
 import org.riverock.dbrevision.annotation.schema.db.DbTable;
 import org.riverock.dbrevision.annotation.schema.db.DbView;
-import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKey;
 
 /**
  * Database
@@ -138,8 +137,6 @@ public abstract class Database {
     public abstract String getOnDeleteSetNull();
 
     public abstract String getDefaultTimestampValue();
-
-    public abstract List<DbView> getViewList(String schemaPattern, String tablePattern);
 
     public abstract List<DbSequence> getSequnceList(String schemaPattern);
 

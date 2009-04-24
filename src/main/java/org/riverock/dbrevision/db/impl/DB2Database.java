@@ -57,7 +57,6 @@ import org.riverock.dbrevision.exception.ViewAlreadyExistException;
 import org.riverock.dbrevision.exception.TableNotFoundException;
 import org.riverock.dbrevision.exception.CreateTableException;
 import org.riverock.dbrevision.utils.DbUtils;
-import org.riverock.dbrevision.utils.Utils;
 
 /**
  * IBM DB2 connection
@@ -350,10 +349,6 @@ public class DB2Database extends Database {
 
     public String getDefaultTimestampValue() {
         return "CURRENT TIMESTAMP";
-    }
-
-    public List<DbView> getViewList(String schemaPattern, String tablePattern) {
-        return DatabaseManager.getViewList(getConnection(), schemaPattern, tablePattern);
     }
 
     public List<DbSequence> getSequnceList(String schemaPattern) {
