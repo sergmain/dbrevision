@@ -322,8 +322,19 @@ public final class MySqlDatabase extends Database {
                 }
             }
 
-            if (field.getNullable() == DatabaseMetaData.columnNoNulls) {
-                sql += " NOT NULL ";
+            switch (field.getNullable()) {
+                case DatabaseMetaData.columnNoNulls:
+                    sql += " NOT NULL ";
+                    break;
+
+                case DatabaseMetaData.columnNullable:
+                    switch (fieldType) {
+                        case Types.DATE:
+                        case Types.TIMESTAMP:
+                            sql += " NULL ";
+                            break;
+                    }
+                    break;
             }
         }
         if (table.getPrimaryKey() != null && table.getPrimaryKey().getColumns().size() != 0) {

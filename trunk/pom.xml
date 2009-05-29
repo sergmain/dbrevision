@@ -139,17 +139,19 @@ http://www.sonatype.com/book/reporting.html
 
     <reporting>
         <plugins>
+<!--
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jxr-plugin</artifactId>
             </plugin>
+-->
+<!--
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>taglist-maven-plugin</artifactId>
 
                 <configuration>
                     <tags>
-                        <!-- Add the definitions for FIXME javadoc and code comments... -->
                         <tag>@fixme</tag>
                         <tag>FIXME</tag>
                         <tag>@todo</tag>
@@ -157,6 +159,8 @@ http://www.sonatype.com/book/reporting.html
                     </tags>
                 </configuration>
             </plugin>
+-->
+<!--
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>jdepend-maven-plugin</artifactId>
@@ -165,12 +169,14 @@ http://www.sonatype.com/book/reporting.html
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>javancss-maven-plugin</artifactId>
             </plugin>
+-->
 <!--
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-changelog-plugin</artifactId>
             </plugin>
 -->
+<!--
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
@@ -182,6 +188,7 @@ http://www.sonatype.com/book/reporting.html
                     </links>
                 </configuration>
             </plugin>
+-->
         </plugins>
     </reporting>
 
