@@ -102,6 +102,14 @@ public class DbStructureImport {
                 }
                 if (isData) {
                     DatabaseStructureManager.setDataTable(database, table);
+                    try {
+                        database.getConnection().commit();
+                    }
+                    catch (SQLException e) {
+                        String es = "Error store date";
+                        log.debug(es + table.getName(), e);
+                        throw new DbRevisionException(es, e);
+                    }
                 }
             }
             else {

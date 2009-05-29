@@ -185,9 +185,9 @@ public class DatabaseStructureManager {
 
                     if (fieldData.isIsNull()) {
                         int type = table.getFields().get(k).getJavaType();
-                        if (type == Types.TIMESTAMP) {
-                            type = Types.DATE;
-                        }
+//                        if (type == Types.TIMESTAMP) {
+//                            type = Types.DATE;
+//                        }
 
                         ps.setNull(k + 1, type);
                     }
@@ -621,7 +621,7 @@ public class DatabaseStructureManager {
                             break;
 
                         case Types.DATE:
-                            field.setJavaStringType("java.sql.Types.TIMESTAMP");
+                            field.setJavaStringType("java.sql.Types.DATE");
                             break;
 
                         case Types.LONGVARCHAR:
