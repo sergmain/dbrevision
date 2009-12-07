@@ -94,7 +94,6 @@ public class DbUtils {
     }
 
     /**
-     * ��������� sql
      * @param conn connection
      * @param query sql
      * @param params parameters

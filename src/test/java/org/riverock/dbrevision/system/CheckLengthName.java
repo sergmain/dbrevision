@@ -29,10 +29,6 @@ import org.riverock.dbrevision.utils.Utils;
  *
  * $Id: CheckLengthName.java 1141 2006-12-14 14:43:29Z serg_main $
  */
-/**
- * �������� ���� ������ � view �� ���������� 18 ��������. ������ ����������� ���� � IBM DB2,
- * � ��������� ����� ����� ���� ������ � view ����� ���� ������
- */
 public class CheckLengthName {
 
     public CheckLengthName() {

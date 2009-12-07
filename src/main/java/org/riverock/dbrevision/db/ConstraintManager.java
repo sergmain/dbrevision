@@ -636,6 +636,7 @@ CREATE INDEX idx_id_employee_b_advance ON b_advance
 
             DbIndex key=null;
             while (columnNames.next()) {
+                final String columnName = columnNames.getString("COLUMN_NAME");
                 if (key==null) {
                     key = processResultSetForIndex(columnNames);
                     v.add(key);
@@ -643,6 +644,9 @@ CREATE INDEX idx_id_employee_b_advance ON b_advance
                 else {
 
                     DbIndex fk = processResultSetForIndex(columnNames);
+                    if (adapter.getFamily()== Database.Family.DB2 && columnName==null) {
+                        break;
+                    }
                     if (
                         !StringUtils.equals(key.getCatalogName(), fk.getCatalogName()) ||
                             !StringUtils.equals(key.getSchemaName(), fk.getSchemaName()) ||
@@ -654,8 +658,12 @@ CREATE INDEX idx_id_employee_b_advance ON b_advance
                         v.add(key);
                     }
                 }
+
+                if (columnName==null) {
+                    continue;
+                }
                 DbIndexColumn column = new DbIndexColumn();
-                column.setColumnName(columnNames.getString("COLUMN_NAME"));
+                column.setColumnName(columnName);
                 column.setKeySeq(DbUtils.getInteger(columnNames, "ORDINAL_POSITION"));
                 String asc = columnNames.getString("ASC_OR_DESC");
                 Boolean isAscending = null;
@@ -689,7 +697,7 @@ CREATE INDEX idx_id_employee_b_advance ON b_advance
             log.debug("Done  data from getForeignKeys");
         }
         catch (Exception e) {
-            throw new DbRevisionException(e);
+            throw new DbRevisionException("Error in getIndexes()", e);
         }
         return v;
     }

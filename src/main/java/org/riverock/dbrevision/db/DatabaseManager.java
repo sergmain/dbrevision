@@ -247,8 +247,6 @@ public final class DatabaseManager {
     }
 
     public static DbSchema getDbStructure(Database adapter, boolean isOnlyCurrent) {
-        DbSchema schema = new DbSchema();
-
         String dbSchema;
         if (isOnlyCurrent) {
             dbSchema = getCurrentSchema(adapter);
@@ -256,7 +254,11 @@ public final class DatabaseManager {
         else {
             dbSchema = "%";
         }
+        return getDbStructure(adapter, dbSchema);
+    }
 
+    public static DbSchema getDbStructure(Database adapter, String dbSchema) {
+        DbSchema schema = new DbSchema();
 
         List<DbTable> list = DatabaseStructureManager.getTableList(adapter, dbSchema, "%");
         for (DbTable table : list) {
