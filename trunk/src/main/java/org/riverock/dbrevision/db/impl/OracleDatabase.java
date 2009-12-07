@@ -51,8 +51,6 @@ import org.riverock.dbrevision.exception.TableNotFoundException;
 import org.riverock.dbrevision.utils.DbUtils;
 
 /**
- * ����� OracleDatabase ������������ ��� �������� � ����������� ���� ������.
- * <p/>
  * $Id: OracleDatabase.java 1141 2006-12-14 14:43:29Z serg_main $
  */
 @SuppressWarnings({"UnusedAssignment"})
@@ -185,7 +183,7 @@ ALTER TABLE AUTH_ACCESS_GROUP
             else
                 isFirst = !isFirst;
 
-            sql += "\n" + field.getName() + " ";
+            sql += "\n" + field.getName() + ' ';
             int fieldType = field.getJavaType();
             switch (fieldType) {
                 case Types.BIT:
