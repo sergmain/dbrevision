@@ -17,9 +17,9 @@ package org.riverock.dbrevision.system;
 
 import java.io.FileInputStream;
 
-import org.riverock.dbrevision.annotation.schema.db.DbSchema;
-import org.riverock.dbrevision.annotation.schema.db.DbTable;
-import org.riverock.dbrevision.annotation.schema.db.DbView;
+import org.riverock.dbrevision.schema.db.DbSchema;
+import org.riverock.dbrevision.schema.db.DbTable;
+import org.riverock.dbrevision.schema.db.DbView;
 import org.riverock.dbrevision.utils.Utils;
 
 /**
@@ -41,15 +41,15 @@ public class CheckLengthName {
         DbSchema millSchema = Utils.getObjectFromXml(DbSchema.class, stream);
 
         for (DbTable table : millSchema.getTables()) {
-            if (table.getName().length() > 18)
-                System.out.println("Name of table '" + table.getName() +
-                    "' is wrong. Exceed " + (table.getName().length() - 18) + " of chars");
+            if (table.getT().length() > 18)
+                System.out.println("Name of table '" + table.getT() +
+                    "' is wrong. Exceed " + (table.getT().length() - 18) + " of chars");
         }
 
         for (DbView view : millSchema.getViews()) {
-            if (view.getName().length() > 18)
-                System.out.println("Name of view '" + view.getName() +
-                    "' is wrong. Exceed " + (view.getName().length() - 18) + " of chars");
+            if (view.getT().length() > 18)
+                System.out.println("Name of view '" + view.getT() +
+                    "' is wrong. Exceed " + (view.getT().length() - 18) + " of chars");
         }
     }
 }

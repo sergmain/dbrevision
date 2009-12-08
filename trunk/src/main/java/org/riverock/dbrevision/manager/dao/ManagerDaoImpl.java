@@ -19,8 +19,8 @@ package org.riverock.dbrevision.manager.dao;
 import org.riverock.dbrevision.manager.RevisionBean;
 import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.db.DatabaseStructureManager;
-import org.riverock.dbrevision.annotation.schema.db.DbTable;
-import org.riverock.dbrevision.annotation.schema.db.DbField;
+import org.riverock.dbrevision.schema.db.DbTable;
+import org.riverock.dbrevision.schema.db.DbField;
 import org.riverock.dbrevision.Constants;
 import org.riverock.dbrevision.utils.DbUtils;
 import org.riverock.dbrevision.exception.DbRevisionException;
@@ -117,8 +117,8 @@ public class ManagerDaoImpl implements ManagerDao {
             List<DbTable> list = DatabaseStructureManager.getTableList(database, dbSchema, Constants.DB_REVISION_TABLE_NAME);
             if (list.isEmpty()) {
                 DbTable table = new DbTable();
-                table.setName(Constants.DB_REVISION_TABLE_NAME);
-                table.setSchema(null);
+                table.setT(Constants.DB_REVISION_TABLE_NAME);
+                table.setS(null);
 
                 table.getFields().add(getField("MODULE_NAME", Types.VARCHAR, 50, 0, 0));
                 table.getFields().add(getField("CURRENT_VERSION", Types.VARCHAR, 50, 0, 0));
@@ -127,7 +127,7 @@ public class ManagerDaoImpl implements ManagerDao {
                 // TODO add unique index on module_name column
 /*
                 DbForeignKey uniqueNameIdx = new DbForeignKey();
-                uniqueNameIdx.setPkName();    
+                uniqueNameIdx.setPk();
 
                 table.getForeignKeys().add()
 */
@@ -221,9 +221,9 @@ public class ManagerDaoImpl implements ManagerDao {
         DbField field;
         field = new DbField();
         field.setName(name);
-        field.setJavaType(type);
+        field.setType(type);
         field.setSize(size);
-        field.setDecimalDigit(decimalDigit);
+        field.setDigit(decimalDigit);
         field.setNullable(nullable);
         return field;
     }

@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2007 Sergei Maslyukov at riverock.org
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:dbrevision-structure="http://dbrevision.sourceforge.net/xsd/dbrevision-structure-3.0.xsd" targetNamespace="http://dbrevision.sourceforge.net/xsd/dbrevision-structure-3.0.xsd">
+	<xs:annotation>
+		<xs:documentation>Copyright 2002-2010 riverock.org, http://www.riverock.org</xs:documentation>
+	</xs:annotation>
+	<xs:annotation>
+		<xs:documentation>DbRevision framework, http://dbrevision.sourceforge.net</xs:documentation>
+	</xs:annotation>
+	<xs:complexType name="Database">
+		<xs:sequence>
+			<xs:element name="Schema" type="dbrevision-structure:DbSchema"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="Schema" type="dbrevision-structure:DbSchema"/>
+	<xs:complexType name="DbSchema">
+		<xs:sequence>
+			<xs:element name="T" type="dbrevision-structure:DbTable" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="V" type="dbrevision-structure:DbView" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="ViewReplace" type="dbrevision-structure:DbViewReplacement" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="S" type="dbrevision-structure:DbSequence" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="SequenceReplacement" type="dbrevision-structure:DbSequenceReplacement" minOccurs="0" maxOccurs="1"/>
+		</xs:sequence>
+	</xs:complexType>
+    <xs:complexType name="DbSequenceReplacement">
+        <xs:sequence>
+            <xs:element name="TableWithIds" type="dbrevision-structure:DbTable" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="SequenceColumnName" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="ValueColumnName" type="xs:string" minOccurs="1" maxOccurs="1"/>
+        </xs:sequence>
+        <xs:attribute name="isSkipAll" type="xs:boolean" use="optional"/>
+    </xs:complexType>
+    <xs:complexType name="DbViewReplacement">
+        <xs:sequence>
+            <xs:element name="Family" minOccurs="1" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation source="Типы баз данных десь должны совпдать с типми в классе org.riverock.dbrevision.db.DatabaseFactory">
+                        org.riverock.dbrevision.db.DatabaseFactory
+
+                        public static final String ORACLE_FAMILY = "oracle";
+                        public static final String MYSQL_FAMILY = "mysql";
+                        public static final String HYPERSONIC_FAMILY = "hypersonic";
+                        public static final String SQLSERVER_FAMILY = "sqlserver";
+                        public static final String POSTGREES_FAMILY = "postgrees";
+                        public static final String DB2_FAMILY = "db2";
+                        public static final String MAXDB_FAMILY = "maxdb";
+                    </xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="oracle"/>
+                        <xs:enumeration value="mysql"/>
+                        <xs:enumeration value="hypersonic"/>
+                        <xs:enumeration value="sqlserver"/>
+                        <xs:enumeration value="postgrees"/>
+                        <xs:enumeration value="db2"/>
+                        <xs:enumeration value="maxdb"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="View" type="dbrevision-structure:DbView" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="Skip" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+	<xs:complexType name="DbAbstractTable" abstract="true">
+		<xs:attribute name="s" type="xs:string"/>
+		<xs:attribute name="t" type="xs:string" use="required"/>
+		<xs:attribute name="r" type="xs:string"/>
+	</xs:complexType>
+	<xs:complexType name="DbView">
+		<xs:complexContent>
+			<xs:extension base="dbrevision-structure:DbAbstractTable">
+				<xs:sequence>
+					<xs:element name="Text" type="xs:string" minOccurs="0"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="DbTable">
+		<xs:complexContent>
+			<xs:extension base="dbrevision-structure:DbAbstractTable">
+				<xs:sequence>
+					<xs:element name="Pk" type="dbrevision-structure:DbPrimaryKey" minOccurs="0"/>
+					<xs:element name="F" type="dbrevision-structure:DbField" minOccurs="0" maxOccurs="unbounded"/>
+					<xs:element name="Fk" type="dbrevision-structure:DbForeignKey" minOccurs="0" maxOccurs="unbounded"/>
+					<xs:element name="I" type="dbrevision-structure:DbIndex" minOccurs="0" maxOccurs="unbounded"/>
+					<xs:element name="D" type="dbrevision-structure:DbDataTable" minOccurs="0"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="DbSequence">
+		<xs:attribute name="name" type="xs:string" use="required"/>
+		<xs:attribute name="min" type="xs:int" use="required"/>
+		<xs:attribute name="max" type="xs:string" use="required"/>
+		<xs:attribute name="inc" type="xs:int" use="required"/>
+		<xs:attribute name="isCycle" type="xs:boolean"/>
+		<xs:attribute name="isOrder" type="xs:boolean"/>
+		<xs:attribute name="cacheSize" type="xs:int"/>
+		<xs:attribute name="lastNumber" type="xs:long" use="required"/>
+	</xs:complexType>
+	<xs:complexType name="DbField">
+		<xs:attribute name="name" type="xs:string" use="required"/>
+		<xs:attribute name="dbtype" type="xs:string">
+			<xs:annotation>
+				<xs:documentation source="Тип поля как он есть в базе"/>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="type" type="xs:int"/>
+		<xs:attribute name="size" type="xs:int" use="optional"/>
+		<xs:attribute name="digit" type="xs:int"/>
+		<xs:attribute name="nullable" type="xs:int"/>
+		<xs:attribute name="def" type="xs:string"/>
+		<xs:attribute name="comment" type="xs:string"/>
+	</xs:complexType>
+	<xs:complexType name="DbPrimaryKey">
+		<xs:sequence>
+			<xs:element name="C" type="dbrevision-structure:DbPrimaryKeyColumn" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="c" type="xs:string"/>
+		<xs:attribute name="s" type="xs:string"/>
+		<xs:attribute name="t" type="xs:string" use="required"/>
+		<xs:attribute name="pk" type="xs:string"/>
+	</xs:complexType>
+	<xs:complexType name="DbPrimaryKeyColumn">
+		<xs:attribute name="c" type="xs:string" use="required"/>
+		<xs:attribute name="seq" type="xs:int" use="required"/>
+	</xs:complexType>
+	<xs:complexType name="DbForeignKey">
+		<xs:sequence>
+			<xs:element name="C" type="dbrevision-structure:DbForeignKeyColumn" maxOccurs="unbounded"/>
+			<xs:element name="URule" type="dbrevision-structure:DbKeyActionRule" minOccurs="0"/>
+			<xs:element name="DRule" type="dbrevision-structure:DbKeyActionRule" minOccurs="0"/>
+			<xs:element name="Defer" type="dbrevision-structure:DbKeyActionRule" minOccurs="0"/>
+		</xs:sequence>
+		<xs:attribute name="pkSchema" type="xs:string"/>
+		<xs:attribute name="pkTable" type="xs:string"/>
+		<xs:attribute name="pk" type="xs:string" use="required"/>
+		<xs:attribute name="fkSchema" type="xs:string"/>
+		<xs:attribute name="fkTable" type="xs:string" use="required"/>
+		<xs:attribute name="fk" type="xs:string"/>
+	</xs:complexType>
+	<xs:complexType name="DbForeignKeyColumn">
+		<xs:attribute name="pkCol" type="xs:string"/>
+		<xs:attribute name="fkCol" type="xs:string"/>
+		<xs:attribute name="seq" type="xs:int"/>
+	</xs:complexType>
+	<xs:complexType name="DbIndex">
+		<xs:sequence>
+			<xs:element name="C" type="dbrevision-structure:DbIndexColumn" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="c" type="xs:string"/>
+		<xs:attribute name="s" type="xs:string"/>
+		<xs:attribute name="t" type="xs:string" use="required"/>
+		<xs:attribute name="i" type="xs:string"/>
+		<xs:attribute name="isNonUnique" type="xs:boolean"/>
+		<xs:attribute name="indexQualifier" type="xs:string"/>
+		<xs:attribute name="type" type="xs:int"/>
+		<xs:attribute name="cardinality" type="xs:int"/>
+		<xs:attribute name="pages" type="xs:int"/>
+		<xs:attribute name="filterCondition" type="xs:string"/>
+	</xs:complexType>
+	<xs:complexType name="DbIndexColumn">
+		<xs:attribute name="c" type="xs:string" use="required"/>
+		<xs:attribute name="seq" type="xs:int" use="required"/>
+		<xs:attribute name="asc" type="xs:boolean"/>
+	</xs:complexType>
+	<xs:complexType name="DbKeyActionRule">
+		<xs:attribute name="ruleType" type="xs:int"/>
+		<xs:attribute name="ruleName" type="xs:string"/>
+	</xs:complexType>
+	<xs:complexType name="DbDataSchema">
+		<xs:sequence>
+			<xs:element name="Ts" type="dbrevision-structure:DbDataTable" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="DbDataTable">
+		<xs:sequence>
+			<xs:element name="R" type="dbrevision-structure:DbDataRecord" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="DbDataRecord">
+		<xs:sequence>
+			<xs:element name="F" type="dbrevision-structure:DbDataFieldData" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="DbDataFieldData">
+        <xs:attribute name="s" type="xs:string" use="optional"/>
+        <xs:attribute name="d" type="xs:dateTime" use="optional"/>
+        <xs:attribute name="n" type="xs:decimal" use="optional"/>
+        <xs:attribute name="nll" type="xs:boolean" use="required"/>
+	</xs:complexType>
+</xs:schema>

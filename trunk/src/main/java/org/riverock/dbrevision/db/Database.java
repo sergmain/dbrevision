@@ -21,12 +21,12 @@ import java.sql.ResultSet;
 import java.sql.DatabaseMetaData;
 import java.util.List;
 
-import org.riverock.dbrevision.annotation.schema.db.DbDataFieldData;
-import org.riverock.dbrevision.annotation.schema.db.DbField;
-import org.riverock.dbrevision.annotation.schema.db.DbForeignKey;
-import org.riverock.dbrevision.annotation.schema.db.DbSequence;
-import org.riverock.dbrevision.annotation.schema.db.DbTable;
-import org.riverock.dbrevision.annotation.schema.db.DbView;
+import org.riverock.dbrevision.schema.db.DbDataFieldData;
+import org.riverock.dbrevision.schema.db.DbField;
+import org.riverock.dbrevision.schema.db.DbForeignKey;
+import org.riverock.dbrevision.schema.db.DbSequence;
+import org.riverock.dbrevision.schema.db.DbTable;
+import org.riverock.dbrevision.schema.db.DbView;
 
 /**
  * Database

@@ -17,8 +17,8 @@ package org.riverock.dbrevision.system;
 
 import java.io.OutputStream;
 
-import org.riverock.dbrevision.annotation.schema.db.DbSchema;
-import org.riverock.dbrevision.annotation.schema.db.DbTable;
+import org.riverock.dbrevision.schema.db.DbSchema;
+import org.riverock.dbrevision.schema.db.DbTable;
 import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.db.DatabaseStructureManager;
@@ -36,39 +36,35 @@ import org.riverock.dbrevision.utils.Utils;
  */
 public class DbStructureExport {
 
-    public static void export(Database adapter, OutputStream outputStream, boolean isData) {
-        export(adapter, outputStream, isData, true);
-    }
-
-    public static void export(Database adapter, OutputStream outputStream, boolean isData, boolean isOnlyCurrent) {
-        export(adapter, outputStream, isData, isOnlyCurrent, "SchemaElement", "utf-8");
+    public static void export(Database database, final String schema, OutputStream outputStream, boolean isData) {
+        export(database, schema, outputStream, isData, "Schema", "utf-8");
     }
 
     /**
      *
-     * @param adapter
+     * @param database
      * @param outputStream
      * @param isData
-     * @param isOnlyCurrent if true - only objects in current db schema 
      * @param xmlRootElement
      * @param encoding
      */
     public static void export(
-        Database adapter,
-        OutputStream outputStream,
+        final Database database,
+        final String schema,
+        final OutputStream outputStream,
         boolean isData,
-        boolean isOnlyCurrent,
         String xmlRootElement,
         String encoding) {
 
         try {
-            DbSchema schema = DatabaseManager.getDbStructure(adapter, isOnlyCurrent);
+            DbSchema dbSchema = DatabaseManager.getDbStructure(database, schema);
             if (isData) {
-                for (DbTable table : schema.getTables()) {
-                    table.setData(DatabaseStructureManager.getDataTable(adapter, table));
+                for (DbTable table : dbSchema.getTables()) {
+                    table.setD(DatabaseStructureManager.getDataTable(database, table));
                 }
             }
-            Utils.writeObjectAsXml(schema, outputStream, xmlRootElement, encoding);
+
+            Utils.writeMarshalToOutputStream(dbSchema, encoding, xmlRootElement, outputStream, true, null);
         } catch (Exception e) {
             throw new DbRevisionException(e);
         }

@@ -29,14 +29,14 @@ import java.util.Collections;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
-import org.riverock.dbrevision.annotation.schema.db.DbDataFieldData;
-import org.riverock.dbrevision.annotation.schema.db.DbField;
-import org.riverock.dbrevision.annotation.schema.db.DbForeignKey;
-import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKey;
-import org.riverock.dbrevision.annotation.schema.db.DbSequence;
-import org.riverock.dbrevision.annotation.schema.db.DbTable;
-import org.riverock.dbrevision.annotation.schema.db.DbView;
-import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKeyColumn;
+import org.riverock.dbrevision.schema.db.DbDataFieldData;
+import org.riverock.dbrevision.schema.db.DbField;
+import org.riverock.dbrevision.schema.db.DbForeignKey;
+import org.riverock.dbrevision.schema.db.DbPrimaryKey;
+import org.riverock.dbrevision.schema.db.DbSequence;
+import org.riverock.dbrevision.schema.db.DbTable;
+import org.riverock.dbrevision.schema.db.DbView;
+import org.riverock.dbrevision.schema.db.DbPrimaryKeyColumn;
 import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.db.DbPkComparator;
@@ -114,7 +114,7 @@ public class InterbaseDatabase extends Database {
             default:
                 throw new IllegalArgumentException( "Unknown state "+ state);
         }
-        String sql = "ALTER TABLE "+key.getFkTableName()+" MODIFY CONSTRAINT "+key.getFkName()+" " + s;
+        String sql = "ALTER TABLE "+key.getFkTable()+" MODIFY CONSTRAINT "+key.getFk()+" " + s;
 
         PreparedStatement ps = null;
         try {
@@ -152,7 +152,7 @@ public class InterbaseDatabase extends Database {
             return;
         }
 
-        String sql = "create table " + table.getName() + "\n" +
+        String sql = "create table " + table.getT() + "\n" +
             "(";
 
         boolean isFirst = true;
@@ -164,12 +164,12 @@ public class InterbaseDatabase extends Database {
                 isFirst = !isFirst;
 
             sql += "\n" + field.getName();
-            switch (field.getJavaType()) {
+            switch (field.getType()) {
 
                 case Types.NUMERIC:
                 case Types.DECIMAL:
-                    if (field.getDecimalDigit()!=0) {
-                        sql += " DECIMAL(" + (field.getSize()==null || field.getSize() > 38 ? 38 : field.getSize()) + ',' + field.getDecimalDigit() + ")";
+                    if (field.getDigit()!=0) {
+                        sql += " DECIMAL(" + (field.getSize()==null || field.getSize() > 38 ? 38 : field.getSize()) + ',' + field.getDigit() + ")";
                     }
                     else {
                         if (field.getSize() == 1)
@@ -211,12 +211,13 @@ public class InterbaseDatabase extends Database {
                     break;
 
                 default:
-                    field.setJavaStringType("unknown field type field - " + field.getName() + " javaType - " + field.getJavaType());
-                    System.out.println("unknown field type field - " + field.getName() + " javaType - " + field.getJavaType());
+                    final String es = "unknown field type field - " + field.getName() + " javaType - " + field.getType();
+                    throw new IllegalStateException(es);
+//                    System.out.println(es);
             }
 
-            if (field.getDefaultValue() != null) {
-                String val = field.getDefaultValue().trim();
+            if (field.getDef() != null) {
+                String val = field.getDef().trim();
 
                 // TODO rewrite. check only if type is 'date' 
                 if (DatabaseManager.checkDefaultTimestamp(val)) {
@@ -230,15 +231,15 @@ public class InterbaseDatabase extends Database {
                 sql += " NOT NULL ";
             }
         }
-        if (table.getPrimaryKey() != null && table.getPrimaryKey().getColumns().size() != 0) {
-            DbPrimaryKey pk = table.getPrimaryKey();
+        if (table.getPk() != null && table.getPk().getColumns().size() != 0) {
+            DbPrimaryKey pk = table.getPk();
 
             //            constraintDefinition:
 //            [ CONSTRAINT name ]
 //            UNIQUE ( column [,column...] ) |
 //            PRIMARY KEY ( column [,column...] ) |
 
-            sql += ",\nCONSTRAINT " + pk.getPkName() + " PRIMARY KEY (\n";
+            sql += ",\nCONSTRAINT " + pk.getPk() + " PRIMARY KEY (\n";
 
             Collections.sort(pk.getColumns(), DbPkComparator.getInstance());
             isFirst = true;
@@ -250,7 +251,7 @@ public class InterbaseDatabase extends Database {
                     isFirst = !isFirst;
                 }
 
-                sql += column.getColumnName();
+                sql += column.getC();
             }
             sql += "\n)";
         }
@@ -277,7 +278,7 @@ public class InterbaseDatabase extends Database {
     }
 
     public void dropTable(DbTable table) {
-        dropTable(table.getName());
+        dropTable(table.getT());
     }
 
     public void dropTable(String nameTable) {
@@ -309,9 +310,9 @@ public class InterbaseDatabase extends Database {
     }
 
     public void addColumn(DbTable table, DbField field) {
-        String sql = "alter table " + table.getName() + " add " + field.getName() + " ";
+        String sql = "alter table " + table.getT() + " add " + field.getName() + " ";
 
-        switch (field.getJavaType()) {
+        switch (field.getType()) {
 
             case Types.NUMERIC:
             case Types.DECIMAL:
@@ -350,12 +351,13 @@ public class InterbaseDatabase extends Database {
                 break;
 
             default:
-                field.setJavaStringType("unknown field type field - " + field.getName() + " javaType - " + field.getJavaType());
-                System.out.println("unknown field type field - " + field.getName() + " javaType - " + field.getJavaType());
+                final String es = "unknown field type field - " + field.getName() + " javaType - " + field.getType();
+                throw new IllegalStateException(es);
+//                    System.out.println(es);
         }
 
-        if (field.getDefaultValue() != null) {
-            String val = field.getDefaultValue().trim();
+        if (field.getDef() != null) {
+            String val = field.getDef().trim();
 
             //TODO rewrite init of def as in createTable
 //                if (!val.equalsIgnoreCase("null"))
@@ -478,13 +480,13 @@ ALTER TABLE table
 
     public void createView(DbView view) {
         if (view == null ||
-            view.getName() == null || view.getName().length() == 0 ||
+            view.getT() == null || view.getT().length() == 0 ||
             view.getText() == null || view.getText().length() == 0
         )
             return;
 
         String sql_ =
-            "CREATE VIEW " + view.getName() +
+            "CREATE VIEW " + view.getT() +
             " AS " + StringUtils.replace(view.getText(), "||", "+");
 
         Statement ps = null;
@@ -494,10 +496,10 @@ ALTER TABLE table
         }
         catch (SQLException e) {
             if (testExceptionViewExists(e)) {
-                throw new ViewAlreadyExistException("View "+view.getName()+" already exist.");
+                throw new ViewAlreadyExistException("View "+view.getT()+" already exist.");
             }
             if (testExceptionTableNotFound(e)) {
-                throw new TableNotFoundException("View "+view.getName()+" refered to unknown table.");
+                throw new TableNotFoundException("View "+view.getT()+" refered to unknown table.");
             }
             String errorString = "Error create view. Error code " + e.getErrorCode() + "\n" + sql_;
             log.error(errorString, e);

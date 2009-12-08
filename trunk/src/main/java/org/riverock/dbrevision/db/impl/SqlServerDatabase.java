@@ -34,14 +34,14 @@ import org.apache.log4j.Logger;
 
 import org.hsqldb.Trace;
 
-import org.riverock.dbrevision.annotation.schema.db.DbDataFieldData;
-import org.riverock.dbrevision.annotation.schema.db.DbField;
-import org.riverock.dbrevision.annotation.schema.db.DbForeignKey;
-import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKey;
-import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKeyColumn;
-import org.riverock.dbrevision.annotation.schema.db.DbSequence;
-import org.riverock.dbrevision.annotation.schema.db.DbTable;
-import org.riverock.dbrevision.annotation.schema.db.DbView;
+import org.riverock.dbrevision.schema.db.DbDataFieldData;
+import org.riverock.dbrevision.schema.db.DbField;
+import org.riverock.dbrevision.schema.db.DbForeignKey;
+import org.riverock.dbrevision.schema.db.DbPrimaryKey;
+import org.riverock.dbrevision.schema.db.DbPrimaryKeyColumn;
+import org.riverock.dbrevision.schema.db.DbSequence;
+import org.riverock.dbrevision.schema.db.DbTable;
+import org.riverock.dbrevision.schema.db.DbView;
 import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.db.DbPkComparator;
@@ -118,7 +118,7 @@ public class SqlServerDatabase extends Database {
             default:
                 throw new IllegalArgumentException( "Unknown state "+ state);
         }
-        String sql = "ALTER TABLE "+key.getFkTableName()+" MODIFY CONSTRAINT "+key.getFkName()+" " + s;
+        String sql = "ALTER TABLE "+key.getFkTable()+" MODIFY CONSTRAINT "+key.getFk()+" " + s;
 
         PreparedStatement ps = null;
         try {
@@ -172,7 +172,7 @@ public class SqlServerDatabase extends Database {
             return;
         }
 
-        String sql = "create table \"" + table.getName() + "\"\n" +
+        String sql = "create table \"" + table.getT() + "\"\n" +
             "(";
 
         boolean isFirst = true;
@@ -184,7 +184,7 @@ public class SqlServerDatabase extends Database {
                 isFirst = !isFirst;
 
             sql += "\n\"" + field.getName() + "\"";
-            int javaType = field.getJavaType();
+            int javaType = field.getType();
             switch (javaType) {
 
                 case Types.BIT:
@@ -201,7 +201,7 @@ public class SqlServerDatabase extends Database {
 
                 case Types.NUMERIC:
                 case Types.DECIMAL:
-                    Integer digit = field.getDecimalDigit();
+                    Integer digit = field.getDigit();
                     if (digit==null) digit=0;
                     sql += " DECIMAL(" + (field.getSize()==null || field.getSize() > 38 ? 38 : field.getSize()) + ',' + digit + ")";
                     break;
@@ -248,12 +248,13 @@ public class SqlServerDatabase extends Database {
 //                    break;
 
                 default:
-                    field.setJavaStringType("unknown field type field - " + field.getName() + " javaType - " + javaType);
-                    System.out.println("unknown field type field - " + field.getName() + " javaType - " + javaType);
+                    final String es = "unknown field type field - " + field.getName() + " javaType - " + field.getType();
+                    throw new IllegalStateException(es);
+//                    System.out.println(es);
             }
 
-            if (field.getDefaultValue() != null) {
-                String val = field.getDefaultValue().trim();
+            if (field.getDef() != null) {
+                String val = field.getDef().trim();
 
                 if (StringUtils.isNotBlank(val)) {
                     switch (javaType) {
@@ -277,10 +278,10 @@ public class SqlServerDatabase extends Database {
                 sql += " NOT NULL ";
             }
         }
-        if (table.getPrimaryKey() != null && table.getPrimaryKey().getColumns().size() != 0) {
-            DbPrimaryKey pk = table.getPrimaryKey();
+        if (table.getPk() != null && table.getPk().getColumns().size() != 0) {
+            DbPrimaryKey pk = table.getPk();
 
-            String namePk = pk.getPkName();
+            String namePk = pk.getPk();
 
 //            constraintDefinition:
 //            [ CONSTRAINT name ]
@@ -299,7 +300,7 @@ public class SqlServerDatabase extends Database {
                 else
                     isFirst = !isFirst;
 
-                sql += column.getColumnName();
+                sql += column.getC();
             }
             sql += "\n)";
         }
@@ -325,7 +326,7 @@ public class SqlServerDatabase extends Database {
     }
 
     public void dropTable(DbTable table) {
-        dropTable(table.getName());
+        dropTable(table.getT());
     }
 
     public void dropTable(String nameTable) {
@@ -357,9 +358,9 @@ public class SqlServerDatabase extends Database {
     }
 
     public void addColumn(DbTable table, DbField field) {
-        String sql = "alter table \"" + table.getName() + "\" add " + field.getName() + " ";
+        String sql = "alter table \"" + table.getT() + "\" add " + field.getName() + " ";
 
-        int fieldType = field.getJavaType();
+        int fieldType = field.getType();
         switch (fieldType) {
 
             case Types.BIT:
@@ -411,12 +412,13 @@ public class SqlServerDatabase extends Database {
                 break;
 
             default:
-                field.setJavaStringType("unknown field type field - " + field.getName() + " javaType - " + field.getJavaType());
-                System.out.println("unknown field type field - " + field.getName() + " javaType - " + field.getJavaType());
+                final String es = "unknown field type field - " + field.getName() + " javaType - " + field.getType();
+                throw new IllegalStateException(es);
+//                    System.out.println(es);
         }
 
-        if (field.getDefaultValue() != null) {
-            String val = field.getDefaultValue().trim();
+        if (field.getDef() != null) {
+            String val = field.getDef().trim();
 
             switch (fieldType) {
                 case Types.CHAR:
@@ -548,13 +550,13 @@ ALTER TABLE table
 
     public void createView(DbView view) {
         if (view == null ||
-            view.getName() == null || view.getName().length() == 0 ||
+            view.getT() == null || view.getT().length() == 0 ||
             view.getText() == null || view.getText().length() == 0
         )
             return;
 
         String sql_ =
-            "CREATE VIEW " + view.getName() +
+            "CREATE VIEW " + view.getT() +
             " AS " + StringUtils.replace(view.getText(), "||", "+");
 
         Statement ps = null;
@@ -564,10 +566,10 @@ ALTER TABLE table
         }
         catch (SQLException e) {
             if (testExceptionViewExists(e)) {
-                throw new ViewAlreadyExistException("View "+view.getName()+" already exist.");
+                throw new ViewAlreadyExistException("View "+view.getT()+" already exist.");
             }
             if (testExceptionTableNotFound(e)) {
-                throw new TableNotFoundException("View "+view.getName()+" refered to unknown table.");
+                throw new TableNotFoundException("View "+view.getT()+" refered to unknown table.");
             }
             String errorString = "Error create view. Error code " + e.getErrorCode() + "\n" + sql_;
             log.error(errorString, e);

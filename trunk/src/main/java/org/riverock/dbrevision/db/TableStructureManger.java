@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import org.riverock.dbrevision.annotation.schema.db.*;
+import org.riverock.dbrevision.schema.db.*;
 import org.riverock.dbrevision.exception.DbRevisionException;
 
 /**
@@ -38,7 +38,7 @@ public class TableStructureManger {
         if (table==null) {
             throw new IllegalArgumentException("Table '"+tableName+"' not found");
         }
-        List<DbField> fields = DatabaseStructureManager.getFieldsList(db, table.getSchema(), table.getName());
+        List<DbField> fields = DatabaseStructureManager.getFieldsList(db, table.getS(), table.getT());
         DbField f=null;
         for (DbField field : fields) {
             if (field.getName().equalsIgnoreCase(fieldName)) {
@@ -52,12 +52,12 @@ public class TableStructureManger {
         DbField targetField = DatabaseStructureManager.cloneDescriptionField(f);
         targetField.setName( getUniqueFieldName(table, f.getName()));
         targetField.setSize(fieldSize);
-        targetField.setDecimalDigit(fieldDecimalDigit);
+        targetField.setDigit(fieldDecimalDigit);
         targetField.setNullable(1);
 
         DbField originField = DatabaseStructureManager.cloneDescriptionField(f);
         originField.setSize(fieldSize);
-        originField.setDecimalDigit(fieldDecimalDigit);
+        originField.setDigit(fieldDecimalDigit);
         originField.setNullable(1);
 
 
@@ -67,13 +67,13 @@ public class TableStructureManger {
         DatabaseManager.commit(db);
 
         List<DbForeignKey> fk=new ArrayList<DbForeignKey>();
-        if (table.getPrimaryKey()!=null) {
-            fk = DatabaseManager.getForeignKeys(schema, table.getName(), table.getPrimaryKey().getColumns().get(0).getColumnName());
+        if (table.getPk()!=null) {
+            fk = DatabaseManager.getForeignKeys(schema, table.getT(), table.getPk().getColumns().get(0).getC());
             Iterator<DbForeignKey> it = fk.iterator();
             while (it.hasNext()) {
                 DbForeignKey foreignKey = it.next();
                 // не удаляем FK в текущей таблице 
-                if (table.getName().equalsIgnoreCase(foreignKey.getFkTableName())) {
+                if (table.getT().equalsIgnoreCase(foreignKey.getFkTable())) {
                     it.remove();
                 }
                 else {
@@ -88,16 +88,16 @@ public class TableStructureManger {
             }
         }
 
-        DbPrimaryKey pk = table.getPrimaryKey();
+        DbPrimaryKey pk = table.getPk();
         if (pk!=null) {
             ConstraintManager.dropPk(db, pk);
         }
 
         List<DbIndex> indexes = new ArrayList<DbIndex>();
-        List<DbIndex> idxs = ConstraintManager.getIndexes(db, table.getSchema(), table.getName() );
+        List<DbIndex> idxs = ConstraintManager.getIndexes(db, table.getS(), table.getT() );
         for (DbIndex dbIndex : idxs) {
             for (DbIndexColumn column : dbIndex.getColumns()) {
-                if (column.getColumnName()!=null && column.getColumnName().equalsIgnoreCase(fieldName)) {
+                if (column.getC()!=null && column.getC().equalsIgnoreCase(fieldName)) {
                     indexes.add(dbIndex);
                     break;
                 }

@@ -18,7 +18,7 @@ package org.riverock.dbrevision.manager;
 
 import org.riverock.dbrevision.Constants;
 import org.riverock.dbrevision.utils.DbUtils;
-import org.riverock.dbrevision.annotation.schema.db.Patch;
+import org.riverock.dbrevision.schema.db.Patch;
 import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.exception.ConfigFileNotFoundException;
 import org.riverock.dbrevision.exception.CurrentVersionCodeNotFoundException;
@@ -105,7 +105,7 @@ public class DbRevisionManager {
      */
     public Module getModule(String name) {
         for (Module module : modules) {
-            if (module.getName().equals(name)) {
+            if (module.getT().equals(name)) {
                 return module;
             }
         }

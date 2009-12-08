@@ -16,7 +16,7 @@
 
 package org.riverock.dbrevision.trash;
 
-import org.riverock.dbrevision.annotation.schema.db.DbSchema;
+import org.riverock.dbrevision.schema.db.DbSchema;
 import org.riverock.dbrevision.utils.Utils;
 
 import javax.xml.bind.JAXBException;

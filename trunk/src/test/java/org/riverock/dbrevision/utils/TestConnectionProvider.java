@@ -19,7 +19,7 @@ package org.riverock.dbrevision.utils;
 import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.db.DatabaseFactory;
 import org.riverock.dbrevision.db.DatabaseStructureManager;
-import org.riverock.dbrevision.annotation.schema.db.DbTable;
+import org.riverock.dbrevision.schema.db.DbTable;
 import org.riverock.dbrevision.Constants;
 
 import java.sql.*;

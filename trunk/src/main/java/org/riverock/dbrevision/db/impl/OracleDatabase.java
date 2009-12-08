@@ -35,14 +35,14 @@ import org.apache.log4j.Logger;
 import oracle.jdbc.OracleResultSet;
 import oracle.sql.CLOB;
 
-import org.riverock.dbrevision.annotation.schema.db.DbDataFieldData;
-import org.riverock.dbrevision.annotation.schema.db.DbField;
-import org.riverock.dbrevision.annotation.schema.db.DbForeignKey;
-import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKey;
-import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKeyColumn;
-import org.riverock.dbrevision.annotation.schema.db.DbSequence;
-import org.riverock.dbrevision.annotation.schema.db.DbTable;
-import org.riverock.dbrevision.annotation.schema.db.DbView;
+import org.riverock.dbrevision.schema.db.DbDataFieldData;
+import org.riverock.dbrevision.schema.db.DbField;
+import org.riverock.dbrevision.schema.db.DbForeignKey;
+import org.riverock.dbrevision.schema.db.DbPrimaryKey;
+import org.riverock.dbrevision.schema.db.DbPrimaryKeyColumn;
+import org.riverock.dbrevision.schema.db.DbSequence;
+import org.riverock.dbrevision.schema.db.DbTable;
+import org.riverock.dbrevision.schema.db.DbView;
 import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.exception.DbRevisionException;
@@ -102,7 +102,7 @@ public class OracleDatabase extends Database {
             default:
                 throw new IllegalArgumentException( "Unknown state "+ state);
         }
-        String sql = "ALTER TABLE "+key.getFkTableName()+" MODIFY CONSTRAINT "+key.getFkName()+" " + s;
+        String sql = "ALTER TABLE "+key.getFkTable()+" MODIFY CONSTRAINT "+key.getFk()+" " + s;
 
         PreparedStatement ps = null;
         try {
@@ -139,7 +139,7 @@ ALTER TABLE AUTH_ACCESS_GROUP
   ID_ACCESS_GROUP NOT NULL
 )
          */
-        String sql = "ALTER TABLE "+table.getName()+" MODIFY ( "+field.getName()+"  " + s +")";
+        String sql = "ALTER TABLE "+table.getT()+" MODIFY ( "+field.getName()+"  " + s +")";
 
         PreparedStatement ps = null;
         try {
@@ -172,7 +172,7 @@ ALTER TABLE AUTH_ACCESS_GROUP
         if (table == null || table.getFields().isEmpty())
             return;
 
-        String sql = "create table " + table.getName() + " \n" +
+        String sql = "create table " + table.getT() + " \n" +
             "(";
 
         boolean isFirst = true;
@@ -184,7 +184,7 @@ ALTER TABLE AUTH_ACCESS_GROUP
                 isFirst = !isFirst;
 
             sql += "\n" + field.getName() + ' ';
-            int fieldType = field.getJavaType();
+            int fieldType = field.getType();
             switch (fieldType) {
                 case Types.BIT:
                     sql += " NUMBER(1,0)";
@@ -202,10 +202,10 @@ ALTER TABLE AUTH_ACCESS_GROUP
                 case Types.DOUBLE:
                 case Types.NUMERIC:
                 case Types.INTEGER:
-                    if (field.getDecimalDigit() == null || field.getDecimalDigit() == 0)
+                    if (field.getDigit() == null || field.getDigit() == 0)
                         sql += " NUMBER";
                     else
-                        sql += " NUMBER(" + (field.getSize()==null || field.getSize()>38?38:field.getSize()) + "," + field.getDecimalDigit() + ")";
+                        sql += " NUMBER(" + (field.getSize()==null || field.getSize()>38?38:field.getSize()) + "," + field.getDigit() + ")";
                     break;
 
                 case Types.CHAR:
@@ -243,12 +243,13 @@ ALTER TABLE AUTH_ACCESS_GROUP
                     break;
 
                 default:
-                    field.setJavaStringType("unknown field type field - " + field.getName() + " javaType - " + field.getJavaType());
-                    System.out.println("unknown field type field - " + field.getName() + " javaType - " + field.getJavaType());
+                    final String es = "unknown field type field - " + field.getName() + " javaType - " + field.getType();
+                    throw new IllegalStateException(es);
+//                    System.out.println(es);
             }
 
-            if (field.getDefaultValue() != null) {
-                String val = field.getDefaultValue().trim();
+            if (field.getDef() != null) {
+                String val = field.getDef().trim();
 
                 switch (fieldType) {
                     case Types.CHAR:
@@ -271,15 +272,15 @@ ALTER TABLE AUTH_ACCESS_GROUP
                 sql += " NOT NULL ";
             }
         }
-        if (table.getPrimaryKey() != null && !table.getPrimaryKey().getColumns().isEmpty()) {
-            DbPrimaryKey pk = table.getPrimaryKey();
+        if (table.getPk() != null && !table.getPk().getColumns().isEmpty()) {
+            DbPrimaryKey pk = table.getPk();
 
             //            constraintDefinition:
 //            [ CONSTRAINT name ]
 //            UNIQUE ( column [,column...] ) |
 //            PRIMARY KEY ( column [,column...] ) |
 
-            sql += ",\nCONSTRAINT " + pk.getPkName() + " PRIMARY KEY (\n";
+            sql += ",\nCONSTRAINT " + pk.getPk() + " PRIMARY KEY (\n";
 
             int seq = Integer.MIN_VALUE;
             isFirst = true;
@@ -287,19 +288,19 @@ ALTER TABLE AUTH_ACCESS_GROUP
                 DbPrimaryKeyColumn column = keyColumn;
                 int seqTemp = Integer.MAX_VALUE;
                 for (DbPrimaryKeyColumn columnTemp : pk.getColumns()) {
-                    if (seq < columnTemp.getKeySeq() && columnTemp.getKeySeq() < seqTemp) {
-                        seqTemp = columnTemp.getKeySeq();
+                    if (seq < columnTemp.getSeq() && columnTemp.getSeq() < seqTemp) {
+                        seqTemp = columnTemp.getSeq();
                         column = columnTemp;
                     }
                 }
-                seq = column.getKeySeq();
+                seq = column.getSeq();
 
                 if (!isFirst)
                     sql += ",";
                 else
                     isFirst = !isFirst;
 
-                sql += column.getColumnName();
+                sql += column.getC();
             }
             sql += "\n)";
         }
@@ -328,7 +329,7 @@ ALTER TABLE AUTH_ACCESS_GROUP
     }
 
     public void dropTable(DbTable table) {
-        dropTable(table.getName());
+        dropTable(table.getT());
     }
 
     public void dropTable(String nameTable) {
@@ -374,18 +375,18 @@ ALTER TABLE AUTH_ACCESS_GROUP
         if (log.isDebugEnabled())
             log.debug("addColumn(DbTable table, DbField field)");
 
-        String sql = "alter table " + table.getName() + " add ( " + field.getName() + " ";
+        String sql = "alter table " + table.getT() + " add ( " + field.getName() + " ";
 
-        int fieldType = field.getJavaType();
+        int fieldType = field.getType();
         switch (fieldType) {
             case Types.DECIMAL:
             case Types.DOUBLE:
             case Types.NUMERIC:
             case Types.INTEGER:
-                if (field.getDecimalDigit()== null)
+                if (field.getDigit()== null)
                     sql += " NUMBER";
                 else
-                    sql += " NUMBER(" + (field.getSize()==null || field.getSize()>38?38:field.getSize()) + "," + field.getDecimalDigit() + ")";
+                    sql += " NUMBER(" + (field.getSize()==null || field.getSize()>38?38:field.getSize()) + "," + field.getDigit() + ")";
                 break;
 
             case Types.CHAR:
@@ -415,12 +416,13 @@ ALTER TABLE AUTH_ACCESS_GROUP
                 break;
 
             default:
-                field.setJavaStringType("unknown field type field - " + field.getName() + " javaType - " + field.getJavaType());
-                System.out.println("unknown field type field - " + field.getName() + " javaType - " + field.getJavaType());
+                final String es = "unknown field type field - " + field.getName() + " javaType - " + field.getType();
+                throw new IllegalStateException(es);
+//                    System.out.println(es);
         }
 
-        if (field.getDefaultValue() != null) {
-            String val = field.getDefaultValue().trim();
+        if (field.getDef() != null) {
+            String val = field.getDef().trim();
 
             switch (fieldType) {
                 case Types.CHAR:
@@ -491,9 +493,9 @@ ALTER TABLE AUTH_ACCESS_GROUP
             while (rs.next()) {
                 DbSequence seq = new DbSequence();
                 seq.setName(DbUtils.getString(rs, "SEQUENCE_NAME"));
-                seq.setMinValue(DbUtils.getInteger(rs, "MIN_VALUE"));
-                seq.setMaxValue(DbUtils.getString(rs, "MAX_VALUE"));
-                seq.setIncrementBy(DbUtils.getInteger(rs, "INCREMENT_BY"));
+                seq.setMin(DbUtils.getInteger(rs, "MIN_VALUE"));
+                seq.setMax(DbUtils.getString(rs, "MAX_VALUE"));
+                seq.setInc(DbUtils.getInteger(rs, "INCREMENT_BY"));
                 seq.setIsCycle(DbUtils.getString(rs, "CYCLE_FLAG").equals("Y") ? Boolean.TRUE : Boolean.FALSE);
                 seq.setIsOrder(DbUtils.getString(rs, "ORDER_FLAG").equals("Y") ? Boolean.TRUE : Boolean.FALSE);
                 seq.setCacheSize(DbUtils.getInteger(rs, "CACHE_SIZE"));
@@ -521,13 +523,13 @@ ALTER TABLE AUTH_ACCESS_GROUP
         try {
             ps = this.getConnection().prepareStatement(sql_);
 
-            ps.setString(1, view.getSchema());
-            ps.setString(2, view.getName());
+            ps.setString(1, view.getS());
+            ps.setString(2, view.getT());
             rs = ps.executeQuery();
 
             if (rs.next()) {
                 if (log.isDebugEnabled()) {
-                    log.debug("Found text of view " + view.getSchema() + "." + view.getName());
+                    log.debug("Found text of view " + view.getS() + "." + view.getT());
                 }
 
                 return getStream(rs, "TEXT", 0x10000);
@@ -547,12 +549,12 @@ ALTER TABLE AUTH_ACCESS_GROUP
 
     public void createView(DbView view) {
         if (view == null ||
-            view.getName() == null || view.getName().length() == 0 ||
+            view.getT() == null || view.getT().length() == 0 ||
             view.getText() == null || view.getText().length() == 0
             )
             return;
 
-        String sql_ = "create VIEW " + view.getName() + " as " + view.getText();
+        String sql_ = "create VIEW " + view.getT() + " as " + view.getText();
         PreparedStatement ps = null;
         try {
             ps = this.getConnection().prepareStatement(sql_);
@@ -560,10 +562,10 @@ ALTER TABLE AUTH_ACCESS_GROUP
         }
         catch (SQLException e) {
             if (testExceptionViewExists(e)) {
-                throw new ViewAlreadyExistException("View "+view.getName()+" already exist.");
+                throw new ViewAlreadyExistException("View "+view.getT()+" already exist.");
             }
             if (testExceptionTableNotFound(e)) {
-                throw new TableNotFoundException("View "+view.getName()+" refered to unknown table.");
+                throw new TableNotFoundException("View "+view.getT()+" refered to unknown table.");
             }
             throw new DbRevisionException(e);
         } finally {
@@ -596,9 +598,9 @@ ALTER TABLE AUTH_ACCESS_GROUP
         String sql_ =
             "CREATE SEQUENCE " + seq.getName() + " " +
                 "START WITH " + seq.getLastNumber() + " " +
-                "INCREMENT BY " + seq.getIncrementBy() + " " +
-                "MINVALUE " + seq.getMinValue() + " " +
-                "MAXVALUE " + seq.getMaxValue() + " " +
+                "INCREMENT BY " + seq.getInc() + " " +
+                "MINVALUE " + seq.getMin() + " " +
+                "MAXVALUE " + seq.getMax() + " " +
                 (seq.getCacheSize() == 0 ? "NOCACHE" : "CACHE " + seq.getCacheSize()) + " " +
                 (Boolean.TRUE.equals(seq.isIsCycle()) ? "CYCLE" : "NOCYCLE") + " " +
                 (Boolean.TRUE.equals(seq.isIsOrder()) ? "ORDER" : "") + " ";

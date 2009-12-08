@@ -32,9 +32,9 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import org.riverock.dbrevision.Constants;
-import org.riverock.dbrevision.annotation.schema.db.DbSchema;
-import org.riverock.dbrevision.annotation.schema.db.Patch;
-import org.riverock.dbrevision.annotation.schema.db.Patches;
+import org.riverock.dbrevision.schema.db.DbSchema;
+import org.riverock.dbrevision.schema.db.Patch;
+import org.riverock.dbrevision.schema.db.Patches;
 import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.exception.DbRevisionException;
 import org.riverock.dbrevision.exception.InitStructureFileNotFoundException;

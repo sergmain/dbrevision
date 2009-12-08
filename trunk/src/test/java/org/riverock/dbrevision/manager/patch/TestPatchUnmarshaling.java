@@ -20,13 +20,13 @@ import java.io.InputStream;
 
 import junit.framework.TestCase;
 
-import org.riverock.dbrevision.annotation.schema.db.Action;
-import org.riverock.dbrevision.annotation.schema.db.ActionParameter;
-import org.riverock.dbrevision.annotation.schema.db.DbForeignKey;
-import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKey;
-import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKeyColumn;
-import org.riverock.dbrevision.annotation.schema.db.Patch;
-import org.riverock.dbrevision.annotation.schema.db.Patches;
+import org.riverock.dbrevision.schema.db.Action;
+import org.riverock.dbrevision.schema.db.ActionParameter;
+import org.riverock.dbrevision.schema.db.DbForeignKey;
+import org.riverock.dbrevision.schema.db.DbPrimaryKey;
+import org.riverock.dbrevision.schema.db.DbPrimaryKeyColumn;
+import org.riverock.dbrevision.schema.db.Patch;
+import org.riverock.dbrevision.schema.db.Patches;
 import org.riverock.dbrevision.utils.Utils;
 
 /**
@@ -57,32 +57,32 @@ public class TestPatchUnmarshaling extends TestCase {
 
         DbPrimaryKeyColumn col = pk.getColumns().get(0);
         // schemaName="MILLENNIUM" tableName="TEST_1_1" columnName="ID_TEST11" keySeq="1" pkName="ID_TEST11_T11_PK"
-        assertEquals("MILLENNIUM", pk.getSchemaName());
-        assertEquals("TEST_1_1", pk.getTableName());
-        assertEquals("ID_TEST11", col.getColumnName());
-        assertEquals(1, col.getKeySeq());
-        assertEquals("ID_TEST11_T11_PK", pk.getPkName());
+        assertEquals("MILLENNIUM", pk.getS());
+        assertEquals("TEST_1_1", pk.getT());
+        assertEquals("ID_TEST11", col.getC());
+        assertEquals(1, col.getSeq());
+        assertEquals("ID_TEST11_T11_PK", pk.getPk());
 
         DbForeignKey fk = (DbForeignKey)p.getActionOrCustomClassActionOrSqlAction().get(1);
-        assertNotNull(fk.getDeleteRule());
-        assertEquals(new Integer(0), fk.getDeleteRule().getRuleType());
-        assertEquals("java.sql.DatabaseMetaData.importedKeyCascade", fk.getDeleteRule().getRuleName());
-        assertNotNull(fk.getDeferrability());
-        assertEquals(new Integer(7), fk.getDeferrability().getRuleType());
-        assertEquals("java.sql.DatabaseMetaData.importedKeyNotDeferrable", fk.getDeferrability().getRuleName());
+        assertNotNull(fk.getDRule());
+        assertEquals(new Integer(0), fk.getDRule().getRuleType());
+        assertEquals("java.sql.DatabaseMetaData.importedKeyCascade", fk.getDRule().getRuleName());
+        assertNotNull(fk.getDefer());
+        assertEquals(new Integer(7), fk.getDefer().getRuleType());
+        assertEquals("java.sql.DatabaseMetaData.importedKeyNotDeferrable", fk.getDefer().getRuleName());
 
         // pkSchemaName="MILLENNIUM" pkTableName="TEST_1_1" pkColumnName="ID_TEST11" pkName="ID_TEST11_T11_PK"
         // fkSchemaName="MILLENNIUM" fkTableName="TEST_1_2" fkColumnName="ID_TEST11" keySeq="1" fkName="ID_TEST11_T12_FK"
-        assertEquals("MILLENNIUM", fk.getPkSchemaName());
-        assertEquals("MILLENNIUM", fk.getFkSchemaName());
-        assertEquals("TEST_1_1", fk.getPkTableName());
-        assertEquals("TEST_1_2", fk.getFkTableName());
-        assertEquals("ID_TEST11_T11_PK", fk.getPkName());
-        assertEquals("ID_TEST11_T12_FK", fk.getFkName());
+        assertEquals("MILLENNIUM", fk.getPkSchema());
+        assertEquals("MILLENNIUM", fk.getFkSchema());
+        assertEquals("TEST_1_1", fk.getPkTable());
+        assertEquals("TEST_1_2", fk.getFkTable());
+        assertEquals("ID_TEST11_T11_PK", fk.getPk());
+        assertEquals("ID_TEST11_T12_FK", fk.getFk());
         assertEquals(1, fk.getColumns().size());
-        assertEquals("ID_TEST11", fk.getColumns().get(0).getPkColumnName());
-        assertEquals("ID_TEST11", fk.getColumns().get(0).getFkColumnName());
-        assertEquals(new Integer(1), fk.getColumns().get(0).getKeySeq());
+        assertEquals("ID_TEST11", fk.getColumns().get(0).getPkCol());
+        assertEquals("ID_TEST11", fk.getColumns().get(0).getFkCol());
+        assertEquals(new Integer(1), fk.getColumns().get(0).getSeq());
     }
 
     public void testUnmarshalPatch_2() throws Exception {

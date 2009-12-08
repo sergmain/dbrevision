@@ -19,7 +19,7 @@ package org.riverock.dbrevision.db;
 import java.util.Comparator;
 import java.io.Serializable;
 
-import org.riverock.dbrevision.annotation.schema.db.DbForeignKeyColumn;
+import org.riverock.dbrevision.schema.db.DbForeignKeyColumn;
 
 /**
  * @author Sergei Maslyukov
@@ -68,10 +68,10 @@ public class DbFkComparator implements Comparator<DbForeignKeyColumn>, Serializa
      *                            being compared by this Comparator.
      */
     public int compare(DbForeignKeyColumn o1, DbForeignKeyColumn o2) {
-        if (o1.getKeySeq()<o2.getKeySeq()) {
+        if (o1.getSeq()<o2.getSeq()) {
             return -1;
         }
-        else if (o1.getKeySeq()==o2.getKeySeq()) {
+        else if (o1.getSeq()==o2.getSeq()) {
             return 0;
         }
         return 1;

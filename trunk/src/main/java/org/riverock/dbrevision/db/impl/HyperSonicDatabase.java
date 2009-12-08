@@ -31,14 +31,14 @@ import java.util.List;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
-import org.riverock.dbrevision.annotation.schema.db.DbDataFieldData;
-import org.riverock.dbrevision.annotation.schema.db.DbField;
-import org.riverock.dbrevision.annotation.schema.db.DbForeignKey;
-import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKey;
-import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKeyColumn;
-import org.riverock.dbrevision.annotation.schema.db.DbSequence;
-import org.riverock.dbrevision.annotation.schema.db.DbTable;
-import org.riverock.dbrevision.annotation.schema.db.DbView;
+import org.riverock.dbrevision.schema.db.DbDataFieldData;
+import org.riverock.dbrevision.schema.db.DbField;
+import org.riverock.dbrevision.schema.db.DbForeignKey;
+import org.riverock.dbrevision.schema.db.DbPrimaryKey;
+import org.riverock.dbrevision.schema.db.DbPrimaryKeyColumn;
+import org.riverock.dbrevision.schema.db.DbSequence;
+import org.riverock.dbrevision.schema.db.DbTable;
+import org.riverock.dbrevision.schema.db.DbView;
 import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.exception.DbRevisionException;
@@ -114,7 +114,7 @@ public class HyperSonicDatabase extends Database {
             default:
                 throw new IllegalArgumentException( "Unknown state "+ state);
         }
-        String sql = "ALTER TABLE "+key.getFkTableName()+" MODIFY CONSTRAINT "+key.getFkName()+" " + s;
+        String sql = "ALTER TABLE "+key.getFkTable()+" MODIFY CONSTRAINT "+key.getFk()+" " + s;
 
         PreparedStatement ps = null;
         try {
@@ -169,7 +169,7 @@ public class HyperSonicDatabase extends Database {
             return;
         }
 
-        String sql = "create table \"" + table.getName() + "\"\n" +
+        String sql = "create table \"" + table.getT() + "\"\n" +
             "(";
 
         try {
@@ -184,7 +184,7 @@ public class HyperSonicDatabase extends Database {
             }
 
             sql += "\n" + field.getName() + "";
-            int fieldType = field.getJavaType();
+            int fieldType = field.getType();
             switch (fieldType) {
 
                 case Types.NUMERIC:
@@ -226,12 +226,13 @@ public class HyperSonicDatabase extends Database {
                     break;
 
                 default:
-                    field.setJavaStringType("unknown field type field - " + field.getName() + " javaType - " + field.getJavaType());
-                    System.out.println("unknown field type field - " + field.getName() + " javaType - " + field.getJavaType());
+                    final String es = "unknown field type field - " + field.getName() + " javaType - " + field.getType();
+                    throw new IllegalStateException(es);
+//                    System.out.println(es);
             }
 
-            if (field.getDefaultValue() != null) {
-                String val = field.getDefaultValue().trim();
+            if (field.getDef() != null) {
+                String val = field.getDef().trim();
 
                 if (StringUtils.isNotBlank(val)) {
                     switch (fieldType) {
@@ -256,27 +257,27 @@ public class HyperSonicDatabase extends Database {
                 sql += " NOT NULL ";
             }
         }
-        if (table.getPrimaryKey() != null && table.getPrimaryKey().getColumns().size() > 0) {
-            DbPrimaryKey pk = table.getPrimaryKey();
+        if (table.getPk() != null && table.getPk().getColumns().size() > 0) {
+            DbPrimaryKey pk = table.getPk();
 
             //            constraintDefinition:
 //            [ CONSTRAINT name ]
 //            UNIQUE ( column [,column...] ) |
 //            PRIMARY KEY ( column [,column...] ) |
 
-            sql += ",\nCONSTRAINT " + pk.getPkName() + " PRIMARY KEY (\n";
+            sql += ",\nCONSTRAINT " + pk.getPk() + " PRIMARY KEY (\n";
 
             int seq = Integer.MIN_VALUE;
             isFirst = true;
             for (DbPrimaryKeyColumn column : pk.getColumns()) {
                 int seqTemp = Integer.MAX_VALUE;
                 for (DbPrimaryKeyColumn columnTemp : pk.getColumns()) {
-                    if (seq < columnTemp.getKeySeq() && columnTemp.getKeySeq() < seqTemp) {
-                        seqTemp = columnTemp.getKeySeq();
+                    if (seq < columnTemp.getSeq() && columnTemp.getSeq() < seqTemp) {
+                        seqTemp = columnTemp.getSeq();
                         column = columnTemp;
                     }
                 }
-                seq = column.getKeySeq();
+                seq = column.getSeq();
 
                 if (!isFirst) {
                     sql += ",";
@@ -285,7 +286,7 @@ public class HyperSonicDatabase extends Database {
                     isFirst = !isFirst;
                 }
 
-                sql += column.getColumnName();
+                sql += column.getC();
             }
             sql += "\n)";
         }
@@ -309,7 +310,7 @@ public class HyperSonicDatabase extends Database {
     }
 
     public void dropTable(DbTable table) {
-        dropTable(table.getName());
+        dropTable(table.getT());
     }
 
     public void dropTable(String nameTable) {
@@ -335,9 +336,9 @@ public class HyperSonicDatabase extends Database {
     }
 
     public void addColumn(DbTable table, DbField field) {
-        String sql = "alter table \"" + table.getName() + "\" add column " + field.getName() + " ";
+        String sql = "alter table \"" + table.getT() + "\" add column " + field.getName() + " ";
 
-        int fieldType = field.getJavaType();
+        int fieldType = field.getType();
         switch (fieldType) {
 
             case Types.NUMERIC:
@@ -374,13 +375,13 @@ public class HyperSonicDatabase extends Database {
                 break;
 
             default:
-                String errorString = "unknown field type field - " + field.getName() + " javaType - " + field.getJavaType();
+                String errorString = "unknown field type field - " + field.getName() + " javaType - " + field.getType();
                 log.error(errorString);
                 throw new DbRevisionException(errorString);
         }
 
-        if (field.getDefaultValue() != null) {
-            String val = field.getDefaultValue().trim();
+        if (field.getDef() != null) {
+            String val = field.getDef().trim();
 
             if (StringUtils.isNotBlank(val)) {
                 switch (fieldType) {
@@ -440,12 +441,12 @@ public class HyperSonicDatabase extends Database {
 
     public void createView(DbView view) {
         if (view == null ||
-            view.getName() == null || view.getName().length() == 0 ||
+            view.getT() == null || view.getT().length() == 0 ||
             view.getText() == null || view.getText().length() == 0
         )
             return;
 
-        String sql_ = "create VIEW " + view.getName() + " as " + view.getText();
+        String sql_ = "create VIEW " + view.getT() + " as " + view.getText();
         PreparedStatement ps = null;
         try {
             ps = this.getConnection().prepareStatement(sql_);
@@ -453,10 +454,10 @@ public class HyperSonicDatabase extends Database {
         }
         catch (SQLException e) {
             if (testExceptionViewExists(e)) {
-                throw new ViewAlreadyExistException("View "+view.getName()+" already exist.");
+                throw new ViewAlreadyExistException("View "+view.getT()+" already exist.");
             }
             if (testExceptionTableNotFound(e)) {
-                throw new TableNotFoundException("View "+view.getName()+" refered to unknown table.");
+                throw new TableNotFoundException("View "+view.getT()+" refered to unknown table.");
             }
             throw new DbRevisionException(e);
         } finally {

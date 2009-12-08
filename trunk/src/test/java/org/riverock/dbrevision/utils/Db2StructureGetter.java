@@ -16,13 +16,16 @@
 
 package org.riverock.dbrevision.utils;
 
-import org.riverock.dbrevision.annotation.schema.db.DbSchema;
+import org.riverock.dbrevision.schema.db.DbSchema;
 import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.db.DatabaseFactory;
 import org.riverock.dbrevision.db.DatabaseManager;
+import org.riverock.dbrevision.system.DbStructureExport;
 
 import java.sql.*;
 import java.util.Properties;
+import java.io.ByteArrayOutputStream;
+import java.io.UnsupportedEncodingException;
 
 /**
  * User: SergeMaslyukov
@@ -30,7 +33,7 @@ import java.util.Properties;
  * Time: 23:55:28
  */
 public class Db2StructureGetter {
-    public static void main(String[] args) throws ClassNotFoundException, SQLException {
+    public static void main(String[] args) throws ClassNotFoundException, SQLException, UnsupportedEncodingException {
         if (args.length <2) {
             throw new IllegalArgumentException("Need args");
         }
@@ -47,17 +50,25 @@ public class Db2StructureGetter {
 
         Database database = DatabaseFactory.getInstance(conn, Database.Family.DB2);
 
+/*
         DatabaseMetaData metaData = database.getConnection().getMetaData();
-        ResultSet rs = metaData.getSchemas();
+        ResultSet rs = metaData.getSs();
         while(rs.next()) {
             String schema = rs.getString("TABLE_SCHEM");
             String cat = rs.getString("TABLE_CATALOG");
-            System.out.println("schema = " + schema);
+            System.out.println("dbSchema = " + schema);
             System.out.println("cat = " + cat);
         }
+*/
 
-        DbSchema schema = DatabaseManager.getDbStructure(database, "SAI");
+        final String schema = "SAI";
+        DbSchema dbSchema = DatabaseManager.getDbStructure(database, schema);
 
-        System.out.println("list = " + schema.getTables().size());
+        System.out.println("list = " + dbSchema.getTables().size());
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        DbStructureExport.export(database, schema, baos, true);
+
+        System.out.println("xml:\n" + baos.toString("utf-8"));
     }
 }

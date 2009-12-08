@@ -15,7 +15,6 @@
  */
 package org.riverock.dbrevision.manager.patch;
 
-import org.riverock.dbrevision.annotation.schema.db.Action;
 import org.riverock.dbrevision.db.Database;
 
 /**

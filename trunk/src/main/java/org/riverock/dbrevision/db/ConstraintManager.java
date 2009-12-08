@@ -16,7 +16,7 @@
 
 package org.riverock.dbrevision.db;
 
-import org.riverock.dbrevision.annotation.schema.db.*;
+import org.riverock.dbrevision.schema.db.*;
 import org.riverock.dbrevision.exception.DbRevisionException;
 import org.riverock.dbrevision.utils.DbUtils;
 
@@ -46,7 +46,7 @@ ADD CONSTRAINT id_code_arm_aoa_uk UNIQUE (code_object_arm, id_arm)
 
      */
     public static void createIndex(Database db, DbIndex index) {
-        if (StringUtils.isBlank(index.getIndexName())) {
+        if (StringUtils.isBlank(index.getI())) {
             throw new DbRevisionException("Index name is null");
         }
 
@@ -58,7 +58,7 @@ CREATE INDEX idx_id_employee_b_advance ON b_advance
          */
         String sql;
         if (index.isNonUnique()) {
-            sql = "CREATE INDEX " + index.getIndexName() + " ON " + index.getTableName() + " (";
+            sql = "CREATE INDEX " + index.getI() + " ON " + index.getT() + " (";
 
             Collections.sort(index.getColumns(), DbIdxComparator.getInstance());
             boolean isFirst = true;
@@ -70,13 +70,13 @@ CREATE INDEX idx_id_employee_b_advance ON b_advance
                     isFirst = false;
                 }
 
-                sql += (indexColumn.getColumnName() +' ' + ((Boolean.TRUE.equals(indexColumn.isAscending()))?" ASC ": " DESC ") +' ');
+                sql += (indexColumn.getC() +' ' + ((Boolean.TRUE.equals(indexColumn.isAsc()))?" ASC ": " DESC ") +' ');
             }
             sql += ") ";
         }
         else {
 /*
-        List<DbIndex> checkIdx = getIndexes(db, index.getSchemaName(), index.getTableName());
+        List<DbIndex> checkIdx = getIndexes(db, index.getS(), index.getT());
         if (checkIdx != null && checkIdx.getColumns().size() != 0) {
             String s = "primary key already exists";
             System.out.println(s);
@@ -96,8 +96,8 @@ CREATE INDEX idx_id_employee_b_advance ON b_advance
 )
 */
 
-            sql = "ALTER TABLE " + index.getTableName() + " " +
-                "ADD CONSTRAINT " + index.getIndexName() + " UNIQUE (";
+            sql = "ALTER TABLE " + index.getT() + " " +
+                "ADD CONSTRAINT " + index.getI() + " UNIQUE (";
 
             Collections.sort(index.getColumns(), DbIdxComparator.getInstance());
             boolean isFirst = true;
@@ -109,7 +109,7 @@ CREATE INDEX idx_id_employee_b_advance ON b_advance
                     isFirst = false;
                 }
 
-                sql += indexColumn.getColumnName();
+                sql += indexColumn.getC();
             }
             sql += ") USING INDEX ";
         }
@@ -130,12 +130,12 @@ CREATE INDEX idx_id_employee_b_advance ON b_advance
 
     public static void dropIndex(Database db, DbIndex index) {
         try {
-            dropAsConstraint(db, index.getTableName(), index.getIndexName());
+            dropAsConstraint(db, index.getT(), index.getI());
         }
         catch (Throwable e) {
 
             if (e.getCause()!=null && ExceptionManager.isConstraintNonExist(db.getFamily(), e.getCause())) {
-                dropAsIndex(db, index.getTableName(), index.getIndexName());
+                dropAsIndex(db, index.getT(), index.getI());
             }
             else {
                 throw new DbRevisionException("Error drop constraint", e);
@@ -144,11 +144,11 @@ CREATE INDEX idx_id_employee_b_advance ON b_advance
     }
 
     public static void addPk(final Database db_, final DbPrimaryKey pk) {
-        if (StringUtils.isBlank(pk.getPkName())) {
+        if (StringUtils.isBlank(pk.getPk())) {
             throw new DbRevisionException("Primary key name is null");
         }
 
-        DbPrimaryKey checkPk = getPrimaryKey(db_, pk.getSchemaName(), pk.getTableName());
+        DbPrimaryKey checkPk = getPk(db_, pk.getS(), pk.getT());
 
         if (checkPk != null && checkPk.getColumns().size() != 0) {
             String s = "primary key already exists";
@@ -170,8 +170,8 @@ CREATE INDEX idx_id_employee_b_advance ON b_advance
 
 
         String sql =
-            "ALTER TABLE " + pk.getTableName() + " " +
-                "ADD CONSTRAINT " + pk.getPkName() + " PRIMARY KEY (";
+            "ALTER TABLE " + pk.getT() + " " +
+                "ADD CONSTRAINT " + pk.getPk() + " PRIMARY KEY (";
 
         Collections.sort(pk.getColumns(), DbPkComparator.getInstance());
         boolean isFirst = true;
@@ -183,7 +183,7 @@ CREATE INDEX idx_id_employee_b_advance ON b_advance
                 isFirst = false;
             }
 
-            sql += primaryKeyColumn.getColumnName();
+            sql += primaryKeyColumn.getC();
         }
         sql += ")";
 
@@ -202,11 +202,11 @@ CREATE INDEX idx_id_employee_b_advance ON b_advance
     }
 
     public static void dropPk(Database db, DbPrimaryKey pk){
-        dropAsConstraint(db, pk.getTableName(), pk.getPkName());
+        dropAsConstraint(db, pk.getT(), pk.getPk());
     }
 
     public static void dropFk(Database db, DbForeignKey fk){
-        dropAsConstraint(db, fk.getFkTableName(), fk.getFkName());
+        dropAsConstraint(db, fk.getFkTable(), fk.getFk());
     }
 
     private static void dropAsConstraint(Database db, String tableName, String constraintName){
@@ -272,12 +272,12 @@ CREATE INDEX idx_id_employee_b_advance ON b_advance
 
                         DbForeignKey fk = processResultSetForForeignKey(columnNames);
                         if (
-                            !StringUtils.equals(key.getPkSchemaName(), fk.getPkSchemaName()) ||
-                                !StringUtils.equals(key.getPkTableName(), fk.getPkTableName()) ||
-                                !StringUtils.equals(key.getPkName(), fk.getPkName()) ||
-                                !StringUtils.equals(key.getFkSchemaName(), fk.getFkSchemaName()) ||
-                                !StringUtils.equals(key.getFkTableName(), fk.getFkTableName()) ||
-                                !StringUtils.equals(key.getFkName(), fk.getFkName())
+                            !StringUtils.equals(key.getPkSchema(), fk.getPkSchema()) ||
+                                !StringUtils.equals(key.getPkTable(), fk.getPkTable()) ||
+                                !StringUtils.equals(key.getPk(), fk.getPk()) ||
+                                !StringUtils.equals(key.getFkSchema(), fk.getFkSchema()) ||
+                                !StringUtils.equals(key.getFkTable(), fk.getFkTable()) ||
+                                !StringUtils.equals(key.getFk(), fk.getFk())
                             )
                         {
                             key = fk;
@@ -285,9 +285,9 @@ CREATE INDEX idx_id_employee_b_advance ON b_advance
                         }
                     }
                     DbForeignKeyColumn column = new DbForeignKeyColumn();
-                    column.setPkColumnName(columnNames.getString("PKCOLUMN_NAME"));
-                    column.setFkColumnName(columnNames.getString("FKCOLUMN_NAME"));
-                    column.setKeySeq(DbUtils.getInteger(columnNames, "KEY_SEQ"));
+                    column.setPkCol(columnNames.getString("PKCOLUMN_NAME"));
+                    column.setFkCol(columnNames.getString("FKCOLUMN_NAME"));
+                    column.setSeq(DbUtils.getInteger(columnNames, "KEY_SEQ"));
 
                     key.getColumns().add(column);
 
@@ -381,17 +381,17 @@ CREATE INDEX idx_id_employee_b_advance ON b_advance
 
     private static DbForeignKey processResultSetForForeignKey(ResultSet columnNames) throws SQLException {
         DbForeignKey key = new DbForeignKey();
-        key.setPkSchemaName(columnNames.getString("PKTABLE_SCHEM"));
-        key.setPkTableName(columnNames.getString("PKTABLE_NAME"));
-        key.setPkName(columnNames.getString("PK_NAME"));
+        key.setPkSchema(columnNames.getString("PKTABLE_SCHEM"));
+        key.setPkTable(columnNames.getString("PKTABLE_NAME"));
+        key.setPk(columnNames.getString("PK_NAME"));
 
-        key.setFkSchemaName(columnNames.getString("FKTABLE_SCHEM"));
-        key.setFkTableName(columnNames.getString("FKTABLE_NAME"));
-        key.setFkName(columnNames.getString("FK_NAME"));
+        key.setFkSchema(columnNames.getString("FKTABLE_SCHEM"));
+        key.setFkTable(columnNames.getString("FKTABLE_NAME"));
+        key.setFk(columnNames.getString("FK_NAME"));
 
-        key.setUpdateRule(decodeUpdateRule(columnNames));
-        key.setDeleteRule(decodeDeleteRule(columnNames));
-        key.setDeferrability(decodeDeferrabilityRule(columnNames));
+        key.setURule(decodeUpdateRule(columnNames));
+        key.setDRule(decodeDeleteRule(columnNames));
+        key.setDefer(decodeDeferrabilityRule(columnNames));
         return key;
     }
 
@@ -438,13 +438,13 @@ CREATE INDEX idx_id_employee_b_advance ON b_advance
      */
     private static DbIndex processResultSetForIndex(ResultSet columnNames) throws SQLException {
         DbIndex index = new DbIndex();
-        index.setCatalogName(columnNames.getString("TABLE_CAT"));
-        index.setSchemaName(columnNames.getString("TABLE_SCHEM"));
-        index.setTableName(columnNames.getString("TABLE_NAME"));
+        index.setC(columnNames.getString("TABLE_CAT"));
+        index.setS(columnNames.getString("TABLE_SCHEM"));
+        index.setT(columnNames.getString("TABLE_NAME"));
         index.setNonUnique(DbUtils.getBoolean(columnNames, "NON_UNIQUE", false));
 
         index.setIndexQualifier(columnNames.getString("INDEX_QUALIFIER"));
-        index.setIndexName(columnNames.getString("INDEX_NAME"));
+        index.setI(columnNames.getString("INDEX_NAME"));
         index.setType(DbUtils.getInteger(columnNames, "TYPE"));
         index.setCardinality(DbUtils.getInteger(columnNames, "CARDINALITY"));
         index.setPages(DbUtils.getInteger(columnNames, "PAGES"));
@@ -453,10 +453,10 @@ CREATE INDEX idx_id_employee_b_advance ON b_advance
         return index;
     }
 
-    public static DbPrimaryKey getPrimaryKey(Database adapter, String schemaPattern, String tablePattern) {
+    public static DbPrimaryKey getPk(Database adapter, String schemaPattern, String tablePattern) {
 
         if (log.isDebugEnabled()) {
-            log.debug("Get data from getPrimaryKeys");
+            log.debug("Get data from getPks");
         }
 
         DbPrimaryKey pk=null;
@@ -468,28 +468,28 @@ CREATE INDEX idx_id_employee_b_advance ON b_advance
             while (metaData.next()) {
                 if (pk==null) {
                     pk = new DbPrimaryKey();
-                    pk.setCatalogName(metaData.getString("TABLE_CAT"));
-                    pk.setSchemaName(metaData.getString("TABLE_SCHEM"));
-                    pk.setTableName(metaData.getString("TABLE_NAME"));
-                    pk.setPkName(metaData.getString("PK_NAME"));
+                    pk.setC(metaData.getString("TABLE_CAT"));
+                    pk.setS(metaData.getString("TABLE_SCHEM"));
+                    pk.setT(metaData.getString("TABLE_NAME"));
+                    pk.setPk(metaData.getString("PK_NAME"));
                 }
                 DbPrimaryKeyColumn pkColumn = new DbPrimaryKeyColumn();
 
-                pkColumn.setColumnName(metaData.getString("COLUMN_NAME"));
-                pkColumn.setKeySeq(DbUtils.getInteger(metaData, "KEY_SEQ"));
+                pkColumn.setC(metaData.getString("COLUMN_NAME"));
+                pkColumn.setSeq(DbUtils.getInteger(metaData, "KEY_SEQ"));
 
                 pk.getColumns().add(pkColumn);
 
                 if (log.isDebugEnabled()) {
                     log.debug(
-                        pk.getCatalogName() + "." +
-                            pk.getSchemaName() + "." +
-                            pk.getTableName() +
+                        pk.getC() + "." +
+                            pk.getS() + "." +
+                            pk.getT() +
                             " - " +
-                            pkColumn.getColumnName() +
+                            pkColumn.getC() +
                             " " +
-                            pkColumn.getKeySeq() + " " +
-                            pk.getPkName() + " " +
+                            pkColumn.getSeq() + " " +
+                            pk.getPk() + " " +
                             ""
                     );
                 }
@@ -502,7 +502,7 @@ CREATE INDEX idx_id_employee_b_advance ON b_advance
         }
 
         if (log.isDebugEnabled()) {
-            log.debug("Done data from getPrimaryKeys");
+            log.debug("Done data from getPks");
         }
         if (pk==null) {
             return null;
@@ -516,14 +516,14 @@ CREATE INDEX idx_id_employee_b_advance ON b_advance
 
                 for (DbPrimaryKeyColumn pkColumn : pk.getColumns()) {
                     log.debug(
-                            pk.getCatalogName() + "." +
-                                    pk.getSchemaName() + "." +
-                                    pk.getTableName() +
+                            pk.getC() + "." +
+                                    pk.getS() + "." +
+                                    pk.getT() +
                                     " - " +
-                                    pkColumn.getColumnName() +
+                                    pkColumn.getC() +
                                     " " +
-                                    pkColumn.getKeySeq() + " " +
-                                    pk.getPkName() + " " +
+                                    pkColumn.getSeq() + " " +
+                                    pk.getPk() + " " +
                                     ""
                     );
                 }
@@ -543,13 +543,13 @@ CREATE INDEX idx_id_employee_b_advance ON b_advance
             return;
         }
 
-        if (StringUtils.isBlank(fk.getFkName())) {
+        if (StringUtils.isBlank(fk.getFk())) {
             throw new DbRevisionException("Foreign key name is null");
         }
 
         String sql =
-            "ALTER TABLE " + fk.getFkTableName() + " " +
-                "ADD CONSTRAINT " + fk.getFkName() + " FOREIGN KEY (";
+            "ALTER TABLE " + fk.getFkTable() + " " +
+                "ADD CONSTRAINT " + fk.getFk() + " FOREIGN KEY (";
 
         Collections.sort(fk.getColumns(), DbFkComparator.getInstance());
         boolean isFirst = true;
@@ -561,9 +561,9 @@ CREATE INDEX idx_id_employee_b_advance ON b_advance
                 isFirst = false;
             }
 
-            sql += foreignKeyColumn.getFkColumnName();
+            sql += foreignKeyColumn.getFkCol();
         }
-        sql += ")\nREFERENCES " + fk.getPkTableName() + " (";
+        sql += ")\nREFERENCES " + fk.getPkTable() + " (";
 
         isFirst = true;
         for (DbForeignKeyColumn foreignKeyColumn : fk.getColumns()) {
@@ -574,10 +574,10 @@ CREATE INDEX idx_id_employee_b_advance ON b_advance
                 isFirst = false;
             }
 
-            sql += foreignKeyColumn.getPkColumnName();
+            sql += foreignKeyColumn.getPkCol();
         }
         sql += ") ";
-        switch (fk.getDeleteRule().getRuleType()) {
+        switch (fk.getDRule().getRuleType()) {
             case DatabaseMetaData.importedKeyRestrict:
                 sql += adapter.getOnDeleteSetNull();
                 break;
@@ -587,9 +587,9 @@ CREATE INDEX idx_id_employee_b_advance ON b_advance
 
             default:
                 throw new IllegalArgumentException(" imported keys delete rule '" +
-                    fk.getDeleteRule().getRuleName() + "' not supported");
+                    fk.getDRule().getRuleName() + "' not supported");
         }
-        switch (fk.getDeferrability().getRuleType()) {
+        switch (fk.getDefer().getRuleType()) {
             case DatabaseMetaData.importedKeyNotDeferrable:
                 break;
             case DatabaseMetaData.importedKeyInitiallyDeferred:
@@ -598,7 +598,7 @@ CREATE INDEX idx_id_employee_b_advance ON b_advance
 
             default:
                 throw new IllegalArgumentException(" imported keys deferred rule '" +
-                    fk.getDeferrability().getRuleName() + "' not supported");
+                    fk.getDefer().getRuleName() + "' not supported");
         }
 
         PreparedStatement ps = null;
@@ -648,10 +648,10 @@ CREATE INDEX idx_id_employee_b_advance ON b_advance
                         break;
                     }
                     if (
-                        !StringUtils.equals(key.getCatalogName(), fk.getCatalogName()) ||
-                            !StringUtils.equals(key.getSchemaName(), fk.getSchemaName()) ||
-                            !StringUtils.equals(key.getTableName(), fk.getTableName()) ||
-                            !StringUtils.equals(key.getIndexName(), fk.getIndexName())
+                        !StringUtils.equals(key.getC(), fk.getC()) ||
+                            !StringUtils.equals(key.getS(), fk.getS()) ||
+                            !StringUtils.equals(key.getT(), fk.getT()) ||
+                            !StringUtils.equals(key.getI(), fk.getI())
                         )
                     {
                         key = fk;
@@ -663,31 +663,31 @@ CREATE INDEX idx_id_employee_b_advance ON b_advance
                     continue;
                 }
                 DbIndexColumn column = new DbIndexColumn();
-                column.setColumnName(columnName);
-                column.setKeySeq(DbUtils.getInteger(columnNames, "ORDINAL_POSITION"));
+                column.setC(columnName);
+                column.setSeq(DbUtils.getInteger(columnNames, "ORDINAL_POSITION"));
                 String asc = columnNames.getString("ASC_OR_DESC");
-                Boolean isAscending = null;
+                Boolean isAsc = null;
                 if (StringUtils.equals(asc, "A")) {
-                    isAscending = true;
+                    isAsc = true;
                 }
                 else if (StringUtils.equals(asc, "D")) {
-                    isAscending = false;
+                    isAsc = false;
                 }
-                column.setAscending(isAscending);
+                column.setAsc(isAsc);
 
                 key.getColumns().add(column);
 
 
                 if (log.isDebugEnabled()) {
                     log.debug(
-                        key.getCatalogName() + " - " +
-                            key.getSchemaName() + "." +
-                            key.getTableName() +
+                        key.getC() + " - " +
+                            key.getS() + "." +
+                            key.getT() +
                             " - " +
-                            column.getColumnName() +
+                            column.getC() +
                             "; " +
-                            column.getKeySeq() + " " +
-                            column.isAscending() + " "
+                            column.getSeq() + " " +
+                            column.isAsc() + " "
                     );
                 }
             }

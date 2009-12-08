@@ -26,7 +26,7 @@ import javax.xml.datatype.DatatypeFactory;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
 
-import org.riverock.dbrevision.annotation.schema.db.*;
+import org.riverock.dbrevision.schema.db.*;
 import org.riverock.dbrevision.exception.DbRevisionException;
 import org.riverock.dbrevision.utils.DbUtils;
 
@@ -64,7 +64,7 @@ public class DatabaseStructureManager {
      */
     public static void addColumn(Database adapter, String tableName, DbField field) {
         DbTable table = new DbTable();
-        table.setName(tableName);
+        table.setT(tableName);
         adapter.addColumn(table, field);
     }
 
@@ -77,7 +77,7 @@ public class DatabaseStructureManager {
      */
     public static void dropColumn(Database adapter, DbTable table, DbField field) {
         if (table == null ||
-            table.getName() == null || table.getName().length() == 0
+            table.getT() == null || table.getT().length() == 0
             )
             return;
 
@@ -86,7 +86,7 @@ public class DatabaseStructureManager {
             )
             return;
 
-        String sql_ = "ALTER TABLE " + table.getName() + " DROP COLUMN " + field.getName();
+        String sql_ = "ALTER TABLE " + table.getT() + " DROP COLUMN " + field.getName();
         PreparedStatement ps = null;
         try {
             ps = adapter.getConnection().prepareStatement(sql_);
@@ -103,11 +103,11 @@ public class DatabaseStructureManager {
 
     public static void dropView(Database adapter, DbView view) {
         if (view == null ||
-            view.getName() == null || view.getName().length() == 0
+            view.getT() == null || view.getT().length() == 0
             )
             return;
 
-        String sql_ = "drop VIEW " + view.getName();
+        String sql_ = "drop VIEW " + view.getT();
         PreparedStatement ps = null;
         try {
             ps = adapter.getConnection().prepareStatement(sql_);
@@ -123,7 +123,7 @@ public class DatabaseStructureManager {
     }
 
     public static void setDataTable(Database adapter, DbTable table) {
-        if (table == null || table.getData() == null || table.getData().getRecords().isEmpty()) {
+        if (table == null || table.getD() == null || table.getD().getRecords().isEmpty()) {
             log.debug("Table is empty");
             return;
         }
@@ -133,7 +133,7 @@ public class DatabaseStructureManager {
         }
 
         boolean isDebug = false;
-        String sql_ = "insert into " + table.getName() + "(";
+        String sql_ = "insert into " + table.getT() + "(";
 
         boolean isFirst = true;
         for (DbField field : table.getFields()) {
@@ -159,7 +159,7 @@ public class DatabaseStructureManager {
         }
         sql_ += ")";
 
-        DbDataTable tableData = table.getData();
+        DbDataTable tableData = table.getD();
 
         for (DbDataRecord record : tableData.getRecords()) {
             PreparedStatement ps = null;
@@ -170,11 +170,11 @@ public class DatabaseStructureManager {
 
                 int fieldPtr = 0;
                 int k=0;
-                for (DbDataFieldData fieldData : record.getFieldData()) {
+                for (DbDataFieldData fieldData : record.getF()) {
                     field = table.getFields().get(fieldPtr++);
 
-                    if (fieldData.isIsNull()) {
-                        int type = table.getFields().get(k).getJavaType();
+                    if (fieldData.isNll()) {
+                        int type = table.getFields().get(k).getType();
 //                        if (type == Types.TIMESTAMP) {
 //                            type = Types.DATE;
 //                        }
@@ -183,10 +183,10 @@ public class DatabaseStructureManager {
                     }
                     else {
                         if (isDebug) {
-                            System.out.println("param #" + (k + 1) + ", type " + table.getFields().get(k).getJavaType());
+                            System.out.println("param #" + (k + 1) + ", type " + table.getFields().get(k).getType());
                         }
 
-                        switch (table.getFields().get(k).getJavaType()) {
+                        switch (table.getFields().get(k).getType()) {
                             case Types.BIT:
                             case Types.TINYINT:
                             case Types.BIGINT:
@@ -194,47 +194,47 @@ public class DatabaseStructureManager {
                             case Types.DECIMAL:
                             case Types.DOUBLE:
                             case Types.NUMERIC:
-                                if (field.getDecimalDigit() == null || field.getDecimalDigit() == 0) {
+                                if (field.getDigit() == null || field.getDigit() == 0) {
                                     if (isDebug) {
                                         System.out.println("Types.NUMERIC as Types.INTEGER param #" + (k + 1) + ", " +
-                                            "value " + fieldData.getNumberData().doubleValue() + ", long value " + ((long) fieldData.getNumberData().doubleValue() +
-                                            ", extracted value: " + fieldData.getNumberData().longValueExact())
+                                            "value " + fieldData.getN().doubleValue() + ", long value " + ((long) fieldData.getN().doubleValue() +
+                                            ", extracted value: " + fieldData.getN().longValueExact())
                                         );
                                     }
-                                    ps.setBigDecimal(k + 1, fieldData.getNumberData());
+                                    ps.setBigDecimal(k + 1, fieldData.getN());
                                 }
                                 else {
                                     if (isDebug) {
-                                        System.out.println("Types.NUMERIC param #" + (k + 1) + ", value " + fieldData.getNumberData().doubleValue());
+                                        System.out.println("Types.NUMERIC param #" + (k + 1) + ", value " + fieldData.getN().doubleValue());
                                     }
-                                    ps.setBigDecimal(k + 1, fieldData.getNumberData());
+                                    ps.setBigDecimal(k + 1, fieldData.getN());
                                 }
                                 break;
 
                             case Types.INTEGER:
                                 if (isDebug) {
-                                    System.out.println("Types.INTEGER param #" + (k + 1) + ", value " + fieldData.getNumberData().doubleValue());
+                                    System.out.println("Types.INTEGER param #" + (k + 1) + ", value " + fieldData.getN().doubleValue());
                                 }
-                                ps.setBigDecimal(k + 1, fieldData.getNumberData());
+                                ps.setBigDecimal(k + 1, fieldData.getN());
                                 break;
 
                             case Types.CHAR:
                                 if (isDebug) {
-                                    System.out.println("param #" + (k + 1) + ", value " + fieldData.getStringData().substring(0, 1));
+                                    System.out.println("param #" + (k + 1) + ", value " + fieldData.getS().substring(0, 1));
                                 }
-                                ps.setString(k + 1, fieldData.getStringData().substring(0, 1));
+                                ps.setString(k + 1, fieldData.getS().substring(0, 1));
                                 break;
 
                             case Types.VARCHAR:
                                 if (isDebug) {
-                                    System.out.println("param #" + (k + 1) + ", value " + fieldData.getStringData());
+                                    System.out.println("param #" + (k + 1) + ", value " + fieldData.getS());
                                 }
-                                ps.setString(k + 1, fieldData.getStringData());
+                                ps.setString(k + 1, fieldData.getS());
                                 break;
 
                             case Types.DATE:
                             case Types.TIMESTAMP:
-                                long timeMillis = fieldData.getDateData().toGregorianCalendar().getTimeInMillis();
+                                long timeMillis = fieldData.getD().toGregorianCalendar().getTimeInMillis();
                                 Timestamp stamp = new Timestamp(timeMillis);
                                 if (isDebug) {
                                     System.out.println("param #" + (k + 1) + ", value " + stamp);
@@ -252,7 +252,7 @@ public class DatabaseStructureManager {
 
                             case Types.BLOB:
                                 if (adapter.getFamily()== Database.Family.MYSQL) {
-                                    byte[] bytes = Base64.decodeBase64(fieldData.getStringData().getBytes());
+                                    byte[] bytes = Base64.decodeBase64(fieldData.getS().getBytes());
 
                                     byte[] fileBytes = new byte[]{};
                                     if (bytes!=null) {
@@ -270,7 +270,7 @@ public class DatabaseStructureManager {
 
                             case 1111:
                                 if (isDebug) {
-                                    System.out.println("param #" + (k + 1) + ", value " + fieldData.getStringData());
+                                    System.out.println("param #" + (k + 1) + ", value " + fieldData.getS());
                                 }
                                 ps.setString(k + 1, "");
                                 break;
@@ -283,17 +283,15 @@ public class DatabaseStructureManager {
                 ps.executeUpdate();
             }
             catch (Exception e) {
-                String es = "Error get data for table " + table.getName();
+                String es = "Error get data for table " + table.getT();
                 log.error(es, e);
                 int k=0;
-                for (DbDataFieldData data : record.getFieldData()) {
-                    log.error("date: " + data.getDateData());
-                    log.error("decimal digit: " + data.getDecimalDigit());
-                    log.error("is null: " + data.isIsNull());
-                    log.error("java type: " + table.getFields().get(k).getJavaType());
-                    log.error("number: " + data.getNumberData());
-                    log.error("size: " + data.getSize());
-                    log.error("string: " + data.getStringData());
+                for (DbDataFieldData data : record.getF()) {
+                    log.error("date: " + data.getD());
+                    log.error("is null: " + data.isNll());
+                    log.error("java type: " + table.getFields().get(k).getType());
+                    log.error("number: " + data.getN());
+                    log.error("string: " + data.getS());
                     k++;
                 }
                 throw new DbRevisionException(es, e);
@@ -312,12 +310,15 @@ public class DatabaseStructureManager {
      * @return DbDataTable
      */
     public static DbDataTable getDataTable(Database adapter, DbTable table) {
+        if (table.getS()==null && table.getT()==null) {
+            throw new IllegalArgumentException("schema: " + table.getS()+", table: " + table.getT());
+        }
         DbDataTable tableData = new DbDataTable();
 
         PreparedStatement ps = null;
         ResultSet rs = null;
         try {
-            String sql_ = "select * from " + table.getName();
+            String sql_ = "select * from " + table.getS()+'.'+table.getT();
 
             ps = adapter.getConnection().prepareStatement(sql_);
 
@@ -325,7 +326,7 @@ public class DatabaseStructureManager {
             ResultSetMetaData meta = rs.getMetaData();
 
             if (table.getFields().size() != meta.getColumnCount()) {
-                log.fatal("table " + table.getName());
+                log.fatal("table " + table.getT());
                 log.fatal("count field " + table.getFields().size());
                 log.fatal("meta count field " + meta.getColumnCount());
                 for (DbField field : table.getFields()) {
@@ -342,7 +343,7 @@ public class DatabaseStructureManager {
                 for (DbField field : table.getFields()) {
                     DbDataFieldData fieldData = new DbDataFieldData();
 
-                    switch (field.getJavaType()) {
+                    switch (field.getType()) {
 
                         case Types.BIT:
                         case Types.TINYINT:
@@ -354,33 +355,33 @@ public class DatabaseStructureManager {
                         case Types.DOUBLE:
                         case Types.FLOAT:
                         case Types.NUMERIC:
-                            fieldData.setNumberData(rs.getBigDecimal(field.getName()));
-                            fieldData.setIsNull(rs.wasNull());
+                            fieldData.setN(rs.getBigDecimal(field.getName()));
+                            fieldData.setNll(rs.wasNull());
                             break;
 
                         case Types.CHAR:
                         case Types.VARCHAR:
-                            fieldData.setStringData(rs.getString(field.getName()));
-                            fieldData.setIsNull(rs.wasNull());
+                            fieldData.setS(rs.getString(field.getName()));
+                            fieldData.setNll(rs.wasNull());
                             break;
 
                         case Types.DATE:
                         case Types.TIMESTAMP:
                             Timestamp timestamp = rs.getTimestamp(field.getName());
                             if (rs.wasNull()) {
-                                fieldData.setIsNull(true);
+                                fieldData.setNll(true);
                             }
                             else {
                                 GregorianCalendar calendar = new GregorianCalendar();
                                 calendar.setTimeInMillis(timestamp.getTime());
-                                fieldData.setDateData(DatatypeFactory.newInstance().newXMLGregorianCalendar(calendar));
-                                fieldData.setIsNull(false);
+                                fieldData.setD(DatatypeFactory.newInstance().newXMLGregorianCalendar(calendar));
+                                fieldData.setNll(false);
                             }
                             break;
 
                         case Types.LONGVARCHAR:
-                            fieldData.setStringData(rs.getString(field.getName()));
-                            fieldData.setIsNull(rs.wasNull());
+                            fieldData.setS(rs.getString(field.getName()));
+                            fieldData.setNll(rs.wasNull());
                             break;
                             
                         case Types.LONGVARBINARY:
@@ -389,25 +390,25 @@ public class DatabaseStructureManager {
                                     bytes = adapter.getBlobField(rs, field.getName(), MAX_LENGTH_BLOB);
                                     if (bytes!=null) {
                                         byte[] encodedBytes = Base64.encodeBase64(bytes);
-                                        fieldData.setStringData( new String(encodedBytes) );
+                                        fieldData.setS( new String(encodedBytes) );
                                     }
-                                    fieldData.setIsNull(rs.wasNull());
+                                    fieldData.setNll(rs.wasNull());
                                     bytes = null;
                                     break;
                                 default:
-                                    fieldData.setStringData(rs.getString(field.getName()));
-                                    fieldData.setIsNull(rs.wasNull());
+                                    fieldData.setS(rs.getString(field.getName()));
+                                    fieldData.setNll(rs.wasNull());
                             }
                             break;
                         case Types.BLOB:
                             switch (adapter.getFamily()) {
                                 case ORACLE:
                                     bytes = adapter.getBlobField(rs, field.getName(), MAX_LENGTH_BLOB);
-                                    fieldData.setIsNull(rs.wasNull());
+                                    fieldData.setNll(rs.wasNull());
                                     break;
                                 case MYSQL:
                                     bytes = adapter.getBlobField(rs, field.getName(), MAX_LENGTH_BLOB);
-                                    fieldData.setIsNull(rs.wasNull());
+                                    fieldData.setNll(rs.wasNull());
                                     break;
 
                                 case DB2:
@@ -423,23 +424,22 @@ public class DatabaseStructureManager {
                             }
                             if (bytes!=null) {
                                 byte[] encodedBytes = Base64.encodeBase64(bytes);
-                                fieldData.setStringData( new String(encodedBytes) );
+                                fieldData.setS( new String(encodedBytes) );
                             }
                             bytes = null;
                             break;
                         default:
-                            String es = "Unknown field type. Field '" + field.getName() + "' type '" + field.getJavaStringType() + "'";
-                            log.error(es);
-                            System.out.println(es);
+                            final String es = "unknown field type field - " + field.getName() + " javaType - " + field.getType();
+                            throw new IllegalStateException(es);
                     }
-                    record.getFieldData().add(fieldData);
+                    record.getF().add(fieldData);
                 }
                 tableData.getRecords().add(record);
             }
             return tableData;
         }
         catch (Exception e) {
-            String es = "Error get data for table " + table.getName();
+            String es = "Error get data for table " + table.getT();
             log.error(es, e);
             throw new DbRevisionException(es, e);
         }
@@ -486,13 +486,12 @@ public class DatabaseStructureManager {
             while (meta.next()) {
                 DbTable table = new DbTable();
 
-                table.setSchema(meta.getString("TABLE_SCHEM"));
-                table.setName(meta.getString("TABLE_NAME"));
-                table.setType(meta.getString("TABLE_TYPE"));
-                table.setRemark(meta.getString("REMARKS"));
+                table.setS(meta.getString("TABLE_SCHEM"));
+                table.setT(meta.getString("TABLE_NAME"));
+                table.setR(meta.getString("REMARKS"));
 
                 if (log.isDebugEnabled()) {
-                    log.debug("Table - " + table.getName() + "  remak - " + table.getRemark());
+                    log.debug("Table - " + table.getT() + "  remak - " + table.getR());
                 }
 
                 v.add(table);
@@ -522,29 +521,29 @@ public class DatabaseStructureManager {
                 DbField field = new DbField();
 
                 field.setName(metaField.getString("COLUMN_NAME"));
-                field.setDataType(metaField.getString("TYPE_NAME"));
-                field.setJavaType(DbUtils.getInteger(metaField, "DATA_TYPE", Integer.MIN_VALUE));
+                field.setDbtype(metaField.getString("TYPE_NAME"));
+                field.setType(DbUtils.getInteger(metaField, "DATA_TYPE", Integer.MIN_VALUE));
                 field.setSize(DbUtils.getInteger(metaField, "COLUMN_SIZE"));
-                field.setDecimalDigit(DbUtils.getInteger(metaField, "DECIMAL_DIGITS"));
+                field.setDigit(DbUtils.getInteger(metaField, "DECIMAL_DIGITS"));
                 field.setNullable(DbUtils.getInteger(metaField, "NULLABLE"));
                 String defValue = metaField.getString("COLUMN_DEF");
 
-                field.setDefaultValue(defValue == null ? null : defValue.trim());
+                field.setDef(defValue == null ? null : defValue.trim());
 
-                if (field.getDefaultValue()!=null) {
+                if (field.getDef()!=null) {
                     // fix issue with null and other default values for concrete of DB
                     switch (adapter.getFamily()) {
                         case MYSQL:
-                            if (field.getJavaType()==Types.TIMESTAMP && field.getDefaultValue().equals("0000-00-00 00:00:00")) {
-                                field.setDefaultValue(null);
+                            if (field.getType()==Types.TIMESTAMP && field.getDef().equals("0000-00-00 00:00:00")) {
+                                field.setDef(null);
                             }
                             break;
                         case DB2:
                             // check for IBM DB2 CURRENT TIMESTAMP
-                            if (field.getDefaultValue().toUpperCase().startsWith(CURRENT)) {
-                                String s1 = field.getDefaultValue().substring(CURRENT.length()).trim();
+                            if (field.getDef().toUpperCase().startsWith(CURRENT)) {
+                                String s1 = field.getDef().substring(CURRENT.length()).trim();
                                 if (s1.equalsIgnoreCase(TIMESTAMP)) {
-                                    field.setDefaultValue("current_timestamp");
+                                    field.setDef("current_timestamp");
                                 }
                             }
 
@@ -556,120 +555,100 @@ public class DatabaseStructureManager {
                         case MAXDB:
                             break;
                         case ORACLE:
-                            if (field.getJavaType()==Types.VARCHAR && field.getDefaultValue().length()>0) {
-                                if (field.getDefaultValue().charAt(0)!='\'' || field.getDefaultValue().charAt(field.getDefaultValue().length()-1)!='\'') {
+                            if (field.getType()==Types.VARCHAR && field.getDef().length()>0) {
+                                if (field.getDef().charAt(0)!='\'' || field.getDef().charAt(field.getDef().length()-1)!='\'') {
                                     throw new DbRevisionException(
-                                        "Found wrong oracle default varchar value: " + field.getDefaultValue()+". " +
+                                        "Found wrong oracle default varchar value: " + field.getDef()+". " +
                                             "Value must start and end with \' char.");
                                 }
-                                field.setDefaultValue(field.getDefaultValue().substring(1, field.getDefaultValue().length()-1));
+                                field.setDef(field.getDef().substring(1, field.getDef().length()-1));
                             }
                             break;
                         case POSTGREES:
                             break;
                         case SQLSERVER:
-                            if (field.getDefaultValue().startsWith("(") && field.getDefaultValue().endsWith(")")) {
-                                field.setDefaultValue( field.getDefaultValue().substring(1, field.getDefaultValue().length()-1));
+                            if (field.getDef().startsWith("(") && field.getDef().endsWith(")")) {
+                                field.setDef( field.getDef().substring(1, field.getDef().length()-1));
                             }
                             break;
                     }
                 }
 
-                if (field.getDataType().equalsIgnoreCase("BLOB")) {
-                    field.setJavaType(Types.BLOB);
-                    field.setJavaStringType("java.sql.Types.BLOB");
+                if (field.getDbtype().equalsIgnoreCase("BLOB")) {
+                    field.setType(Types.BLOB);
                 }
-                else if (field.getDataType().equalsIgnoreCase("CLOB")) {
-                    field.setJavaType(Types.CLOB);
-                    field.setJavaStringType("java.sql.Types.CLOB");
+                else if (field.getDbtype().equalsIgnoreCase("CLOB")) {
+                    field.setType(Types.CLOB);
                 }
                 else {
-                    switch (field.getJavaType()) {
+                    switch (field.getType()) {
 
                         case Types.DECIMAL:
-                            field.setJavaStringType("java.sql.Types.DECIMAL");
                             break;
 
                         case Types.NUMERIC:
-                            field.setJavaStringType("java.sql.Types.NUMERIC");
                             break;
 
                         case Types.INTEGER:
-                            field.setJavaStringType("java.sql.Types.INTEGER");
                             break;
 
                         case Types.DOUBLE:
-                            field.setJavaStringType("java.sql.Types.DOUBLE");
                             break;
 
                         case Types.VARCHAR:
-                            field.setJavaStringType("java.sql.Types.VARCHAR");
                             break;
 
                         case Types.CHAR:
-                            field.setJavaStringType("java.sql.Types.CHAR");
                             break;
 
                         case Types.DATE:
-                            field.setJavaStringType("java.sql.Types.DATE");
                             break;
 
                         case Types.LONGVARCHAR:
-                            field.setJavaStringType("java.sql.Types.LONGVARCHAR");
                             break;
 
                         case Types.LONGVARBINARY:
-                            field.setJavaStringType("java.sql.Types.LONGVARBINARY");
                             break;
 
                         case Types.TIMESTAMP:
-                            field.setJavaStringType("java.sql.Types.TIMESTAMP");
                             break;
 
                         case Types.BIT:
                             // Work around with MySql JDBC driver bug: TINYINT(1)==BIT
                             // always process as TINYINT
                             if (adapter.getFamily()== Database.Family.MYSQL) {
-                                field.setDataType("tinyint");
-                                field.setJavaType(Types.TINYINT);
+                                field.setDbtype("TINYINT");
+                                field.setType(Types.TINYINT);
                                 field.setSize(1);
-                                field.setDecimalDigit(null);
-                                field.setJavaStringType("java.sql.Types.TINYINT");
+                                field.setDigit(null);
                                 break;
                             }
-                            field.setJavaStringType("java.sql.Types.BIT");
                             break;
 
                         case Types.TINYINT:
-                            field.setJavaStringType("java.sql.Types.TINYINT");
                             break;
 
                         case Types.BIGINT:
-                            field.setJavaStringType("java.sql.Types.BIGINT");
                             break;
 
                         case Types.SMALLINT:
-                            field.setJavaStringType("java.sql.Types.SMALLINT");
                             break;
 
                         case Types.FLOAT:
-                            field.setJavaStringType("java.sql.Types.FLOAT");
                             break;
 
                         default:
-                            field.setJavaStringType("unknown. schema: " + schemaPattern + ", table: " + tablePattern + ", field: " + field.getName() + ", javaType: " + field.getJavaType());
-                            String es = "unknown. schema: " + schemaPattern + ", table: " + tablePattern + ", field " + field.getName() + ", javaType: " + field.getJavaType();
-                            log.error(es);
-                            System.out.println(es);
+                            final String es = "unknown field type field - " + field.getName() + " javaType - " + field.getType();
+                            throw new IllegalStateException(es);
                     }
                 }
 
                 if (log.isDebugEnabled()) {
                     log.debug("Field name - " + field.getName());
-                    log.debug("Field dataType - " + field.getDataType());
-                    log.debug("Field type - " + field.getJavaType());
+                    log.debug("Field dataType - " + field.getDbtype());
+                    log.debug("Field type - " + field.getType());
                     log.debug("Field size - " + field.getSize());
-                    log.debug("Field decimalDigit - " + field.getDecimalDigit());
+                    log.debug("Field decimalDigit - " + field.getDigit());
                     log.debug("Field nullable - " + field.getNullable());
 
                     if (field.getNullable() == DatabaseMetaData.columnNullableUnknown) {
@@ -731,11 +710,11 @@ public class DatabaseStructureManager {
      * @param tablePattern
      * @return
      */
-    public static DbPrimaryKey getPrimaryKey(Database adapter, String schemaPattern, String tablePattern) {
-        return ConstraintManager.getPrimaryKey(adapter,  schemaPattern, tablePattern);
+    public static DbPrimaryKey getPk(Database adapter, String schemaPattern, String tablePattern) {
+        return ConstraintManager.getPk(adapter,  schemaPattern, tablePattern);
     }
 
-    public static void setDefaultValueTimestamp(Database adapter, DbTable originTable, DbField originField) {
+    public static void setDefTimestamp(Database adapter, DbTable originTable, DbField originField) {
         DbField tempField = cloneDescriptionField(originField);
         tempField.setName(tempField.getName() + '1');
         adapter.addColumn(originTable, tempField);
@@ -748,8 +727,8 @@ public class DatabaseStructureManager {
 
     public static DbPrimaryKeyColumn cloneDescriptionPrimaryKeyColumn(final DbPrimaryKeyColumn srcCol) {
         DbPrimaryKeyColumn c = new DbPrimaryKeyColumn();
-        c.setColumnName(srcCol.getColumnName());
-        c.setKeySeq(srcCol.getKeySeq());
+        c.setC(srcCol.getC());
+        c.setSeq(srcCol.getSeq());
 
         return c;
     }
@@ -760,15 +739,15 @@ public class DatabaseStructureManager {
         }
 
         DbForeignKey fk = new DbForeignKey();
-        fk.setDeferrability(srcFk.getDeferrability());
-        fk.setDeleteRule(srcFk.getDeleteRule());
-        fk.setFkName(srcFk.getFkName());
-        fk.setFkTableName(srcFk.getFkTableName());
-        fk.setFkSchemaName(srcFk.getFkSchemaName());
-        fk.setPkName(srcFk.getPkName());
-        fk.setPkTableName(srcFk.getPkTableName());
-        fk.setPkSchemaName(srcFk.getPkSchemaName());
-        fk.setUpdateRule(srcFk.getUpdateRule());
+        fk.setDefer(srcFk.getDefer());
+        fk.setDRule(srcFk.getDRule());
+        fk.setFk(srcFk.getFk());
+        fk.setFkTable(srcFk.getFkTable());
+        fk.setFkSchema(srcFk.getFkSchema());
+        fk.setPk(srcFk.getPk());
+        fk.setPkTable(srcFk.getPkTable());
+        fk.setPkSchema(srcFk.getPkSchema());
+        fk.setURule(srcFk.getURule());
         for (DbForeignKeyColumn srcFkColumn : srcFk.getColumns()) {
             fk.getColumns().add(cloneDescriptionForeignKeyColumn(srcFkColumn));
         }
@@ -778,9 +757,9 @@ public class DatabaseStructureManager {
 
     static DbForeignKeyColumn cloneDescriptionForeignKeyColumn(DbForeignKeyColumn srcFkColumn) {
         DbForeignKeyColumn c = new DbForeignKeyColumn();
-        c.setFkColumnName(srcFkColumn.getFkColumnName());
-        c.setKeySeq(srcFkColumn.getKeySeq());
-        c.setPkColumnName(srcFkColumn.getPkColumnName());
+        c.setFkCol(srcFkColumn.getFkCol());
+        c.setSeq(srcFkColumn.getSeq());
+        c.setPkCol(srcFkColumn.getPkCol());
 
         return c;
     }
@@ -791,10 +770,10 @@ public class DatabaseStructureManager {
         }
 
         DbPrimaryKey pk = new DbPrimaryKey();
-        pk.setCatalogName(srcPk.getCatalogName());
-        pk.setPkName(srcPk.getPkName());
-        pk.setSchemaName(srcPk.getSchemaName());
-        pk.setTableName(srcPk.getTableName());
+        pk.setC(srcPk.getC());
+        pk.setPk(srcPk.getPk());
+        pk.setS(srcPk.getS());
+        pk.setT(srcPk.getT());
         for (DbPrimaryKeyColumn column : srcPk.getColumns()) {
             pk.getColumns().add(cloneDescriptionPrimaryKeyColumn(column));
         }
@@ -808,13 +787,11 @@ public class DatabaseStructureManager {
         }
 
         DbField f = new DbField();
-        f.setApplType(srcField.getApplType());
         f.setComment(srcField.getComment());
-        f.setDataType(srcField.getDataType());
-        f.setDecimalDigit(srcField.getDecimalDigit());
-        f.setDefaultValue(srcField.getDefaultValue());
-        f.setJavaStringType(srcField.getJavaStringType());
-        f.setJavaType(srcField.getJavaType());
+        f.setDbtype(srcField.getDbtype());
+        f.setDigit(srcField.getDigit());
+        f.setDef(srcField.getDef());
+        f.setType(srcField.getType());
         f.setName(srcField.getName());
         f.setNullable(srcField.getNullable());
         f.setSize(srcField.getSize());
@@ -835,12 +812,11 @@ public class DatabaseStructureManager {
 
         DbTable r = new DbTable();
 
-        r.setSchema(srcTable.getSchema());
-        r.setName(srcTable.getName());
-        r.setType(srcTable.getType());
+        r.setS(srcTable.getS());
+        r.setT(srcTable.getT());
 
-        DbPrimaryKey pk = cloneDescriptionPK(srcTable.getPrimaryKey());
-        r.setPrimaryKey(pk);
+        DbPrimaryKey pk = cloneDescriptionPK(srcTable.getPk());
+        r.setPk(pk);
 
         for (DbField DbField : srcTable.getFields()) {
             DbField f = cloneDescriptionField(DbField);
@@ -867,7 +843,7 @@ public class DatabaseStructureManager {
         }
 
         String sql_ =
-            "update " + table.getName() + ' ' +
+            "update " + table.getT() + ' ' +
                 "SET " + targetField.getName() + '=' + sourceField.getName();
 
         Statement ps = null;
@@ -876,8 +852,8 @@ public class DatabaseStructureManager {
             ps.execute(sql_);
         }
         catch (SQLException e) {
-            String errorString = "Error copy data from field '" + table.getName() + '.' + sourceField.getName() +
-                "' to '" + table.getName() + '.' + targetField.getName() + "' " + e.getErrorCode() + "\nsql - " + sql_;
+            String errorString = "Error copy data from field '" + table.getT() + '.' + sourceField.getName() +
+                "' to '" + table.getT() + '.' + targetField.getName() + "' " + e.getErrorCode() + "\nsql - " + sql_;
 
             log.error(errorString, e);
             System.out.println(errorString);
