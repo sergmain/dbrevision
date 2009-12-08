@@ -19,10 +19,10 @@ import java.io.FileInputStream;
 
 import org.apache.commons.lang.StringUtils;
 
-import org.riverock.dbrevision.annotation.schema.db.DbField;
-import org.riverock.dbrevision.annotation.schema.db.DbForeignKey;
-import org.riverock.dbrevision.annotation.schema.db.DbSchema;
-import org.riverock.dbrevision.annotation.schema.db.DbTable;
+import org.riverock.dbrevision.schema.db.DbField;
+import org.riverock.dbrevision.schema.db.DbForeignKey;
+import org.riverock.dbrevision.schema.db.DbSchema;
+import org.riverock.dbrevision.schema.db.DbTable;
 import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.db.DatabaseStructureManager;
@@ -40,19 +40,19 @@ public class ValidateStructure {
 
     private static void processForeignKeys(Database adapter, DbSchema millSchema) throws Exception {
         for (DbTable table : millSchema.getTables()) {
-            if (!DatabaseManager.isSkipTable(table.getName())) {
-                System.out.println("Create foreign key for table " + table.getName());
+            if (!DatabaseManager.isSkipTable(table.getT())) {
+                System.out.println("Create foreign key for table " + table.getT());
 
                 int p = 0;
                 for (DbForeignKey foreignKey : table.getForeignKeys()) {
-                    if (StringUtils.isBlank(foreignKey.getFkName())) {
-                        foreignKey.setFkName(foreignKey.getFkTableName() + p + "_fk");
+                    if (StringUtils.isBlank(foreignKey.getFk())) {
+                        foreignKey.setFk(foreignKey.getFkTable() + p + "_fk");
                     }
                     ConstraintManager.createFk(adapter, foreignKey);
                 }
             }
             else {
-                System.out.println("skip table " + table.getName());
+                System.out.println("skip table " + table.getT());
             }
         }
     }
@@ -66,29 +66,29 @@ public class ValidateStructure {
         Utils.writeToFile(schema, nameFile);
 
         for (DbTable table : millSchema.getTables()) {
-            if (!DatabaseManager.isSkipTable(table.getName())) {
-                DbTable originTable = DatabaseManager.getTableFromStructure(schema, table.getName());
+            if (!DatabaseManager.isSkipTable(table.getT())) {
+                DbTable originTable = DatabaseManager.getTableFromStructure(schema, table.getT());
                 if (!DatabaseManager.isTableExists(schema, table)) {
-                    System.out.println("Create new table " + table.getName());
+                    System.out.println("Create new table " + table.getT());
                     adapter.createTable(table);
                 }
                 else {
                     // check valid structure of fields
                     for (DbField field : table.getFields()) {
                         if (!DatabaseManager.isFieldExists(schema, table, field)) {
-                            System.out.println("Add field '" + field.getName() + "' to table '" + table.getName() + "'");
+                            System.out.println("Add field '" + field.getName() + "' to table '" + table.getT() + "'");
                             adapter.addColumn(table, field);
                         }
 
                         DbField originField =
-                            DatabaseManager.getFieldFromStructure(schema, table.getName(), field.getName());
+                            DatabaseManager.getFieldFromStructure(schema, table.getT(), field.getName());
 
-                        if (originField != null && (originField.getDefaultValue() == null && field.getDefaultValue() != null)) {
-                            System.out.println("Default value of field " + table.getName() + '.' + originField.getName() +
-                                " not set to " + field.getDefaultValue());
-                            if (DatabaseManager.checkDefaultTimestamp(field.getDefaultValue())) {
+                        if (originField != null && (originField.getDef() == null && field.getDef() != null)) {
+                            System.out.println("Default value of field " + table.getT() + '.' + originField.getName() +
+                                " not set to " + field.getDef());
+                            if (DatabaseManager.checkDefaultTimestamp(field.getDef())) {
                                 System.out.println("Field recognized as default date field");
-                                DatabaseStructureManager.setDefaultValueTimestamp(adapter, originTable, field );
+                                DatabaseStructureManager.setDefTimestamp(adapter, originTable, field );
                             }
                             else
                                 System.out.println("Unknown default type of field");
@@ -98,7 +98,7 @@ public class ValidateStructure {
                 }
             }
             else
-                System.out.println("skip table " + table.getName());
+                System.out.println("skip table " + table.getT());
         }
 
 /*
@@ -108,17 +108,17 @@ public class ValidateStructure {
         {
             // check for correct PK
             DbTable tableForCheckPk =
-                DbService.getTableFromStructure(schema, table.getName());
+                DbService.getTableFromStructure(schema, table.getT());
 
-//                    System.out.println("orig table '"+table.getName()+"', table for check'"+tableForCheckPk.getName()+"'");
-//                    System.out.println("orig table PK "+table.getPrimaryKey()+", table for check PK "+tableForCheckPk.getPrimaryKey()+"");
+//                    System.out.println("orig table '"+table.getT()+"', table for check'"+tableForCheckPk.getT()+"'");
+//                    System.out.println("orig table PK "+table.getPk()+", table for check PK "+tableForCheckPk.getPk()+"");
 
-            if (table.getPrimaryKey()!=null &&
-                table.getPrimaryKey().getColumnsCount()>0 &&
-                (tableForCheckPk.getPrimaryKey()==null || tableForCheckPk.getPrimaryKey().getColumnsCount()==0))
+            if (table.getPk()!=null &&
+                table.getPk().getColumnsCount()>0 &&
+                (tableForCheckPk.getPk()==null || tableForCheckPk.getPk().getColumnsCount()==0))
             {
-                System.out.println("Add PK to table '"+tableForCheckPk.getName()+"'");
-                DbService.addPrimaryKey(db_, tableForCheckPk, table.getPrimaryKey());
+                System.out.println("Add PK to table '"+tableForCheckPk.getT()+"'");
+                DbService.addPrimaryKey(db_, tableForCheckPk, table.getPk());
             }
         }
         catch(Exception e)

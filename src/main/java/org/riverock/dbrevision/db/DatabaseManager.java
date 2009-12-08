@@ -27,14 +27,14 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import org.riverock.dbrevision.annotation.schema.db.DbField;
-import org.riverock.dbrevision.annotation.schema.db.DbForeignKey;
-import org.riverock.dbrevision.annotation.schema.db.DbForeignKeyColumn;
-import org.riverock.dbrevision.annotation.schema.db.DbPrimaryKey;
-import org.riverock.dbrevision.annotation.schema.db.DbSchema;
-import org.riverock.dbrevision.annotation.schema.db.DbTable;
-import org.riverock.dbrevision.annotation.schema.db.DbView;
-import org.riverock.dbrevision.annotation.schema.db.DbViewReplacement;
+import org.riverock.dbrevision.schema.db.DbField;
+import org.riverock.dbrevision.schema.db.DbForeignKey;
+import org.riverock.dbrevision.schema.db.DbForeignKeyColumn;
+import org.riverock.dbrevision.schema.db.DbPrimaryKey;
+import org.riverock.dbrevision.schema.db.DbSchema;
+import org.riverock.dbrevision.schema.db.DbTable;
+import org.riverock.dbrevision.schema.db.DbView;
+import org.riverock.dbrevision.schema.db.DbViewReplacement;
 import org.riverock.dbrevision.exception.DbRevisionException;
 import org.riverock.dbrevision.exception.TableNotFoundException;
 import org.riverock.dbrevision.exception.ViewAlreadyExistException;
@@ -85,9 +85,9 @@ public final class DatabaseManager {
     }
 
     public static void copyData(
-        final Database db_, final DbTable fieldsList, final String sourceTable, final String targetTableName
+        final Database db_, final DbTable fieldsList, final String sourceTable, final String targetT
     ) {
-        if (fieldsList == null || sourceTable == null || targetTableName == null) {
+        if (fieldsList == null || sourceTable == null || targetT == null) {
             if (log.isInfoEnabled()) {
                 log.info("copy data failed, some objects is null");
             }
@@ -108,7 +108,7 @@ public final class DatabaseManager {
         }
 
         String sql_ =
-            "insert into " + targetTableName +
+            "insert into " + targetT +
                 "(" + fields + ")" +
                 (db_.isNeedUpdateBracket() ? "(" : "") +
                 "select " + fields + " from " + sourceTable +
@@ -121,7 +121,7 @@ public final class DatabaseManager {
         }
         catch (SQLException e) {
             String errorString = "Error copy data from table '" + sourceTable +
-                "' to '" + targetTableName + "' " + e.getErrorCode() + "\nsql - " + sql_;
+                "' to '" + targetT + "' " + e.getErrorCode() + "\nsql - " + sql_;
 
             log.error(errorString, e);
             System.out.println(errorString);
@@ -133,19 +133,19 @@ public final class DatabaseManager {
         }
     }
 
-    public static void duplicateTable(final Database db_, final DbTable srcTable, final String targetTableName) {
+    public static void duplicateTable(final Database db_, final DbTable srcTable, final String targetT) {
         if (srcTable == null) {
             log.error("duplicate table failed, source table object is null");
             return;
         }
 
         DbTable tempTable = DatabaseStructureManager.cloneDescriptionTable(srcTable);
-        tempTable.setName(targetTableName);
-        tempTable.setPrimaryKey(null);
-        tempTable.setData(null);
+        tempTable.setT(targetT);
+        tempTable.setPk(null);
+        tempTable.setD(null);
 
         db_.createTable(tempTable);
-        copyData(db_, tempTable, srcTable.getName(), targetTableName);
+        copyData(db_, tempTable, srcTable.getT(), targetT);
     }
 
     public static List<DbForeignKey> getForeignKeys(DbSchema schema, String pkTableName, String pkFieldName) {
@@ -159,7 +159,7 @@ public final class DatabaseManager {
                     throw new DbRevisionException("Composite keys not supported.");
                 }
                 DbForeignKeyColumn pk = columns.get(0);
-                if (foreignKey.getPkTableName().equalsIgnoreCase(pkTableName) && pk.getPkColumnName().equalsIgnoreCase(pkFieldName)) {
+                if (foreignKey.getPkTable().equalsIgnoreCase(pkTableName) && pk.getPkCol().equalsIgnoreCase(pkFieldName)) {
                     fk.add(foreignKey);
                 }
             }
@@ -173,7 +173,7 @@ public final class DatabaseManager {
         }
 
         for (DbTable DbTable : schema.getTables()) {
-            if (tableName.equalsIgnoreCase(DbTable.getName())) {
+            if (tableName.equalsIgnoreCase(DbTable.getT())) {
                 for (DbField DbField : DbTable.getFields()) {
                     if (fieldName.equalsIgnoreCase(DbField.getName())) {
                         return DbField;
@@ -192,7 +192,7 @@ public final class DatabaseManager {
         }
 
         for (DbTable checkTable : schema.getTables()) {
-            if (tableName.equalsIgnoreCase(checkTable.getName())) {
+            if (tableName.equalsIgnoreCase(checkTable.getT())) {
                 return checkTable;
             }
         }
@@ -205,7 +205,7 @@ public final class DatabaseManager {
         }
 
         for (DbView checkView : schema.getViews()) {
-            if (viewName.equalsIgnoreCase(checkView.getName())) {
+            if (viewName.equalsIgnoreCase(checkView.getT())) {
                 return checkView;
             }
         }
@@ -218,7 +218,7 @@ public final class DatabaseManager {
         }
 
         for (DbTable DbTable : schema.getTables()) {
-            if (table.getName().equalsIgnoreCase(DbTable.getName())) {
+            if (table.getT().equalsIgnoreCase(DbTable.getT())) {
                 for (DbField DbField : DbTable.getFields()) {
                     if (field.getName().equalsIgnoreCase(DbField.getName())) {
                         return true;
@@ -235,7 +235,7 @@ public final class DatabaseManager {
         }
 
         for (DbTable DbTable : schema.getTables()) {
-            if (table.getName().equalsIgnoreCase(DbTable.getName())) {
+            if (table.getT().equalsIgnoreCase(DbTable.getT())) {
                 return true;
             }
         }
@@ -246,7 +246,11 @@ public final class DatabaseManager {
         return getDbStructure(adapter, true);
     }
 
+
+    @SuppressWarnings({"UnusedDeclaration"})
     public static DbSchema getDbStructure(Database adapter, boolean isOnlyCurrent) {
+        throw new RuntimeException("Not supported any more");
+/*
         String dbSchema;
         if (isOnlyCurrent) {
             dbSchema = getCurrentSchema(adapter);
@@ -255,6 +259,7 @@ public final class DatabaseManager {
             dbSchema = "%";
         }
         return getDbStructure(adapter, dbSchema);
+*/
     }
 
     public static DbSchema getDbStructure(Database adapter, String dbSchema) {
@@ -268,10 +273,10 @@ public final class DatabaseManager {
         schema.getSequences().addAll(adapter.getSequnceList(dbSchema));
 
         for (DbTable table : schema.getTables()) {
-            table.getFields().addAll(DatabaseStructureManager.getFieldsList(adapter, table.getSchema(), table.getName()));
-            table.setPrimaryKey(ConstraintManager.getPrimaryKey(adapter, table.getSchema(), table.getName()));
-            table.getForeignKeys().addAll(ConstraintManager.getForeignKeys(adapter, table.getSchema(), table.getName()));
-            table.getIndexes().addAll(ConstraintManager.getIndexes(adapter, table.getSchema(), table.getName()));
+            table.getFields().addAll(DatabaseStructureManager.getFieldsList(adapter, table.getS(), table.getT()));
+            table.setPk(ConstraintManager.getPk(adapter, table.getS(), table.getT()));
+            table.getForeignKeys().addAll(ConstraintManager.getForeignKeys(adapter, table.getS(), table.getT()));
+            table.getIndexes().addAll(ConstraintManager.getIndexes(adapter, table.getS(), table.getT()));
         }
 
         for (DbView view : schema.getViews()) {
@@ -613,9 +618,9 @@ public final class DatabaseManager {
             return null;
         }
         for (DbViewReplacement viewReplacement : replacementViews) {
-            for (String databaseName : viewReplacement.getDatabaseFamily()) {
+            for (String databaseName : viewReplacement.getFamily()) {
                 Database.Family family = DatabaseFactory.decodeFamily(databaseName);
-                if (family==database.getFamily() && view.getName().equalsIgnoreCase(viewReplacement.getView().getName())) {
+                if (family==database.getFamily() && view.getT().equalsIgnoreCase(viewReplacement.getView().getT())) {
                     return viewReplacement;
                 }
             }

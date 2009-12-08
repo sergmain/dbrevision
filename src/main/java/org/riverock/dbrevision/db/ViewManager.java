@@ -22,7 +22,7 @@ import java.sql.ResultSet;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 
-import org.riverock.dbrevision.annotation.schema.db.DbView;
+import org.riverock.dbrevision.schema.db.DbView;
 import org.riverock.dbrevision.exception.DbRevisionException;
 
 /**
@@ -66,10 +66,9 @@ public class ViewManager
 
                 DbView table = new DbView();
 
-                table.setSchema(meta.getString("TABLE_SCHEM"));
-                table.setName(meta.getString("TABLE_NAME"));
-                table.setType(meta.getString("TABLE_TYPE"));
-                table.setRemark(meta.getString("REMARKS"));
+                table.setS(meta.getString("TABLE_SCHEM"));
+                table.setT(meta.getString("TABLE_NAME"));
+                table.setR(meta.getString("REMARKS"));
 
                 v.add(table);
             }

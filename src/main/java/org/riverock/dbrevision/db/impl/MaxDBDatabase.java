@@ -27,12 +27,12 @@ import java.sql.DatabaseMetaData;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.riverock.dbrevision.annotation.schema.db.DbDataFieldData;
-import org.riverock.dbrevision.annotation.schema.db.DbField;
-import org.riverock.dbrevision.annotation.schema.db.DbForeignKey;
-import org.riverock.dbrevision.annotation.schema.db.DbSequence;
-import org.riverock.dbrevision.annotation.schema.db.DbTable;
-import org.riverock.dbrevision.annotation.schema.db.DbView;
+import org.riverock.dbrevision.schema.db.DbDataFieldData;
+import org.riverock.dbrevision.schema.db.DbField;
+import org.riverock.dbrevision.schema.db.DbForeignKey;
+import org.riverock.dbrevision.schema.db.DbSequence;
+import org.riverock.dbrevision.schema.db.DbTable;
+import org.riverock.dbrevision.schema.db.DbView;
 import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.exception.DbRevisionException;
 import org.riverock.dbrevision.exception.ViewAlreadyExistException;
@@ -87,7 +87,7 @@ public class MaxDBDatabase extends Database {
             default:
                 throw new IllegalArgumentException( "Unknown state "+ state);
         }
-        String sql = "ALTER TABLE "+key.getFkTableName()+" MODIFY CONSTRAINT "+key.getFkName()+" " + s;
+        String sql = "ALTER TABLE "+key.getFkTable()+" MODIFY CONSTRAINT "+key.getFk()+" " + s;
 
         PreparedStatement ps = null;
         try {
@@ -146,12 +146,12 @@ public class MaxDBDatabase extends Database {
 
     public void createView(DbView view) {
         if (view == null ||
-            view.getName() == null || view.getName().length() == 0 ||
+            view.getT() == null || view.getT().length() == 0 ||
             view.getText() == null || view.getText().length() == 0
             )
             return;
 
-        String sql_ = "create VIEW " + view.getName() + " as " + view.getText();
+        String sql_ = "create VIEW " + view.getT() + " as " + view.getText();
         PreparedStatement ps = null;
         try {
             ps = this.getConnection().prepareStatement(sql_);
@@ -159,10 +159,10 @@ public class MaxDBDatabase extends Database {
         }
         catch (SQLException e) {
             if (testExceptionViewExists(e)) {
-                throw new ViewAlreadyExistException("View "+view.getName()+" already exist.");
+                throw new ViewAlreadyExistException("View "+view.getT()+" already exist.");
             }
             if (testExceptionTableNotFound(e)) {
-                throw new TableNotFoundException("View "+view.getName()+" refered to unknown table.");
+                throw new TableNotFoundException("View "+view.getT()+" refered to unknown table.");
             }
             throw new DbRevisionException(e);
         } finally {

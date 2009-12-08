@@ -20,7 +20,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.riverock.dbrevision.annotation.schema.db.DbRevision;
+import org.riverock.dbrevision.schema.db.DbRevision;
 import org.riverock.dbrevision.exception.ConfigParseException;
 import org.riverock.dbrevision.manager.Config;
 import org.riverock.dbrevision.manager.ModuleConfig;
@@ -39,7 +39,7 @@ public class JaxbConfigParserImpl implements ConfigParser {
             for (DbRevision.Module module : dbRevision.getModules()) {
                 ModuleConfig m = new ModuleConfig();
                 m.setDescription(module.getDescription());
-                m.setName(module.getName());
+                m.setT(module.getName());
                 m.setVersions(module.getVersions().getVersions());
 
                 modules.add(m);

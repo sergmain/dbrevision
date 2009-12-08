@@ -20,7 +20,7 @@ import java.io.InputStream;
 
 import junit.framework.TestCase;
 
-import org.riverock.dbrevision.annotation.schema.db.DbSchema;
+import org.riverock.dbrevision.schema.db.DbSchema;
 import org.riverock.dbrevision.utils.Utils;
 
 /**
@@ -36,8 +36,8 @@ public class TestInitStructureUnmarshalling extends TestCase {
         assertNotNull(schema);
         assertNotNull(schema.getTables());
         assertEquals(2, schema.getTables().size());
-        assertEquals("WM_PORTAL_IDS", schema.getTables().get(0).getName());
-        assertEquals("WM_AUTH_ACCESS_GROUP", schema.getTables().get(1).getName());
+        assertEquals("WM_PORTAL_IDS", schema.getTables().get(0).getT());
+        assertEquals("WM_AUTH_ACCESS_GROUP", schema.getTables().get(1).getT());
 
 
         assertEquals(1, schema.getSequences().size());

@@ -41,11 +41,11 @@ public class ModuleConfig {
         this.description = description;
     }
 
-    public String getName() {
+    public String getT() {
         return name;
     }
 
-    public void setName(String name) {
+    public void setT(String name) {
         this.name = name;
     }
 

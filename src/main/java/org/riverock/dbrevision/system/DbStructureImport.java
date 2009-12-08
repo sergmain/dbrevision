@@ -23,12 +23,12 @@ import java.sql.SQLException;
 
 import org.apache.log4j.Logger;
 
-import org.riverock.dbrevision.annotation.schema.db.DbSchema;
-import org.riverock.dbrevision.annotation.schema.db.DbSequence;
-import org.riverock.dbrevision.annotation.schema.db.DbTable;
-import org.riverock.dbrevision.annotation.schema.db.DbView;
-import org.riverock.dbrevision.annotation.schema.db.DbViewReplacement;
-import org.riverock.dbrevision.annotation.schema.db.DbSequenceReplacement;
+import org.riverock.dbrevision.schema.db.DbSchema;
+import org.riverock.dbrevision.schema.db.DbSequence;
+import org.riverock.dbrevision.schema.db.DbTable;
+import org.riverock.dbrevision.schema.db.DbView;
+import org.riverock.dbrevision.schema.db.DbViewReplacement;
+import org.riverock.dbrevision.schema.db.DbSequenceReplacement;
 import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.db.DatabaseStructureManager;
@@ -80,14 +80,14 @@ public class DbStructureImport {
     public static void importStructure(Database database, DbSchema dbSchema, DbSchema replacementSchema, boolean isData) {
         for (DbTable table : dbSchema.getTables()) {
 
-            if (!DatabaseManager.isSkipTable(table.getName())) {
+            if (!DatabaseManager.isSkipTable(table.getT())) {
                 try {
-                    log.debug("create table " + table.getName());
+                    log.debug("create table " + table.getT());
                     database.createTable(table);
                 }
                 catch (Exception e) {
                     String es = "Error create table";
-                    log.debug(es + table.getName(), e);
+                    log.debug(es + table.getT(), e);
                     throw new DbRevisionException(es, e);
                 }
                 if (isData) {
@@ -97,23 +97,23 @@ public class DbStructureImport {
                     }
                     catch (SQLException e) {
                         String es = "Error store date";
-                        log.debug(es + table.getName(), e);
+                        log.debug(es + table.getT(), e);
                         throw new DbRevisionException(es, e);
                     }
                 }
             }
             else {
-                log.debug("skip table " + table.getName());
+                log.debug("skip table " + table.getT());
             }
 
         }
 
         List<DbViewReplacement> dbViewReplacements = new ArrayList<DbViewReplacement>();
-        if (dbSchema.getViewReplacement()!=null) {
-            dbViewReplacements.addAll(dbSchema.getViewReplacement());
+        if (dbSchema.getViewReplace()!=null) {
+            dbViewReplacements.addAll(dbSchema.getViewReplace());
         }
-        if (replacementSchema!=null && replacementSchema.getViewReplacement()!=null) {
-            dbViewReplacements.addAll(replacementSchema.getViewReplacement());
+        if (replacementSchema!=null && replacementSchema.getViewReplace()!=null) {
+            dbViewReplacements.addAll(replacementSchema.getViewReplace());
         }
 
         fullCreateViews(database, dbSchema.getViews(), dbViewReplacements);
@@ -131,7 +131,7 @@ public class DbStructureImport {
         database.createTable(table);
         for (DbSequence seq : dbSchema.getSequences()) {
             String sql_ =
-                "insert into " + table.getName() +
+                "insert into " + table.getT() +
                     "(" + r.getSequenceColumnName() + ','+r.getValueColumnName()  + ")" +
                     "value " +
                     "('"+seq.getName()+"', "+seq.getLastNumber()+")";

@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import org.apache.log4j.Logger;
 import org.apache.commons.lang.StringUtils;
 
-import org.riverock.dbrevision.annotation.schema.db.*;
+import org.riverock.dbrevision.schema.db.*;
 import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.db.DatabaseStructureManager;
@@ -337,7 +337,7 @@ public final class PatchService {
 
                 if (!pk.getColumns().isEmpty()) {
 //                    DbSchema schema = DatabaseManager.getDbStructure(database);
-//                    DbTable table = DatabaseManager.getTableFromStructure(schema, pk.getTableName());
+//                    DbTable table = DatabaseManager.getTableFromStructure(schema, pk.getT());
                     ConstraintManager.addPk(database, pk);
                 }
             }
@@ -359,8 +359,8 @@ public final class PatchService {
 
         int p = 0;
         for (DbForeignKey key : keys) {
-            if (StringUtils.isBlank(key.getFkName())) {
-                key.setFkName(key.getFkTableName() + p + "_fk");
+            if (StringUtils.isBlank(key.getFk())) {
+                key.setFk(key.getFkTable() + p + "_fk");
             }
             ConstraintManager.createFk(adapter, key);
         }
@@ -405,11 +405,11 @@ public final class PatchService {
                         }
                         AddTableFieldAction obj = (AddTableFieldAction) o;
                         DbField field = obj.getField();
-                        int fieldType = DatabaseManager.sqlTypesMapping(field.getDataType());
+                        int fieldType = DatabaseManager.sqlTypesMapping(field.getDbtype());
                         if (log.isDebugEnabled()) {
-                            log.debug("field.getDataType(): " + field.getDataType() +", fieldType: " + fieldType);
+                            log.debug("field.getDbtype(): " + field.getDbtype() +", fieldType: " + fieldType);
                         }
-                        field.setJavaType(fieldType);
+                        field.setType(fieldType);
 
                         try {
                             DatabaseStructureManager.addColumn(db_, obj.getTableName(), field);
@@ -417,13 +417,11 @@ public final class PatchService {
                         catch (Throwable e) {
                             log.error("Error add column");
                             log.error("  table name; " + obj.getTableName());
-                            log.error("  applType; "+ obj.getField().getApplType());
                             log.error("  comment; "+ obj.getField().getComment());
-                            log.error("  dataType: "+ obj.getField().getDataType());
-                            log.error("  decimalDigit: "+ obj.getField().getDecimalDigit());
-                            log.error("  defaultValue: "+ obj.getField().getDefaultValue());
-                            log.error("  JavaStringType: "+ obj.getField().getJavaStringType());
-                            log.error("  JavaType; "+ obj.getField().getJavaType());
+                            log.error("  dataType: "+ obj.getField().getDbtype());
+                            log.error("  decimalDigit: "+ obj.getField().getDigit());
+                            log.error("  defaultValue: "+ obj.getField().getDef());
+                            log.error("  JavaType; "+ obj.getField().getType());
                             log.error("  name: "+ obj.getField().getName());
                             log.error("  nullable: "+ obj.getField().getNullable());
                             log.error("  size: "+ obj.getField().getSize());
@@ -449,13 +447,13 @@ public final class PatchService {
                         }
 /*
                                     seq.setCacheSize(getInteger(action, "sequence_cache_size", 0));
-                                    seq.setIncrementBy(getInteger(action, "sequence_increment", 1));
+                                    seq.setInc(getInteger(action, "sequence_increment", 1));
                                     seq.setIsCycle(getBoolean(action, "sequence_is_cycle", false));
                                     seq.setIsOrder(getBoolean(action, "sequence_is_order", false));
                                     seq.setLastNumber(getLong(action, "sequence_last_number", 0));
-                                    seq.setMaxValue(getString(action, "sequence_max_value", "0"));
-                                    seq.setMinValue(getInteger(action, "sequence_min_value", 0));
-                                    seq.setName(getString(action, "sequence_name"));
+                                    seq.setMax(getString(action, "sequence_max_value", "0"));
+                                    seq.setMin(getInteger(action, "sequence_min_value", 0));
+                                    seq.setT(getString(action, "sequence_name"));
 
                                     db_.createSequence(seq);
 */
@@ -537,7 +535,7 @@ public final class PatchService {
                                         db_.getConnection().commit();
                                     }
                                     else {
-                                        log.error("Patch - " + patch.getName() + ", action '" + DROP_TABLE_TYPE + "' must have parameter 'name_table'");
+                                        log.error("Patch - " + patch.getT() + ", action '" + DROP_TABLE_TYPE + "' must have parameter 'name_table'");
                                     }
 */
                     }
@@ -558,7 +556,7 @@ public final class PatchService {
                                         db_.dropSequence(nameSeq);
                                     }
                                     else {
-                                        log.error("Patch - " + patch.getName() + ", action '" + DROP_TABLE_TYPE + "' must have parameter 'name_sequence'");
+                                        log.error("Patch - " + patch.getT() + ", action '" + DROP_TABLE_TYPE + "' must have parameter 'name_sequence'");
                                     }
 */
                     }

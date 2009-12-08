@@ -49,7 +49,7 @@ public class Module implements Serializable {
     public Module(Database database, File dbRevisionPath, ModuleConfig moduleConfig) {
         this.database = database;
         this.description = moduleConfig.getDescription();
-        this.name = moduleConfig.getName();
+        this.name = moduleConfig.getT();
 
         this.modulePath = new File(dbRevisionPath, name);
         if (!modulePath.exists()) {
@@ -102,7 +102,7 @@ public class Module implements Serializable {
         }
     }
 
-    public String getName() {
+    public String getT() {
         return name;
     }
 

@@ -15,7 +15,7 @@
  */
 package org.riverock.dbrevision.db;
 
-import org.riverock.dbrevision.annotation.schema.db.DbIndexColumn;
+import org.riverock.dbrevision.schema.db.DbIndexColumn;
 
 import java.io.Serializable;
 import java.util.Comparator;
@@ -67,10 +67,10 @@ public class DbIdxComparator implements Comparator<DbIndexColumn>, Serializable 
      *                            being compared by this Comparator.
      */
     public int compare(DbIndexColumn o1, DbIndexColumn o2) {
-        if (o1.getKeySeq()<o2.getKeySeq()) {
+        if (o1.getSeq()<o2.getSeq()) {
             return -1;
         }
-        else if (o1.getKeySeq()==o2.getKeySeq()) {
+        else if (o1.getSeq()==o2.getSeq()) {
             return 0;
         }
         return 1;
