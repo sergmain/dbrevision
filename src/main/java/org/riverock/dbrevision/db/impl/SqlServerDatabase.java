@@ -30,7 +30,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+
 
 import org.hsqldb.Trace;
 
@@ -58,7 +58,6 @@ import org.riverock.dbrevision.utils.DbUtils;
  */
 @SuppressWarnings({"UnusedAssignment"})
 public class SqlServerDatabase extends Database {
-    private static Logger log = Logger.getLogger(SqlServerDatabase.class);
 
     /**
      * get family for this adapter
@@ -311,9 +310,6 @@ public class SqlServerDatabase extends Database {
             st = this.getConnection().createStatement();
             st.execute(sql);
             int count = st.getUpdateCount();
-            if (log.isDebugEnabled()) {
-                log.debug("count of processed records " + count);
-            }
         }
         catch (SQLException e) {
             throw new DbRevisionException(e);
@@ -340,13 +336,10 @@ public class SqlServerDatabase extends Database {
             st = this.getConnection().createStatement();
             st.execute(sql);
             int count = st.getUpdateCount();
-            if (log.isDebugEnabled()) {
-                log.debug("count of deleted object " + count);
-            }
         }
         catch (SQLException e) {
-            log.error("Error drop table " + nameTable, e);
-            throw new DbRevisionException(e);
+            final String es = "Error drop table " + nameTable;
+            throw new DbRevisionException(es, e);
         }
         finally {
             DbUtils.close(st);
@@ -439,10 +432,6 @@ public class SqlServerDatabase extends Database {
 
         if (field.getNullable() == DatabaseMetaData.columnNoNulls) {
             sql += " NOT NULL ";
-        }
-
-        if (log.isDebugEnabled()) {
-            log.debug("MSSQL addColumn sql - \n" + sql);
         }
 
         Statement ps = null;
@@ -572,7 +561,6 @@ ALTER TABLE table
                 throw new TableNotFoundException("View "+view.getT()+" refered to unknown table.");
             }
             String errorString = "Error create view. Error code " + e.getErrorCode() + "\n" + sql_;
-            log.error(errorString, e);
             throw new DbRevisionException(errorString, e);
         }
         finally {

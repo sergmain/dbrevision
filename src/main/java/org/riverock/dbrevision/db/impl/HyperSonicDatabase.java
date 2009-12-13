@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+
 
 import org.riverock.dbrevision.schema.db.DbDataFieldData;
 import org.riverock.dbrevision.schema.db.DbField;
@@ -55,7 +55,6 @@ import org.riverock.dbrevision.utils.DbUtils;
  */
 @SuppressWarnings({"UnusedAssignment"})
 public class HyperSonicDatabase extends Database {
-    private static Logger log = Logger.getLogger( HyperSonicDatabase.class );
 
     /**
      * get family for this adapter
@@ -303,7 +302,6 @@ public class HyperSonicDatabase extends Database {
             }
         }
         catch (Exception e) {
-            log.error("sql: " + sql);
             throw new DbRevisionException(e);
         }
 
@@ -376,7 +374,6 @@ public class HyperSonicDatabase extends Database {
 
             default:
                 String errorString = "unknown field type field - " + field.getName() + " javaType - " + field.getType();
-                log.error(errorString);
                 throw new DbRevisionException(errorString);
         }
 
@@ -405,9 +402,6 @@ public class HyperSonicDatabase extends Database {
             sql += " NOT NULL ";
         }
 
-
-        if (log.isDebugEnabled())
-            log.debug("addColumn sql - \n" + sql);
 
         PreparedStatement ps = null;
         try {

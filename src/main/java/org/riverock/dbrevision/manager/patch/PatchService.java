@@ -22,10 +22,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
 
-import org.apache.log4j.Logger;
+
 import org.apache.commons.lang.StringUtils;
 
-import org.riverock.dbrevision.schema.db.*;
 import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.db.DatabaseStructureManager;
@@ -42,7 +41,6 @@ import org.riverock.dbrevision.utils.Utils;
  * $Id: PatchService.java 1141 2006-12-14 14:43:29Z serg_main $
  */
 public final class PatchService {
-    private static Logger log = Logger.getLogger(PatchService.class);
 
     static final String CUSTOM_SQL_TYPE = "CUSTOM_SQL";
     static final String CUSTOM_CLASS_ACTION_TYPE = "CUSTOM_CLASS_ACTION";
@@ -107,9 +105,6 @@ public final class PatchService {
         if (patch == null) {
             throw new NullPointerException("patch is null");
         }
-        if (log.isInfoEnabled()) {
-            log.info("process definition " + patch.getName());
-        }
 
         validate(database, patch);
         processTable(database, patch);
@@ -164,7 +159,6 @@ public final class PatchService {
                 }
                 catch (Exception e) {
                     String errorString = "Error convert String to Double from data - " + action.getData();
-                    log.error(errorString, e);
                     throw new IllegalArgumentException(errorString, e);
                 }
                 return doubleValue;
@@ -196,7 +190,6 @@ public final class PatchService {
                 }
                 catch (Exception e) {
                     String errorString = "Error convert String to Long from data - " + actionParameter.getData();
-                    log.error(errorString, e);
                     throw new IllegalArgumentException(errorString, e);
                 }
                 return longValue;
@@ -228,7 +221,6 @@ public final class PatchService {
                 }
                 catch (Exception e) {
                     String errorString = "Error convert String to Integer from data - " + actionParameter.getData();
-                    log.error(errorString, e);
                     throw new IllegalArgumentException(errorString, e);
                 }
                 return intValue;
@@ -268,7 +260,6 @@ public final class PatchService {
                 }
                 catch (Exception e) {
                     String errorString = "Error convert String to Boolean from data - " + actionParameter.getData();
-                    log.error(errorString, e);
                     throw new IllegalArgumentException(errorString);
                 }
                 return booleanValue;
@@ -280,7 +271,6 @@ public final class PatchService {
     ////////////////////////
 
     private static void validate(Database database, Patch patch) {
-        log.debug("processTable ");
         if (patch == null) {
             return;
         }
@@ -313,7 +303,6 @@ public final class PatchService {
     }
 
     private static void processTable(Database database, Patch patch) {
-        log.debug("processTable ");
         if (patch == null) {
             return;
         }
@@ -326,7 +315,6 @@ public final class PatchService {
     }
 
     private static void processPrimaryKey(Database database, Patch patch) {
-        log.debug("processPrimaryKey ");
         if (patch == null) {
             return;
         }
@@ -345,7 +333,6 @@ public final class PatchService {
     }
 
     private static void processForeignKeys(Database adapter, Patch patch) {
-        log.debug("processForeignKeys ");
         if (patch == null) {
             return;
         }
@@ -367,7 +354,6 @@ public final class PatchService {
     }
 
     private static void processSequences(Database db_, Patch patch) {
-        log.debug("processSequences ");
         if (patch == null) {
             return;
         }
@@ -380,7 +366,6 @@ public final class PatchService {
     }
 
     private static void processAction(Database db_, Patch patch) {
-        log.debug("processAction ");
         if (patch == null) {
             return;
         }
@@ -400,32 +385,27 @@ public final class PatchService {
                     break;
 
                     case ADD_TABLE_FIELD: {
-                        if (log.isDebugEnabled()) {
-                            log.debug("process action ADD_TABLE_COLUMN_TYPE");
-                        }
                         AddTableFieldAction obj = (AddTableFieldAction) o;
                         DbField field = obj.getField();
                         int fieldType = DatabaseManager.sqlTypesMapping(field.getDbtype());
-                        if (log.isDebugEnabled()) {
-                            log.debug("field.getDbtype(): " + field.getDbtype() +", fieldType: " + fieldType);
-                        }
                         field.setType(fieldType);
 
                         try {
                             DatabaseStructureManager.addColumn(db_, obj.getTableName(), field);
                         }
                         catch (Throwable e) {
-                            log.error("Error add column");
-                            log.error("  table name; " + obj.getTableName());
-                            log.error("  comment; "+ obj.getField().getComment());
-                            log.error("  dataType: "+ obj.getField().getDbtype());
-                            log.error("  decimalDigit: "+ obj.getField().getDigit());
-                            log.error("  defaultValue: "+ obj.getField().getDef());
-                            log.error("  JavaType; "+ obj.getField().getType());
-                            log.error("  name: "+ obj.getField().getName());
-                            log.error("  nullable: "+ obj.getField().getNullable());
-                            log.error("  size: "+ obj.getField().getSize());
-                            throw new DbRevisionException(e);
+                            String s="";
+                            s += "Error add column";
+                            s += "  table name; " + obj.getTableName();
+                            s += "  comment; "+ obj.getField().getComment();
+                            s += "  dataType: "+ obj.getField().getDbtype();
+                            s += "  decimalDigit: "+ obj.getField().getDigit();
+                            s += "  defaultValue: "+ obj.getField().getDef();
+                            s += "  JavaType; "+ obj.getField().getType();
+                            s += "  name: "+ obj.getField().getName();
+                            s += "  nullable: "+ obj.getField().getNullable();
+                            s += "  size: "+ obj.getField().getSize();
+                            throw new DbRevisionException(s, e);
                         }
                     }
                     break;
@@ -489,17 +469,14 @@ public final class PatchService {
                     case SQL: {
                         SqlAction obj = (SqlAction) o;
                         String sql = obj.getSql();
-                        if (log.isDebugEnabled()) {
-                            log.debug("Custom sql " + sql);
-                        }
                         Statement st = null;
                         try {
                             st = db_.getConnection().createStatement();
                             st.execute(sql);
                         }
                         catch (SQLException e) {
-                            log.error("SQL:\n" + sql);
-                            throw new DbRevisionException(e);
+                            final String es = "SQL:\n" + sql;
+                            throw new DbRevisionException(es, e);
                         }
                         finally {
                             DbUtils.close(st);
@@ -563,9 +540,7 @@ public final class PatchService {
                     break;
                     default:
                         String errorString = "missed action type: " + type;
-                        log.error(errorString);
                         throw new DbRevisionException(errorString);
-
                 }
             }
         }

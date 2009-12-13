@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
 
-import org.apache.log4j.Logger;
+
 
 import org.riverock.dbrevision.db.impl.HyperSonicDatabase;
 import org.riverock.dbrevision.db.impl.DB2Database;
@@ -39,7 +39,6 @@ import org.riverock.dbrevision.exception.DbRevisionException;
  *         Time: 12:03:41
  */
 public class DatabaseFactory {
-    private final static Logger log = Logger.getLogger(DatabaseFactory.class);
 
     private static Map<Database.Family, Class> familyClassMap = new HashMap<Database.Family, Class>();
     private static Map<String, Database.Family> familyCodeMap = new HashMap<String, Database.Family>();
@@ -87,42 +86,24 @@ public class DatabaseFactory {
     public static Database getInstance(final Connection connection, Database.Family family) {
         if (connection == null) {
             String es = "Connection is null.";
-            log.fatal(es);
             throw new DbRevisionException(es);
         }
         if (family == null) {
             String es = "dbFamily not defined.";
-            log.fatal(es);
             throw new DbRevisionException(es);
         }
 
-        if (log.isDebugEnabled()) {
-            log.debug("dc.getFamily(): " + family);
-        }
         Class clazz = familyClassMap.get(family);
-        if (log.isDebugEnabled()) {
-            log.debug("clazz: " + clazz);
-        }
-
         if (clazz == null) {
             throw new IllegalStateException("Database for family '"+family+"' not found");
         }
 
         try {
             Constructor constructor = clazz.getConstructor(Connection.class);
-            Database db = (Database)constructor.newInstance(connection);
-
-            if (log.isDebugEnabled()) {
-                log.debug("Success create dynamic object: " + db);
-            }
-            return db;
+            return (Database)constructor.newInstance(connection);
         }
         catch (Exception e) {
-            log.fatal("Error create instance for family " + family);
-            log.fatal("Error:", e);
-
-            final String es = "Error create Database instance.";
-            System.out.println(es);
+            final String es = "Error create Database instance  for family " + family;
             throw new DbRevisionException(es, e);
         }
     }

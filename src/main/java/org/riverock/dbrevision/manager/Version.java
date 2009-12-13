@@ -29,7 +29,7 @@ import java.util.List;
 import javax.xml.bind.JAXBException;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+
 
 import org.riverock.dbrevision.Constants;
 import org.riverock.dbrevision.schema.db.DbSchema;
@@ -56,7 +56,6 @@ import org.riverock.dbrevision.utils.Utils;
  * Time: 20:04:13
  */
 public class Version implements Serializable {
-    private final static Logger log = Logger.getLogger(Version.class);
 
     private Version previousVersion=null;
     private Version nextVersion=null;
@@ -141,7 +140,7 @@ public class Version implements Serializable {
                             inputStream.close();
                         }
                         catch (IOException e1) {
-                            log.error("Error close input stream", e1);
+                            //
                         }
                     }
                 }
@@ -191,7 +190,7 @@ public class Version implements Serializable {
                     inputStream.close();
                 }
                 catch (IOException e1) {
-                    log.error("Error close input stream", e1);
+                    //
                 }
             }
         }

@@ -28,7 +28,7 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+
 import org.apache.commons.lang.StringUtils;
 
 import org.riverock.dbrevision.schema.db.DbDataFieldData;
@@ -57,7 +57,6 @@ import org.riverock.dbrevision.utils.DbUtils;
  */
 @SuppressWarnings({"UnusedAssignment"})
 public class DB2Database extends Database {
-    private static Logger log = Logger.getLogger(DB2Database.class);
 
     /**
      * get family for this adapter
@@ -380,7 +379,6 @@ public class DB2Database extends Database {
                 throw new TableNotFoundException("View "+view.getT()+" refered to unknown table.");
             }
             String errorString = "Error create view. Error code " + e.getErrorCode() + "\n" + sql_;
-            log.error(errorString, e);
             throw new DbRevisionException(errorString, e);
         }
         finally {
