@@ -20,7 +20,7 @@ import java.io.InputStream;
 
 import junit.framework.TestCase;
 
-import org.riverock.dbrevision.schema.db.v3.DbSchema;
+import org.riverock.dbrevision.annotation.schema.db.DbSchema;
 import org.riverock.dbrevision.utils.Utils;
 
 /**
@@ -33,11 +33,14 @@ public class TestInitStructureUnmarshalling extends TestCase {
     public void testUnmarshalling() throws Exception {
         InputStream inputStream = TestInitStructureUnmarshalling.class.getResourceAsStream("/xml/init-structure/init-structure.xml"); 
         DbSchema schema = Utils.getObjectFromXml(DbSchema.class, inputStream);
+        // test only v2 structure
+        assertEquals("org.riverock.dbrevision.annotation.schema.db.DbSchema", schema.getClass().getName());
+        
         assertNotNull(schema);
         assertNotNull(schema.getTables());
         assertEquals(2, schema.getTables().size());
-        assertEquals("WM_PORTAL_IDS", schema.getTables().get(0).getT());
-        assertEquals("WM_AUTH_ACCESS_GROUP", schema.getTables().get(1).getT());
+        assertEquals("WM_PORTAL_IDS", schema.getTables().get(0).getName());
+        assertEquals("WM_AUTH_ACCESS_GROUP", schema.getTables().get(1).getName());
 
 
         assertEquals(1, schema.getSequences().size());
