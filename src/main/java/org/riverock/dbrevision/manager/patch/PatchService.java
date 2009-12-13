@@ -32,6 +32,7 @@ import org.riverock.dbrevision.db.ConstraintManager;
 import org.riverock.dbrevision.exception.DbRevisionException;
 import org.riverock.dbrevision.utils.DbUtils;
 import org.riverock.dbrevision.utils.Utils;
+import org.riverock.dbrevision.schema.db.v3.*;
 
 /**
  * User: Admin

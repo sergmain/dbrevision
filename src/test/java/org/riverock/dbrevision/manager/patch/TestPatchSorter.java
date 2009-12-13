@@ -21,7 +21,7 @@ import java.util.ArrayList;
 
 import junit.framework.TestCase;
 
-import org.riverock.dbrevision.schema.db.Patch;
+import org.riverock.dbrevision.schema.db.v3.Patch;
 import org.riverock.dbrevision.exception.TwoPatchesWithSameNameException;
 import org.riverock.dbrevision.exception.TwoPatchesWithEmptyPreviousPatchException;
 import org.riverock.dbrevision.exception.FirstPatchNotFoundException;

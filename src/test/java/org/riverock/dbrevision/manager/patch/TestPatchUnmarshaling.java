@@ -20,13 +20,13 @@ import java.io.InputStream;
 
 import junit.framework.TestCase;
 
-import org.riverock.dbrevision.schema.db.Action;
-import org.riverock.dbrevision.schema.db.ActionParameter;
-import org.riverock.dbrevision.schema.db.DbForeignKey;
-import org.riverock.dbrevision.schema.db.DbPrimaryKey;
-import org.riverock.dbrevision.schema.db.DbPrimaryKeyColumn;
-import org.riverock.dbrevision.schema.db.Patch;
-import org.riverock.dbrevision.schema.db.Patches;
+import org.riverock.dbrevision.schema.db.v3.Action;
+import org.riverock.dbrevision.schema.db.v3.ActionParameter;
+import org.riverock.dbrevision.schema.db.v3.DbForeignKey;
+import org.riverock.dbrevision.schema.db.v3.DbPrimaryKey;
+import org.riverock.dbrevision.schema.db.v3.DbPrimaryKeyColumn;
+import org.riverock.dbrevision.schema.db.v3.Patch;
+import org.riverock.dbrevision.schema.db.v3.Patches;
 import org.riverock.dbrevision.utils.Utils;
 
 /**

@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import org.riverock.dbrevision.exception.DbRevisionException;
+import org.riverock.dbrevision.schema.db.v3.*;
 
 /**
  * User: SergeMaslyukov

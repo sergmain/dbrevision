@@ -20,7 +20,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.riverock.dbrevision.schema.db.DbRevision;
+import org.riverock.dbrevision.schema.db.v3.DbRevision;
 import org.riverock.dbrevision.exception.ConfigParseException;
 import org.riverock.dbrevision.manager.Config;
 import org.riverock.dbrevision.manager.ModuleConfig;

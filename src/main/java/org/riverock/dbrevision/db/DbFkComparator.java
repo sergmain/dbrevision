@@ -19,7 +19,7 @@ package org.riverock.dbrevision.db;
 import java.util.Comparator;
 import java.io.Serializable;
 
-import org.riverock.dbrevision.schema.db.DbForeignKeyColumn;
+import org.riverock.dbrevision.schema.db.v3.DbForeignKeyColumn;
 
 /**
  * @author Sergei Maslyukov

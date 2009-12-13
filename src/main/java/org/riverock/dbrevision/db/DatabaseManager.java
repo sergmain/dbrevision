@@ -27,14 +27,13 @@ import java.util.List;
 
 
 
-import org.riverock.dbrevision.schema.db.DbField;
-import org.riverock.dbrevision.schema.db.DbForeignKey;
-import org.riverock.dbrevision.schema.db.DbForeignKeyColumn;
-import org.riverock.dbrevision.schema.db.DbPrimaryKey;
-import org.riverock.dbrevision.schema.db.DbSchema;
-import org.riverock.dbrevision.schema.db.DbTable;
-import org.riverock.dbrevision.schema.db.DbView;
-import org.riverock.dbrevision.schema.db.DbViewReplacement;
+import org.riverock.dbrevision.schema.db.v3.DbField;
+import org.riverock.dbrevision.schema.db.v3.DbForeignKey;
+import org.riverock.dbrevision.schema.db.v3.DbForeignKeyColumn;
+import org.riverock.dbrevision.schema.db.v3.DbSchema;
+import org.riverock.dbrevision.schema.db.v3.DbTable;
+import org.riverock.dbrevision.schema.db.v3.DbView;
+import org.riverock.dbrevision.schema.db.v3.DbViewReplacement;
 import org.riverock.dbrevision.exception.DbRevisionException;
 import org.riverock.dbrevision.exception.TableNotFoundException;
 import org.riverock.dbrevision.exception.ViewAlreadyExistException;
@@ -60,27 +59,6 @@ public final class DatabaseManager {
         catch (SQLException e) {
             throw new DbRevisionException("Commit error", e);
         }
-    }
-
-    /**
-     * @deprecated use ConstraintManager.addPrimaryKey(Database db_, DbPrimaryKey pk);
-     * 
-     * @param db_
-     * @param table
-     * @param pk
-     */
-    public static void addPrimaryKey(final Database db_, final DbTable table, final DbPrimaryKey pk) {
-        ConstraintManager.addPk(db_, pk);
-    }
-
-    /**
-     * @deprecated use ConstraintManager.addPrimaryKey(db_, pk)
-     * 
-     * @param db_
-     * @param pk
-     */
-    public static void addPrimaryKey(final Database db_, final DbPrimaryKey pk) {
-        ConstraintManager.addPk(db_, pk);    
     }
 
     public static void copyData(
@@ -355,19 +333,6 @@ public final class DatabaseManager {
                 }
             }
         }
-    }
-
-    /**
-     * @deprecated NOT SUPPORTED ANY MORE.
-     * Use public static List<DbView> getViewList(Database database, String schemaPattern, String viewPattern);
-     *
-     * @param conn
-     * @param schemaPattern
-     * @param viewPattern
-     * @return
-     */
-    public static List<DbView> getViewList(final Connection conn, final String schemaPattern, final String viewPattern) {
-        throw new RuntimeException("NOT SUPPORTED ANY MORE. See JavaDoc");
     }
 
     public static boolean isSkipTable(final String table) {

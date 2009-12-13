@@ -19,10 +19,10 @@ import java.io.FileInputStream;
 
 import org.apache.commons.lang.StringUtils;
 
-import org.riverock.dbrevision.schema.db.DbField;
-import org.riverock.dbrevision.schema.db.DbForeignKey;
-import org.riverock.dbrevision.schema.db.DbSchema;
-import org.riverock.dbrevision.schema.db.DbTable;
+import org.riverock.dbrevision.schema.db.v3.DbField;
+import org.riverock.dbrevision.schema.db.v3.DbForeignKey;
+import org.riverock.dbrevision.schema.db.v3.DbSchema;
+import org.riverock.dbrevision.schema.db.v3.DbTable;
 import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.db.DatabaseStructureManager;

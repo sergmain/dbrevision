@@ -20,6 +20,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.math.BigDecimal;
 
 import javax.xml.datatype.DatatypeFactory;
 
@@ -28,6 +29,7 @@ import org.apache.commons.codec.binary.Base64;
 
 import org.riverock.dbrevision.exception.DbRevisionException;
 import org.riverock.dbrevision.utils.DbUtils;
+import org.riverock.dbrevision.schema.db.v3.*;
 
 /**
  * @author SergeMaslyukov
@@ -40,18 +42,6 @@ public class DatabaseStructureManager {
     private static final int MAX_LENGTH_BLOB = 1000000;
     private static final String CURRENT = "CURRENT";
     private static final String TIMESTAMP = "TIMESTAMP";
-
-
-    /**
-     * @deprecated use ConstraintManager.createForeignKey(adapter,  fk)
-     * create foreign key
-     *
-     * @param adapter db adapter
-     * @param fk list of foreign keys
-     */
-    public static void createForeignKey(Database adapter, DbForeignKey fk) {
-        ConstraintManager.createFk(adapter,  fk);
-    }
 
     /**
      * add column to table
@@ -353,14 +343,26 @@ public class DatabaseStructureManager {
                         case Types.DOUBLE:
                         case Types.FLOAT:
                         case Types.NUMERIC:
-                            fieldData.setN(rs.getBigDecimal(field.getName()));
-                            fieldData.setNll(rs.wasNull());
+                            final BigDecimal bigDecimal = rs.getBigDecimal(field.getName());
+                            if (rs.wasNull()) {
+                                fieldData.setNll(true);
+                            }
+                            else {
+                                fieldData.setN(bigDecimal);
+                                fieldData.setNll(null);
+                            }
                             break;
 
                         case Types.CHAR:
                         case Types.VARCHAR:
-                            fieldData.setS(rs.getString(field.getName()));
-                            fieldData.setNll(rs.wasNull());
+                            final String string = rs.getString(field.getName());
+                            if (rs.wasNull()) {
+                                fieldData.setNll(true);
+                            }
+                            else {
+                                fieldData.setS(string);
+                                fieldData.setNll(null);
+                            }
                             break;
 
                         case Types.DATE:
@@ -373,15 +375,21 @@ public class DatabaseStructureManager {
                                 GregorianCalendar calendar = new GregorianCalendar();
                                 calendar.setTimeInMillis(timestamp.getTime());
                                 fieldData.setD(DatatypeFactory.newInstance().newXMLGregorianCalendar(calendar));
-                                fieldData.setNll(false);
+                                fieldData.setNll(null);
                             }
                             break;
 
                         case Types.LONGVARCHAR:
-                            fieldData.setS(rs.getString(field.getName()));
-                            fieldData.setNll(rs.wasNull());
+                            final String longString = rs.getString(field.getName());
+                            if (rs.wasNull()) {
+                                fieldData.setNll(true);
+                            }
+                            else {
+                                fieldData.setS(longString);
+                                fieldData.setNll(null);
+                            }
                             break;
-                            
+
                         case Types.LONGVARBINARY:
                             switch(adapter.getFamily()) {
                                 case MYSQL:
@@ -394,31 +402,34 @@ public class DatabaseStructureManager {
                                     bytes = null;
                                     break;
                                 default:
-                                    fieldData.setS(rs.getString(field.getName()));
-                                    fieldData.setNll(rs.wasNull());
+                                    final String longBin = rs.getString(field.getName());
+                                    if (rs.wasNull()) {
+                                        fieldData.setNll(true);
+                                    }
+                                    else {
+                                        fieldData.setS(longBin);
+                                        fieldData.setNll(null);
+                                    }
                             }
                             break;
                         case Types.BLOB:
                             switch (adapter.getFamily()) {
                                 case ORACLE:
                                     bytes = adapter.getBlobField(rs, field.getName(), MAX_LENGTH_BLOB);
-                                    fieldData.setNll(rs.wasNull());
+                                    fieldData.setNll(rs.wasNull()?true:null);
                                     break;
                                 case MYSQL:
                                     bytes = adapter.getBlobField(rs, field.getName(), MAX_LENGTH_BLOB);
-                                    fieldData.setNll(rs.wasNull());
+                                    fieldData.setNll(rs.wasNull()?true:null);
                                     break;
 
                                 case DB2:
-                                    break;
                                 case HYPERSONIC:
-                                    break;
                                 case INTERBASE:
-                                    break;
                                 case SQLSERVER:
-                                    break;
                                 case MAXDB:
-                                    break;
+                                default:
+                                    throw new IllegalStateException("Not implemented");
                             }
                             if (bytes!=null) {
                                 byte[] encodedBytes = Base64.encodeBase64(bytes);
@@ -445,19 +456,6 @@ public class DatabaseStructureManager {
             rs = null;
             ps = null;
         }
-    }
-
-    /**
-     * @deprecated NOT SUPPORTED ANY MORE.
-     * Use public static List<DbTable> ViewManager.getTableList(Database database, String schemaPattern, String tablePattern);
-     *
-     * @param conn1
-     * @param schemaPattern
-     * @param tablePattern
-     * @return
-     */
-    public static List<DbTable> getTableList(Connection conn1, String schemaPattern, String tablePattern) {
-        throw new RuntimeException("NOT SUPPORTED ANY MORE. See JavaDoc");
     }
 
     /**
@@ -655,43 +653,6 @@ public class DatabaseStructureManager {
             }
         }
         return v;
-    }
-
-    /**
-     * @deprecated use ConstraintManager.getIndexes(adapter,  schemaName, tableName);
-     * @param adapter
-     * @param schemaName
-     * @param tableName
-     * @return
-     */
-    public static List<DbIndex> getIndexes(Database adapter, String schemaName, String tableName) {
-        return ConstraintManager.getIndexes(adapter,  schemaName, tableName);
-    }
-
-    /**
-     * @deprecated use ConstraintManager.getForeignKeys(adapter,  schemaName, tableName);
-     *
-     * Return info about all PK for tables, which referenced from current table(tableName)
-     *
-     * @param adapter db adapter
-     * @param tableName  name of table
-     * @param schemaName name of schema
-     * @return List<DbForeignKey>
-     */
-    public static List<DbForeignKey> getForeignKeys(Database adapter, String schemaName, String tableName) {
-        return ConstraintManager.getForeignKeys(adapter,  schemaName, tableName);
-    }
-
-    /**
-     * @deprecated use ConstraintManager.getForeignKeys(adapter,  schemaName, tableName);
-     * 
-     * @param adapter
-     * @param schemaPattern
-     * @param tablePattern
-     * @return
-     */
-    public static DbPrimaryKey getPk(Database adapter, String schemaPattern, String tablePattern) {
-        return ConstraintManager.getPk(adapter,  schemaPattern, tablePattern);
     }
 
     public static void setDefTimestamp(Database adapter, DbTable originTable, DbField originField) {

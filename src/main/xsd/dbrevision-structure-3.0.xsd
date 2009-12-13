@@ -202,6 +202,6 @@
         <xs:attribute name="s" type="xs:string" use="optional"/>
         <xs:attribute name="d" type="xs:dateTime" use="optional"/>
         <xs:attribute name="n" type="xs:decimal" use="optional"/>
-        <xs:attribute name="nll" type="xs:boolean" use="required"/>
+        <xs:attribute name="nll" type="xs:boolean" use="optional"/>
 	</xs:complexType>
 </xs:schema>

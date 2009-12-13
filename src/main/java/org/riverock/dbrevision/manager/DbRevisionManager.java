@@ -18,7 +18,7 @@ package org.riverock.dbrevision.manager;
 
 import org.riverock.dbrevision.Constants;
 import org.riverock.dbrevision.utils.DbUtils;
-import org.riverock.dbrevision.schema.db.Patch;
+import org.riverock.dbrevision.schema.db.v3.Patch;
 import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.exception.ConfigFileNotFoundException;
 import org.riverock.dbrevision.exception.CurrentVersionCodeNotFoundException;

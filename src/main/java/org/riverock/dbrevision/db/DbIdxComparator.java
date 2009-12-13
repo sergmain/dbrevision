@@ -15,7 +15,7 @@
  */
 package org.riverock.dbrevision.db;
 
-import org.riverock.dbrevision.schema.db.DbIndexColumn;
+import org.riverock.dbrevision.schema.db.v3.DbIndexColumn;
 
 import java.io.Serializable;
 import java.util.Comparator;

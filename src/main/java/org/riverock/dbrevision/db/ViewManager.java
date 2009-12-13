@@ -22,7 +22,7 @@ import java.sql.ResultSet;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 
-import org.riverock.dbrevision.schema.db.DbView;
+import org.riverock.dbrevision.schema.db.v3.DbView;
 import org.riverock.dbrevision.exception.DbRevisionException;
 
 /**
