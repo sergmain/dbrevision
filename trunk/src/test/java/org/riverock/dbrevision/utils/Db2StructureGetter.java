@@ -16,7 +16,7 @@
 
 package org.riverock.dbrevision.utils;
 
-import org.riverock.dbrevision.schema.db.DbSchema;
+import org.riverock.dbrevision.schema.db.v3.DbSchema;
 import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.db.DatabaseFactory;
 import org.riverock.dbrevision.db.DatabaseManager;

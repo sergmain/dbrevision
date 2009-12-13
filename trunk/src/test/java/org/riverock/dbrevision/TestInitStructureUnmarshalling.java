@@ -20,7 +20,7 @@ import java.io.InputStream;
 
 import junit.framework.TestCase;
 
-import org.riverock.dbrevision.schema.db.DbSchema;
+import org.riverock.dbrevision.schema.db.v3.DbSchema;
 import org.riverock.dbrevision.utils.Utils;
 
 /**

@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import org.riverock.dbrevision.schema.db.Patch;
+import org.riverock.dbrevision.schema.db.v3.Patch;
 import org.riverock.dbrevision.exception.TwoPatchesWithEmptyPreviousPatchException;
 import org.riverock.dbrevision.exception.FirstPatchNotFoundException;
 import org.riverock.dbrevision.exception.TwoPatchesWithSameNameException;

@@ -17,8 +17,8 @@ package org.riverock.dbrevision.system;
 
 import java.io.OutputStream;
 
-import org.riverock.dbrevision.schema.db.DbSchema;
-import org.riverock.dbrevision.schema.db.DbTable;
+import org.riverock.dbrevision.schema.db.v3.DbSchema;
+import org.riverock.dbrevision.schema.db.v3.DbTable;
 import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.db.DatabaseStructureManager;

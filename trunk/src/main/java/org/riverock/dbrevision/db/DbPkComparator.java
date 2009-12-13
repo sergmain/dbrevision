@@ -18,7 +18,7 @@ package org.riverock.dbrevision.db;
 import java.util.Comparator;
 import java.io.Serializable;
 
-import org.riverock.dbrevision.schema.db.DbPrimaryKeyColumn;
+import org.riverock.dbrevision.schema.db.v3.DbPrimaryKeyColumn;
 
 /**
  * @author Sergei Maslyukov

@@ -23,12 +23,12 @@ import java.sql.SQLException;
 
 
 
-import org.riverock.dbrevision.schema.db.DbSchema;
-import org.riverock.dbrevision.schema.db.DbSequence;
-import org.riverock.dbrevision.schema.db.DbTable;
-import org.riverock.dbrevision.schema.db.DbView;
-import org.riverock.dbrevision.schema.db.DbViewReplacement;
-import org.riverock.dbrevision.schema.db.DbSequenceReplacement;
+import org.riverock.dbrevision.schema.db.v3.DbSchema;
+import org.riverock.dbrevision.schema.db.v3.DbSequence;
+import org.riverock.dbrevision.schema.db.v3.DbTable;
+import org.riverock.dbrevision.schema.db.v3.DbView;
+import org.riverock.dbrevision.schema.db.v3.DbViewReplacement;
+import org.riverock.dbrevision.schema.db.v3.DbSequenceReplacement;
 import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.db.DatabaseStructureManager;

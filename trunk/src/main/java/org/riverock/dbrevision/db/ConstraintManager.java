@@ -18,6 +18,7 @@ package org.riverock.dbrevision.db;
 
 import org.riverock.dbrevision.exception.DbRevisionException;
 import org.riverock.dbrevision.utils.DbUtils;
+import org.riverock.dbrevision.schema.db.v3.*;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;

@@ -23,12 +23,12 @@ import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.util.List;
 
-import org.riverock.dbrevision.schema.db.DbDataFieldData;
-import org.riverock.dbrevision.schema.db.DbField;
-import org.riverock.dbrevision.schema.db.DbForeignKey;
-import org.riverock.dbrevision.schema.db.DbSequence;
-import org.riverock.dbrevision.schema.db.DbTable;
-import org.riverock.dbrevision.schema.db.DbView;
+import org.riverock.dbrevision.schema.db.v3.DbDataFieldData;
+import org.riverock.dbrevision.schema.db.v3.DbField;
+import org.riverock.dbrevision.schema.db.v3.DbForeignKey;
+import org.riverock.dbrevision.schema.db.v3.DbSequence;
+import org.riverock.dbrevision.schema.db.v3.DbTable;
+import org.riverock.dbrevision.schema.db.v3.DbView;
 import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.exception.DbRevisionException;
 import org.riverock.dbrevision.utils.DbUtils;
