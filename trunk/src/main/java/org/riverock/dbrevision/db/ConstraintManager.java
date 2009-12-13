@@ -16,7 +16,6 @@
 
 package org.riverock.dbrevision.db;
 
-import org.riverock.dbrevision.schema.db.*;
 import org.riverock.dbrevision.exception.DbRevisionException;
 import org.riverock.dbrevision.utils.DbUtils;
 
@@ -29,7 +28,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+
 
 /**
  * User: SergeMaslyukov
@@ -37,8 +36,7 @@ import org.apache.log4j.Logger;
  * Time: 14:34:29
  */
 public class ConstraintManager {
-    private final static Logger log = Logger.getLogger(DatabaseStructureManager.class);
-
+    
     /*
 
 ALTER TABLE auth_object_arm
@@ -152,11 +150,6 @@ CREATE INDEX idx_id_employee_b_advance ON b_advance
 
         if (checkPk != null && checkPk.getColumns().size() != 0) {
             String s = "primary key already exists";
-            System.out.println(s);
-            if (log.isInfoEnabled()) {
-                log.info(s);
-            }
-
             throw new DbRevisionException(s);
         }
 
@@ -255,11 +248,6 @@ CREATE INDEX idx_id_employee_b_advance ON b_advance
             DatabaseMetaData db = adapter.getConnection().getMetaData();
             ResultSet columnNames = null;
 
-            if (log.isDebugEnabled()) {
-                log.debug("Get data from getForeignKeys");
-            }
-
-            try {
                 columnNames = db.getImportedKeys(null, schemaName, tableName);
 
                 DbForeignKey key=null;
@@ -291,7 +279,7 @@ CREATE INDEX idx_id_employee_b_advance ON b_advance
 
                     key.getColumns().add(column);
 
-
+/*
                     if (log.isDebugEnabled()) {
                         log.debug(
                             columnNames.getString("PKTABLE_CAT") + " - " +
@@ -362,15 +350,10 @@ CREATE INDEX idx_id_employee_b_advance ON b_advance
                                 break;
                         }
                     }
+*/
                 }
                 columnNames.close();
                 columnNames = null;
-
-            }
-            catch (Exception e1) {
-                log.debug("Method getForeignKeys(null, null, tableName) not supported", e1);
-            }
-            log.debug("Done  data from getForeignKeys");
 
         }
         catch (Exception e) {
@@ -455,10 +438,6 @@ CREATE INDEX idx_id_employee_b_advance ON b_advance
 
     public static DbPrimaryKey getPk(Database adapter, String schemaPattern, String tablePattern) {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Get data from getPks");
-        }
-
         DbPrimaryKey pk=null;
         try {
             DatabaseMetaData db = adapter.getConnection().getMetaData();
@@ -480,6 +459,7 @@ CREATE INDEX idx_id_employee_b_advance ON b_advance
 
                 pk.getColumns().add(pkColumn);
 
+/*
                 if (log.isDebugEnabled()) {
                     log.debug(
                         pk.getC() + "." +
@@ -493,6 +473,7 @@ CREATE INDEX idx_id_employee_b_advance ON b_advance
                             ""
                     );
                 }
+*/
             }
             metaData.close();
             metaData = null;
@@ -501,15 +482,13 @@ CREATE INDEX idx_id_employee_b_advance ON b_advance
             throw new DbRevisionException(e1);
         }
 
-        if (log.isDebugEnabled()) {
-            log.debug("Done data from getPks");
-        }
         if (pk==null) {
             return null;
         }
 
         Collections.sort(pk.getColumns(), DbPkComparator.getInstance());
 
+/*
         if (log.isDebugEnabled()) {
             if (pk.getColumns().size() > 1) {
                 log.debug("Table with multicolumn PK.");
@@ -529,6 +508,7 @@ CREATE INDEX idx_id_employee_b_advance ON b_advance
                 }
             }
         }
+*/
         return pk;
     }
 
@@ -607,14 +587,15 @@ CREATE INDEX idx_id_employee_b_advance ON b_advance
             ps.executeUpdate();
         }
         catch (SQLException exc) {
+            String es = "Error. ";
             if (!adapter.testExceptionTableExists(exc)) {
-                log.error("sql " + sql);
-                log.error("code " + exc.getErrorCode());
-                log.error("state " + exc.getSQLState());
-                log.error("message " + exc.getMessage());
-                log.error("string " + exc.toString());
+                es += ("sql " + sql);
+                es += ("code " + exc.getErrorCode());
+                es += ("state " + exc.getSQLState());
+                es += ("message " + exc.getMessage());
+                es += ("string " + exc.toString());
             }
-            throw new DbRevisionException(exc);
+            throw new DbRevisionException(es, exc);
         }
         finally {
             DbUtils.close(ps);
@@ -627,10 +608,6 @@ CREATE INDEX idx_id_employee_b_advance ON b_advance
         try {
             DatabaseMetaData db = adapter.getConnection().getMetaData();
             ResultSet columnNames = null;
-
-            if (log.isDebugEnabled()) {
-                log.debug("Get data from getIndexes");
-            }
 
             columnNames = db.getIndexInfo(null, schemaName, tableName, false, false);
 
@@ -678,6 +655,7 @@ CREATE INDEX idx_id_employee_b_advance ON b_advance
                 key.getColumns().add(column);
 
 
+/*
                 if (log.isDebugEnabled()) {
                     log.debug(
                         key.getC() + " - " +
@@ -690,11 +668,10 @@ CREATE INDEX idx_id_employee_b_advance ON b_advance
                             column.isAsc() + " "
                     );
                 }
+*/
             }
             columnNames.close();
             columnNames = null;
-
-            log.debug("Done  data from getForeignKeys");
         }
         catch (Exception e) {
             throw new DbRevisionException("Error in getIndexes()", e);

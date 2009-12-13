@@ -15,6 +15,8 @@
  */
 package org.riverock.dbrevision.utils;
 
+import org.riverock.dbrevision.exception.DbRevisionException;
+
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -22,7 +24,7 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.sql.Connection;
 
-import org.apache.log4j.Logger;
+
 
 /**
  * @author Sergei Maslyukov
@@ -32,7 +34,6 @@ import org.apache.log4j.Logger;
  *         $Id$
  */
 public class DbUtils {
-    private final static Logger log = Logger.getLogger(DbUtils.class);
 
     /**
      * Get result of query as Long
@@ -82,8 +83,8 @@ public class DbUtils {
             return null;
         }
         catch (SQLException e) {
-            log.error("error getting long value from sql:\n" + sql, e);
-            throw e;
+            final String es = "error getting long value from sql:\n" + sql;
+            throw new DbRevisionException(es, e);
         }
         finally {
             close(rs, stmt);
@@ -125,18 +126,17 @@ public class DbUtils {
             }
         }
         catch (SQLException e) {
-            log.error("SQL query:\n" + query);
+            String es = ("SQL query:\n" + query);
             try {
                 if (params != null) {
                     for (int ii = 0; ii < params.length; ii++)
-                        log.error("parameter #" + (ii + 1) + ": " + (params[ii] != null ? params[ii].toString() : null));
+                        es += ("parameter #" + (ii + 1) + ": " + (params[ii] != null ? params[ii].toString() : null));
                 }
             }
             catch (Throwable e1) {
-                log.error("Error while output parameters: " + e1.toString());
+                es += ("Error while output parameters: " + e1.toString());
             }
-            log.error("SQLException", e);
-            throw e;
+            throw new DbRevisionException(es, e);
         }
         finally {
             close(stmt);
@@ -189,9 +189,9 @@ public class DbUtils {
 
             return temp;
         }
-        catch (SQLException exc) {
-            log.error("Error get Boolean field '" + f + "'", exc);
-            throw exc;
+        catch (SQLException e) {
+            final String es = "Error get Boolean field '" + f + "'";
+            throw new DbRevisionException(es, e);
         }
     }
 
@@ -230,9 +230,9 @@ public class DbUtils {
 
             return temp;
         }
-        catch (SQLException exc) {
-            log.error("Error get Long field '" + f + "'", exc);
-            throw exc;
+        catch (SQLException e) {
+            final String es = "Error get Long field '" + f + "'";
+            throw new DbRevisionException(es, e);
         }
     }
 
@@ -264,9 +264,9 @@ public class DbUtils {
 
             return temp;
         }
-        catch (SQLException exc) {
-            log.error("Error get Integer field '" + f + "' from ResultSet", exc);
-            throw exc;
+        catch (SQLException e) {
+            final String es = "Error get Integer field '" + f + "' from ResultSet";
+            throw new DbRevisionException(es, e);
         }
     }
 
@@ -298,9 +298,9 @@ public class DbUtils {
 
             return obj.toString();
         }
-        catch (SQLException exc) {
-            log.error("Error get String field '" + f + "' from ResultSet, sql error code ", exc);
-            throw exc;
+        catch (SQLException e) {
+            final String es = "Error get String field '" + f + "' from ResultSet, sql error code ";
+            throw new DbRevisionException(es, e);
         }
     }
 

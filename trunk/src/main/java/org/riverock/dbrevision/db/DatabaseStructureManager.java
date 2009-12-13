@@ -24,9 +24,8 @@ import java.util.List;
 import javax.xml.datatype.DatatypeFactory;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.log4j.Logger;
 
-import org.riverock.dbrevision.schema.db.*;
+
 import org.riverock.dbrevision.exception.DbRevisionException;
 import org.riverock.dbrevision.utils.DbUtils;
 
@@ -38,7 +37,6 @@ import org.riverock.dbrevision.utils.DbUtils;
  */
 @SuppressWarnings({"UnusedAssignment"})
 public class DatabaseStructureManager {
-    private final static Logger log = Logger.getLogger(DatabaseStructureManager.class);
     private static final int MAX_LENGTH_BLOB = 1000000;
     private static final String CURRENT = "CURRENT";
     private static final String TIMESTAMP = "TIMESTAMP";
@@ -124,7 +122,6 @@ public class DatabaseStructureManager {
 
     public static void setDataTable(Database adapter, DbTable table) {
         if (table == null || table.getD() == null || table.getD().getRecords().isEmpty()) {
-            log.debug("Table is empty");
             return;
         }
 
@@ -284,14 +281,13 @@ public class DatabaseStructureManager {
             }
             catch (Exception e) {
                 String es = "Error get data for table " + table.getT();
-                log.error(es, e);
                 int k=0;
                 for (DbDataFieldData data : record.getF()) {
-                    log.error("date: " + data.getD());
-                    log.error("is null: " + data.isNll());
-                    log.error("java type: " + table.getFields().get(k).getType());
-                    log.error("number: " + data.getN());
-                    log.error("string: " + data.getS());
+                    es += (", date: " + data.getD());
+                    es += (", is null: " + data.isNll());
+                    es += (", java type: " + table.getFields().get(k).getType());
+                    es += (", number: " + data.getN());
+                    es += (", string: " + data.getS());
                     k++;
                 }
                 throw new DbRevisionException(es, e);
@@ -326,14 +322,16 @@ public class DatabaseStructureManager {
             ResultSetMetaData meta = rs.getMetaData();
 
             if (table.getFields().size() != meta.getColumnCount()) {
-                log.fatal("table " + table.getT());
-                log.fatal("count field " + table.getFields().size());
-                log.fatal("meta count field " + meta.getColumnCount());
+                String es = "Count for field in ResultSet not equals in DbTable. May be you forgot initialize DbFields. ";
+
+                es += (", table " + table.getT());
+                es += (", count field " + table.getFields().size());
+                es += (", meta count field " + meta.getColumnCount());
                 for (DbField field : table.getFields()) {
-                    log.fatal("\tfield " + field.getName());
+                    es += (", field " + field.getName());
                 }
 
-                throw new DbRevisionException("Count for field in ResultSet not equals in DbTable. May be you forgot initialize DbFields.");
+                throw new DbRevisionException(es);
             }
 
             byte[] bytes=null;
@@ -440,7 +438,6 @@ public class DatabaseStructureManager {
         }
         catch (Exception e) {
             String es = "Error get data for table " + table.getT();
-            log.error(es, e);
             throw new DbRevisionException(es, e);
         }
         finally {
@@ -490,16 +487,12 @@ public class DatabaseStructureManager {
                 table.setT(meta.getString("TABLE_NAME"));
                 table.setR(meta.getString("REMARKS"));
 
-                if (log.isDebugEnabled()) {
-                    log.debug("Table - " + table.getT() + "  remak - " + table.getR());
-                }
-
                 v.add(table);
             }
         }
         catch (Exception e) {
-            log.error("Error get list of view", e);
-            throw new DbRevisionException(e);
+            final String es = "Error get list of view";
+            throw new DbRevisionException(es, e);
         }
         return v;
     }
@@ -643,25 +636,12 @@ public class DatabaseStructureManager {
                     }
                 }
 
-                if (log.isDebugEnabled()) {
-                    log.debug("Field name - " + field.getName());
-                    log.debug("Field dataType - " + field.getDbtype());
-                    log.debug("Field type - " + field.getType());
-                    log.debug("Field size - " + field.getSize());
-                    log.debug("Field decimalDigit - " + field.getDigit());
-                    log.debug("Field nullable - " + field.getNullable());
-
-                    if (field.getNullable() == DatabaseMetaData.columnNullableUnknown) {
-                        log.debug("Table " + tablePattern + " field - " + field.getName() + " with unknown nullable status");
-                    }
-
-                }
                 v.add(field);
             }
         }
         catch (Exception e) {
-            log.error("schemaPattern: " + schemaPattern + ", tablePattern: " + tablePattern, e);
-            throw new DbRevisionException(e);
+            final String es = "schemaPattern: " + schemaPattern + ", tablePattern: " + tablePattern;
+            throw new DbRevisionException(es, e);
         }
         finally {
             if (metaField != null) {
@@ -835,10 +815,6 @@ public class DatabaseStructureManager {
         final Database db_, final DbTable table, final DbField sourceField, final DbField targetField
     ) {
         if (table == null || sourceField == null || targetField == null) {
-            if (log.isInfoEnabled()) {
-                log.info("copy field data failed, some objects is null");
-            }
-
             return;
         }
 
@@ -855,9 +831,7 @@ public class DatabaseStructureManager {
             String errorString = "Error copy data from field '" + table.getT() + '.' + sourceField.getName() +
                 "' to '" + table.getT() + '.' + targetField.getName() + "' " + e.getErrorCode() + "\nsql - " + sql_;
 
-            log.error(errorString, e);
-            System.out.println(errorString);
-            throw new DbRevisionException(e);
+            throw new DbRevisionException(errorString, e);
         }
         finally {
             DbUtils.close(ps);

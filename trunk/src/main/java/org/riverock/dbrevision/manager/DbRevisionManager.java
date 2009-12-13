@@ -36,7 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+
 
 /**
  * User: SergeMaslyukov
@@ -44,7 +44,6 @@ import org.apache.log4j.Logger;
  * Time: 20:01:14
  */
 public class DbRevisionManager {
-    private final static Logger log = Logger.getLogger(DbRevisionManager.class);
 
     private File path=null;
     
@@ -142,7 +141,7 @@ public class DbRevisionManager {
                     inputStream.close();
                 }
                 catch (IOException e1) {
-                    log.error("Error close input stream", e1);
+                    //
                 }
             }
         }

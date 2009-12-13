@@ -29,7 +29,7 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+
 
 import oracle.jdbc.driver.OracleResultSet;
 import oracle.sql.CLOB;
@@ -53,7 +53,6 @@ import org.riverock.dbrevision.utils.DbUtils;
  * $Id: PostgreeSqlDatabase.java 1141 2006-12-14 14:43:29Z serg_main $
  */
 public class PostgreeSqlDatabase extends Database {
-    private static Logger log = Logger.getLogger(PostgreeSqlDatabase.class);
 
     public int getMaxLengthStringField() {
         return 4000;
@@ -310,8 +309,6 @@ DEFERRABLE INITIALLY DEFERRED
     }
 
     public void addColumn(DbTable table, DbField field) {
-        if (log.isDebugEnabled())
-            log.debug("addColumn(DbTable table, DbField field)");
 
         String sql = "alter table " + table.getT() + " add ( " + field.getName() + " ";
 
@@ -373,9 +370,6 @@ DEFERRABLE INITIALLY DEFERRED
             sql += " NOT NULL ";
         }
         sql += ")";
-
-        if (log.isDebugEnabled())
-            log.debug("addColumn sql - " + sql);
 
         Statement ps = null;
         try {
@@ -457,9 +451,6 @@ DEFERRABLE INITIALLY DEFERRED
             rs = ps.executeQuery();
 
             if (rs.next()) {
-                if (log.isDebugEnabled())
-                    log.debug("Found text of view " + view.getS() + "." + view.getT());
-
                 return getStream(rs, "TEXT", 0x10000);
             }
         }
@@ -617,8 +608,6 @@ DEFERRABLE INITIALLY DEFERRED
             flag = true;
             ret = new String(buffer, 0, length, "utf-8");
 
-            if (log.isDebugEnabled())
-                log.debug("text from stream\n" + ret);
         }
 
         // Close input stream
@@ -627,7 +616,7 @@ DEFERRABLE INITIALLY DEFERRED
             instream = null;
         }
         catch (Exception e) {
-            log.warn("error close of stream", e);
+            //
         }
 
         if (flag)

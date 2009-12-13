@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import org.riverock.dbrevision.schema.db.*;
 import org.riverock.dbrevision.exception.DbRevisionException;
 
 /**

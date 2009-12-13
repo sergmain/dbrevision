@@ -27,7 +27,7 @@ import javax.xml.transform.stream.StreamSource;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateFormatUtils;
-import org.apache.log4j.Logger;
+
 
 import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
 
@@ -41,10 +41,6 @@ import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
  *         $Id$
  */
 public class Utils {
-    /**
-     * Logger for this class
-     */
-    private final static Logger log = Logger.getLogger(Utils.class);
 
     /**
      * Put value in map. If map already contained value for specified key, this value and previous value
@@ -328,45 +324,26 @@ public class Utils {
         Object obj;
         try {
             ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-            if (log.isDebugEnabled()) {
-                log.debug("Starting create class object for name '" + s + "'");
-                log.debug("    class loader:\n" + classLoader +"\nhash: "+ classLoader.hashCode() );
-            }
 
             if (s == null)
                 return null;
 
             Class className;
 
-            if (log.isDebugEnabled())
-                log.debug("Create class for name '" + s + "'");
-
             className = Class.forName(s, true, classLoader);
-
-            if (log.isDebugEnabled())
-                log.debug("Class for name '" + s + "' is " + className);
 
             if (className == null)
                 throw new ClassNotFoundException("Error create class for name " + s);
 
-            if (log.isDebugEnabled())
-                log.debug("Create object for name '" + s + "'");
-
             obj = className.newInstance();
-
-            if (log.isDebugEnabled())
-                log.debug("Object for name '" + s + "' is " + obj);
         }
         catch (ClassNotFoundException e) {
-            log.error("Error create reflection object for class name '" + s + "'", e);
             throw e;
         }
         catch (InstantiationException e) {
-            log.error("Error create reflection object for class name '" + s + "'", e);
             throw e;
         }
         catch (IllegalAccessException e) {
-            log.error("Error create reflection object for class name '" + s + "'", e);
             throw e;
         }
         return obj;
@@ -399,7 +376,6 @@ public class Utils {
             return s.getBytes("utf-8");
         }
         catch (java.io.UnsupportedEncodingException e) {
-            log.warn("String.getBytes(\"utf-8\") not supported");
             return new byte[0];
         }
     }

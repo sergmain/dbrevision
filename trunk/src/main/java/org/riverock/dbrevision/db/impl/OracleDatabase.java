@@ -30,7 +30,7 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+
 
 import oracle.jdbc.OracleResultSet;
 import oracle.sql.CLOB;
@@ -55,7 +55,6 @@ import org.riverock.dbrevision.utils.DbUtils;
  */
 @SuppressWarnings({"UnusedAssignment"})
 public class OracleDatabase extends Database {
-    private final static Logger log = Logger.getLogger(OracleDatabase.class);
 
     public int getMaxLengthStringField() {
         return 4000;
@@ -372,8 +371,6 @@ ALTER TABLE AUTH_ACCESS_GROUP
     }
 
     public void addColumn(DbTable table, DbField field) {
-        if (log.isDebugEnabled())
-            log.debug("addColumn(DbTable table, DbField field)");
 
         String sql = "alter table " + table.getT() + " add ( " + field.getName() + " ";
 
@@ -446,10 +443,6 @@ ALTER TABLE AUTH_ACCESS_GROUP
             sql += " NOT NULL ";
         }
         sql += ")";
-
-        if (log.isDebugEnabled()) {
-            log.debug("Oracle addColumn sql - " + sql);
-        }
 
         Statement ps = null;
         try {
@@ -528,10 +521,6 @@ ALTER TABLE AUTH_ACCESS_GROUP
             rs = ps.executeQuery();
 
             if (rs.next()) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Found text of view " + view.getS() + "." + view.getT());
-                }
-
                 return getStream(rs, "TEXT", 0x10000);
             }
             return null;
@@ -688,9 +677,6 @@ ALTER TABLE AUTH_ACCESS_GROUP
         if ((length = instream.read(buffer)) != -1) {
             flag = true;
             ret = new String(buffer, 0, length, "utf-8");
-
-            if (log.isDebugEnabled())
-                log.debug("text from stream\n" + ret);
         }
 
         // Close input stream
@@ -699,7 +685,7 @@ ALTER TABLE AUTH_ACCESS_GROUP
             instream = null;
         }
         catch (Exception e) {
-            log.warn("error close of stream", e);
+            //
         }
 
 

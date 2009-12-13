@@ -25,7 +25,7 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+
 
 import org.riverock.dbrevision.schema.db.DbField;
 import org.riverock.dbrevision.schema.db.DbForeignKey;
@@ -49,7 +49,6 @@ import org.riverock.dbrevision.utils.DbUtils;
  */
 @SuppressWarnings({"UnusedAssignment"})
 public final class DatabaseManager {
-    private static Logger log = Logger.getLogger(DatabaseManager.class);
 
     private static final String DEFAULT_DATE_VALUES[] =
         {"sysdate", "current_timestamp", "current_time", "current_date"};
@@ -88,10 +87,6 @@ public final class DatabaseManager {
         final Database db_, final DbTable fieldsList, final String sourceTable, final String targetT
     ) {
         if (fieldsList == null || sourceTable == null || targetT == null) {
-            if (log.isInfoEnabled()) {
-                log.info("copy data failed, some objects is null");
-            }
-
             return;
         }
 
@@ -123,8 +118,6 @@ public final class DatabaseManager {
             String errorString = "Error copy data from table '" + sourceTable +
                 "' to '" + targetT + "' " + e.getErrorCode() + "\nsql - " + sql_;
 
-            log.error(errorString, e);
-            System.out.println(errorString);
             throw new DbRevisionException(errorString, e);
         }
         finally {
@@ -135,7 +128,6 @@ public final class DatabaseManager {
 
     public static void duplicateTable(final Database db_, final DbTable srcTable, final String targetT) {
         if (srcTable == null) {
-            log.error("duplicate table failed, source table object is null");
             return;
         }
 
@@ -344,7 +336,6 @@ public final class DatabaseManager {
                     }
                     catch (Exception e1) {
                         String es = "Error drop view";
-                        log.error(es, e1);
                         throw new DbRevisionException(es, e1);
                     }
 
@@ -559,8 +550,8 @@ public final class DatabaseManager {
             return list;
         }
         catch (SQLException e) {
-            log.error("error getting long value fron sql '" + sql + "'", e);
-            throw new DbRevisionException(e);
+            final String es = "error getting long value fron sql '" + sql + "'";
+            throw new DbRevisionException(es, e);
         }
         finally {
             DbUtils.close(rs, stmt);
@@ -602,7 +593,6 @@ public final class DatabaseManager {
         }
         catch (SQLException e) {
             final String es = "error getting long value fron sql '" + sql + "'";
-            log.error(es, e);
             throw new RuntimeException(es, e);
         }
         finally {

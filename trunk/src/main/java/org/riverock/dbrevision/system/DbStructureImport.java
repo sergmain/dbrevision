@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.sql.Statement;
 import java.sql.SQLException;
 
-import org.apache.log4j.Logger;
+
 
 import org.riverock.dbrevision.schema.db.DbSchema;
 import org.riverock.dbrevision.schema.db.DbSequence;
@@ -49,14 +49,12 @@ import org.riverock.dbrevision.exception.ViewAlreadyExistException;
  */
 @SuppressWarnings({"UnusedAssignment"})
 public class DbStructureImport {
-    private static Logger log = Logger.getLogger(DbStructureImport.class);
 
     public static void importStructure(Database database, InputStream stream, boolean isData ) {
         importStructure(database, stream, null, isData);
     }
 
     public static void importStructure(Database database, InputStream stream, InputStream replacementSchemaStream, boolean isData ) {
-        log.debug("Unmarshal data from inputstream");
         DbSchema schema;
         DbSchema replacementSchema=null;
         try {
@@ -67,7 +65,6 @@ public class DbStructureImport {
         }
         catch (Exception e) {
             String es = "Error unmarshal DB structure from input stream";
-            log.error(es, e);
             throw new DbRevisionException(es, e);
         }
         importStructure(database, schema, replacementSchema, isData);
@@ -82,12 +79,10 @@ public class DbStructureImport {
 
             if (!DatabaseManager.isSkipTable(table.getT())) {
                 try {
-                    log.debug("create table " + table.getT());
                     database.createTable(table);
                 }
                 catch (Exception e) {
                     String es = "Error create table";
-                    log.debug(es + table.getT(), e);
                     throw new DbRevisionException(es, e);
                 }
                 if (isData) {
@@ -97,15 +92,10 @@ public class DbStructureImport {
                     }
                     catch (SQLException e) {
                         String es = "Error store date";
-                        log.debug(es + table.getT(), e);
                         throw new DbRevisionException(es, e);
                     }
                 }
             }
-            else {
-                log.debug("skip table " + table.getT());
-            }
-
         }
 
         List<DbViewReplacement> dbViewReplacements = new ArrayList<DbViewReplacement>();
@@ -192,13 +182,11 @@ public class DbStructureImport {
                 }
                 catch (Exception e1) {
                     String es = "Error create view - ";
-                    log.error(es, e1);
                     throw new DbRevisionException(es, e1);
                 }
             }
             catch (Exception e) {
                 String es = "Error create view";
-                log.debug(es,e);
                 throw new DbRevisionException(es, e);
             }
         }

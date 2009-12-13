@@ -32,7 +32,7 @@ import java.util.List;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+
 
 import org.riverock.dbrevision.schema.db.DbDataFieldData;
 import org.riverock.dbrevision.schema.db.DbField;
@@ -60,7 +60,6 @@ import org.riverock.dbrevision.utils.DbUtils;
  */
 @SuppressWarnings({"UnusedAssignment"})
 public final class MySqlDatabase extends Database {
-    private final static Logger log = Logger.getLogger(MySqlDatabase.class);
 
     /**
      * get family for this adapter
@@ -359,7 +358,6 @@ public final class MySqlDatabase extends Database {
         }
         catch (SQLException e) {
             String es = "Error create table\nSQL:\n" + sql + "\n";
-            log.error(es);
             throw new DbRevisionException(es, e);
         }
         finally {
@@ -475,9 +473,6 @@ public final class MySqlDatabase extends Database {
             sql += " NOT NULL ";
         }
 
-        if (log.isDebugEnabled())
-            log.debug("MySql addColumn sql - \n" + sql);
-
         Statement ps = null;
         try {
             ps = this.getConnection().createStatement();
@@ -542,7 +537,6 @@ public final class MySqlDatabase extends Database {
                 throw new TableNotFoundException("View "+view.getT()+" refered to unknown table.");
             }
             String errorString = "Error create view. Error code " + e.getErrorCode() + "\n" + sql_;
-            log.error(errorString, e);
             throw new DbRevisionException(errorString, e);
         }
         finally {
@@ -600,8 +594,6 @@ public final class MySqlDatabase extends Database {
 
         if (e instanceof SQLException) {
             SQLException exception = (SQLException) e;
-            log.error("Error code: " + exception.getErrorCode());
-            log.error("getSQLState : " + exception.getSQLState());
             if (exception.getErrorCode() == 1146) {
                 return true;
             }
@@ -616,8 +608,6 @@ public final class MySqlDatabase extends Database {
     public boolean testExceptionIndexUniqueKey(Exception e) {
         if (e instanceof SQLException) {
             SQLException exception = (SQLException) e;
-            log.error("Error code: " + exception.getErrorCode());
-            log.error("getSQLState : " + exception.getSQLState());
             if (exception.getErrorCode() == 1062) {
                 return true;
             }
