@@ -16,6 +16,7 @@
 
 package org.riverock.dbrevision.db;
 
+import org.apache.commons.lang3.StringUtils;
 import org.riverock.dbrevision.exception.DbRevisionException;
 import org.riverock.dbrevision.utils.DbUtils;
 import org.riverock.dbrevision.schema.db.v3.*;
@@ -27,9 +28,6 @@ import java.sql.ResultSet;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
-
-import org.apache.commons.lang.StringUtils;
-
 
 /**
  * User: SergeMaslyukov

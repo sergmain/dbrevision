@@ -28,9 +28,7 @@ import java.util.List;
 
 import javax.xml.bind.JAXBException;
 
-import org.apache.commons.lang.StringUtils;
-
-
+import org.apache.commons.lang3.StringUtils;
 import org.riverock.dbrevision.Constants;
 import org.riverock.dbrevision.schema.db.v3.DbSchema;
 import org.riverock.dbrevision.schema.db.v3.Patch;
@@ -195,7 +193,7 @@ public class Version implements Serializable {
             }
         }
         DbStructureImport.importStructure(database, dbSchema, true);
-        ManagerDaoFactory.getManagerDao().makrCurrentVersion(database, modulePath.getName(), versionName, null);
+        ManagerDaoFactory.getManagerDao().markCurrentVersion(database, modulePath.getName(), versionName, null);
         try {
             database.getConnection().commit();
         }
@@ -217,7 +215,7 @@ public class Version implements Serializable {
                     continue;
                 }
                 PatchService.processPatch(database, patch);
-                ManagerDaoFactory.getManagerDao().makrCurrentVersion(database, modulePath.getName(), versionName, patch.getName());
+                ManagerDaoFactory.getManagerDao().markCurrentVersion(database, modulePath.getName(), versionName, patch.getName());
                 try {
                     database.getConnection().commit();
                 }
@@ -225,7 +223,7 @@ public class Version implements Serializable {
                     throw new DbRevisionException(e);
                 }
             }
-            ManagerDaoFactory.getManagerDao().makrCurrentVersion(database, modulePath.getName(), versionName, null);
+            ManagerDaoFactory.getManagerDao().markCurrentVersion(database, modulePath.getName(), versionName, null);
             try {
                 database.getConnection().commit();
             }
@@ -254,7 +252,7 @@ public class Version implements Serializable {
         
         if (firstNotProcessed!=null && firstNotProcessed.getName().equals(patchName)) {
             PatchService.processPatch(database, firstNotProcessed);
-            ManagerDaoFactory.getManagerDao().makrCurrentVersion(database, modulePath.getName(), versionName, firstNotProcessed.getName());
+            ManagerDaoFactory.getManagerDao().markCurrentVersion(database, modulePath.getName(), versionName, firstNotProcessed.getName());
             database.getConnection().commit();
         }
     }

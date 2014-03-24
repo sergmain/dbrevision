@@ -31,9 +31,8 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.lang.StringUtils;
 
-
+import org.apache.commons.lang3.StringUtils;
 import org.riverock.dbrevision.schema.db.v3.DbDataFieldData;
 import org.riverock.dbrevision.schema.db.v3.DbField;
 import org.riverock.dbrevision.schema.db.v3.DbForeignKey;

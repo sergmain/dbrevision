@@ -33,7 +33,7 @@ public interface ManagerDao {
 
     void checkDbRevisionTableExist(Database database);
 
-    void makrCurrentVersion(Database database, String moduleName, String versionName, String patchName);
+    void markCurrentVersion(Database database, String moduleName, String versionName, String patchName);
 
     RevisionBean getRevision(Database database, String moduleName);
 }
