@@ -17,8 +17,7 @@ package org.riverock.dbrevision.system;
 
 import java.io.FileInputStream;
 
-import org.apache.commons.lang.StringUtils;
-
+import org.apache.commons.lang3.StringUtils;
 import org.riverock.dbrevision.schema.db.v3.DbField;
 import org.riverock.dbrevision.schema.db.v3.DbForeignKey;
 import org.riverock.dbrevision.schema.db.v3.DbSchema;

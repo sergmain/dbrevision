@@ -139,7 +139,7 @@ public class ManagerDaoImpl implements ManagerDao {
         }
     }
 
-    public void makrCurrentVersion(Database database, String moduleName, String versionName, String patchName) {
+    public void markCurrentVersion(Database database, String moduleName, String versionName, String patchName) {
         checkDbRevisionTableExist(database);
         ResultSet rs = null;
         PreparedStatement ps = null;

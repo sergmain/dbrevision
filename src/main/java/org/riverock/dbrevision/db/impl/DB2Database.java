@@ -28,9 +28,7 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
-
-import org.apache.commons.lang.StringUtils;
-
+import org.apache.commons.lang3.StringUtils;
 import org.riverock.dbrevision.schema.db.v3.DbDataFieldData;
 import org.riverock.dbrevision.schema.db.v3.DbField;
 import org.riverock.dbrevision.schema.db.v3.DbForeignKey;

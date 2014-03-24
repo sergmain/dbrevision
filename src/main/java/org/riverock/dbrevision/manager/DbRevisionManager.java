@@ -16,6 +16,7 @@
 
 package org.riverock.dbrevision.manager;
 
+import org.apache.commons.lang3.StringUtils;
 import org.riverock.dbrevision.Constants;
 import org.riverock.dbrevision.utils.DbUtils;
 import org.riverock.dbrevision.schema.db.v3.Patch;
@@ -34,9 +35,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
-
 
 /**
  * User: SergeMaslyukov

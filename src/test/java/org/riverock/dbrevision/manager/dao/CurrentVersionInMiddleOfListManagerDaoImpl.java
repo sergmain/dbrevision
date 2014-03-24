@@ -47,7 +47,7 @@ public class CurrentVersionInMiddleOfListManagerDaoImpl implements ManagerDao {
         //To change body of implemented methods use File | Settings | File Templates.
     }
 
-    public void makrCurrentVersion(Database database, String moduleName, String versionName, String patchName) {
+    public void markCurrentVersion(Database database, String moduleName, String versionName, String patchName) {
         //To change body of implemented methods use File | Settings | File Templates.
     }
 

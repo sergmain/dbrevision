@@ -15,36 +15,20 @@
  */
 package org.riverock.dbrevision.db.impl;
 
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.sql.Blob;
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Types;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
-
-
-import org.riverock.dbrevision.schema.db.v3.DbDataFieldData;
-import org.riverock.dbrevision.schema.db.v3.DbField;
-import org.riverock.dbrevision.schema.db.v3.DbForeignKey;
-import org.riverock.dbrevision.schema.db.v3.DbPrimaryKey;
-import org.riverock.dbrevision.schema.db.v3.DbPrimaryKeyColumn;
-import org.riverock.dbrevision.schema.db.v3.DbSequence;
-import org.riverock.dbrevision.schema.db.v3.DbTable;
-import org.riverock.dbrevision.schema.db.v3.DbView;
+import org.apache.commons.lang3.StringUtils;
 import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.db.DatabaseManager;
 import org.riverock.dbrevision.exception.DbRevisionException;
-import org.riverock.dbrevision.exception.ViewAlreadyExistException;
 import org.riverock.dbrevision.exception.TableNotFoundException;
+import org.riverock.dbrevision.exception.ViewAlreadyExistException;
+import org.riverock.dbrevision.schema.db.v3.*;
 import org.riverock.dbrevision.utils.DbUtils;
+
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -53,7 +37,6 @@ import org.riverock.dbrevision.utils.DbUtils;
  * $Id: HyperSonicDatabase.java 1141 2006-12-14 14:43:29Z serg_main $
  *
  */
-@SuppressWarnings({"UnusedAssignment"})
 public class HyperSonicDatabase extends Database {
 
     /**
@@ -125,6 +108,7 @@ public class HyperSonicDatabase extends Database {
         }
         finally {
             DbUtils.close(ps);
+            //noinspection UnusedAssignment
             ps = null;
         }
     }
@@ -163,6 +147,7 @@ public class HyperSonicDatabase extends Database {
         }
     }
 
+    @SuppressWarnings("UnusedAssignment")
     public void createTable(DbTable table) {
         if (table == null || table.getFields().isEmpty()) {
             return;
@@ -311,6 +296,7 @@ public class HyperSonicDatabase extends Database {
         dropTable(table.getT());
     }
 
+    @SuppressWarnings("UnusedAssignment")
     public void dropTable(String nameTable) {
         if (nameTable == null) {
             return;
@@ -413,6 +399,7 @@ public class HyperSonicDatabase extends Database {
         }
         finally {
             DbUtils.close(ps);
+            //noinspection UnusedAssignment
             ps = null;
         }
     }
@@ -426,7 +413,7 @@ public class HyperSonicDatabase extends Database {
     }
 
     public List<DbSequence> getSequnceList(String schemaPattern) {
-        return new ArrayList<DbSequence>();
+        return new ArrayList<>();
     }
 
     public String getViewText(DbView view) {
@@ -456,6 +443,7 @@ public class HyperSonicDatabase extends Database {
             throw new DbRevisionException(e);
         } finally {
             DbUtils.close(ps);
+            //noinspection UnusedAssignment
             ps = null;
         }
     }
@@ -511,7 +499,7 @@ public class HyperSonicDatabase extends Database {
 
         if (e instanceof SQLException) {
             if (((SQLException) e).getErrorCode() == -(org.hsqldb.Trace.VIOLATION_OF_UNIQUE_INDEX) &&
-                (e.toString().indexOf(index) != -1))
+                (e.toString().contains(index)))
                 return true;
         }
         return false;
