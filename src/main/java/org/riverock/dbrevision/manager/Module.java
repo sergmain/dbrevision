@@ -16,6 +16,8 @@
 
 package org.riverock.dbrevision.manager;
 
+import lombok.Data;
+import lombok.extern.log4j.Log4j;
 import org.riverock.dbrevision.db.Database;
 import org.riverock.dbrevision.exception.FirstVersionWithPatchdException;
 import org.riverock.dbrevision.exception.ModulePathNotFoundException;
@@ -32,6 +34,8 @@ import java.util.List;
  * Date: 28.07.2007
  * Time: 20:03:59
  */
+@Data
+@Log4j
 public class Module implements Serializable {
 
     List<Version> versions=new ArrayList<Version>();
@@ -86,6 +90,7 @@ public class Module implements Serializable {
 
     public void apply() {
         if (versions.isEmpty()) {
+            log.debug("org.riverock.dbrevision.manager.Module.apply() - versions is empty");
             return;
         }
         if (DbRevisionChecker.isModuleReleased(database, name)) { 

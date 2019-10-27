@@ -28,6 +28,8 @@ import java.util.List;
 
 import javax.xml.bind.JAXBException;
 
+import lombok.SneakyThrows;
+import lombok.extern.log4j.Log4j;
 import org.apache.commons.lang3.StringUtils;
 import org.riverock.dbrevision.Constants;
 import org.riverock.dbrevision.schema.db.v3.DbSchema;
@@ -53,6 +55,7 @@ import org.riverock.dbrevision.utils.Utils;
  * Date: 28.07.2007
  * Time: 20:04:13
  */
+@Log4j
 public class Version implements Serializable {
 
     private Version previousVersion=null;
@@ -166,14 +169,14 @@ public class Version implements Serializable {
         }
     }
 
+    @SneakyThrows
     public void applyInitStructure() {
+        log.debug("org.riverock.dbrevision.manager.Version.applyInitStructure() - isComplete: " + isComplete);
         if (isComplete) {
             return;
         }
         DbSchema dbSchema;
-        FileInputStream inputStream=null;
-        try {
-            inputStream = new FileInputStream(initStructureFile);
+        try(FileInputStream inputStream = new FileInputStream(initStructureFile)) {
             dbSchema = Utils.getObjectFromXml(DbSchema.class, inputStream);
         }
         catch (JAXBException e) {
@@ -182,16 +185,7 @@ public class Version implements Serializable {
         catch (FileNotFoundException e) {
             throw new InitStructureFileNotFoundException(e);
         }
-        finally {
-            if (inputStream!=null) {
-                try {
-                    inputStream.close();
-                }
-                catch (IOException e1) {
-                    //
-                }
-            }
-        }
+
         DbStructureImport.importStructure(database, dbSchema, true);
         ManagerDaoFactory.getManagerDao().markCurrentVersion(database, modulePath.getName(), versionName, null);
         try {

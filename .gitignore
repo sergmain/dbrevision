@@ -1,0 +1,54 @@
+target/
+# .mvn/wrapper/maven-wrapper.jar
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+ui.lnf.xml
+debugger.xml
+ide.general.xml
+find.xml
+codestyles
+_windows
+filetypes.xml
+acceptedLanguageLevels.xml
+mavenVersion.xml
+laf.xml
+path.macros.xml
+diff.xml
+lombok-plugin.xml
+
+
+### NetBeans ###
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+
+aiai-station
+aiai-launchpad
+*_V2.class
+*_V3.class
+config
+vcs.xml
+627732-ДО-1.xml
+cons-text-parser.log
+result
+cleaner-logs
+hs_err_pid*.log
+codestyles
+

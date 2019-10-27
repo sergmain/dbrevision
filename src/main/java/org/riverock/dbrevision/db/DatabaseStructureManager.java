@@ -478,6 +478,7 @@ public class DatabaseStructureManager {
 
             meta = db.getTables(null, schemaPattern, tablePattern, types );
 
+            // https://docs.oracle.com/javase/7/docs/api/java/sql/DatabaseMetaData.html#getTables(java.lang.String,%20java.lang.String,%20java.lang.String,%20java.lang.String[])
             while (meta.next()) {
                 DbTable table = new DbTable();
 

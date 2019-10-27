@@ -68,10 +68,10 @@ public class TestPatchUnmarshaling extends TestCase {
 
         DbForeignKey fk = (DbForeignKey)p.getActionOrCustomClassActionOrSqlAction().get(1);
         assertNotNull(fk.getDeleteRule());
-        assertEquals(new Integer(0), fk.getDeleteRule().getRuleType());
+        assertEquals(Integer.valueOf(0), fk.getDeleteRule().getRuleType());
         assertEquals("java.sql.DatabaseMetaData.importedKeyCascade", fk.getDeleteRule().getRuleName());
         assertNotNull(fk.getDeferrability());
-        assertEquals(new Integer(7), fk.getDeferrability().getRuleType());
+        assertEquals(Integer.valueOf(7), fk.getDeferrability().getRuleType());
         assertEquals("java.sql.DatabaseMetaData.importedKeyNotDeferrable", fk.getDeferrability().getRuleName());
 
         // pkSchemaName="MILLENNIUM" pkTableName="TEST_1_1" pkColumnName="ID_TEST11" pkName="ID_TEST11_T11_PK"
@@ -85,7 +85,7 @@ public class TestPatchUnmarshaling extends TestCase {
         assertEquals(1, fk.getColumns().size());
         assertEquals("ID_TEST11", fk.getColumns().get(0).getPkColumnName());
         assertEquals("ID_TEST11", fk.getColumns().get(0).getFkColumnName());
-        assertEquals(new Integer(1), fk.getColumns().get(0).getKeySeq());
+        assertEquals(Integer.valueOf(1), fk.getColumns().get(0).getKeySeq());
     }
 
     public void testUnmarshalPatch_2() throws Exception {
